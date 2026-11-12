@@ -57,7 +57,7 @@ compatibilidad con los assets, scripts y servidores originales
 - la carpeta del juego se encuentra sola en instalaciones de GOG y en la original `EA GAMES\MOHAA`
   (también dentro de Wine), y un AppImage para Linux y la Steam Deck
 - audio HRTF para audífonos (`s_hrtf 1`)
-- un [renderer Vulkan](docs/markdown/03-configuration/12-plus-vulkan.md) experimental (`cl_renderer vulkan`, en los builds de Linux)
+- un [renderer Vulkan](docs/markdown/03-configuration/12-plus-vulkan.md) experimental (`cl_renderer vulkan`, en los builds de Linux y Windows)
 
 ### Para servidores y juego competitivo
 

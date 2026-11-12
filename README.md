@@ -57,7 +57,7 @@ the original assets, scripts and servers
 - the game folder found on its own for GOG and the original `EA GAMES\MOHAA` install (also inside
   Wine), an AppImage for Linux and the Steam Deck
 - HRTF audio for headphones (`s_hrtf 1`)
-- an experimental [Vulkan renderer](docs/markdown/03-configuration/12-plus-vulkan.md) (`cl_renderer vulkan`, Linux builds)
+- an experimental [Vulkan renderer](docs/markdown/03-configuration/12-plus-vulkan.md) (`cl_renderer vulkan`, Linux and Windows builds)
 
 ### For servers and competitive play
 
