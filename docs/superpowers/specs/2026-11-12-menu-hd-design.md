@@ -110,8 +110,8 @@ rest. The HD scale is 4 pixels per virtual unit: 4480x1920 pixels (at 1080p the 
   Labels inserted where the first one was (same draw order), every tile with `noparentclip`.
   Everything else is byte for byte the original; widget names must not change (the engine finds
   `backtogame` and others in `main` by name, `UI_MainMenuWidgetsUpdate`).
-- Scale option `--scale 4|2` (default 4; 2 gives 2048x1024 tiles per 512 virtual, a quarter of
-  the memory) in case the measured texture memory is too high for a machine.
+- Scale option `--scale 4|2` (default 4; at 2 each 1024-pixel tile covers 512 virtual units,
+  a quarter of the memory) in case the measured texture memory is too high for a machine.
 - Zips `.urc` files and tiles into the pk3 (default name `zzz-menu-hd.pk3`).
 - Backgrounds without an HD image keep their original `.urc` (not written to the pk3).
 
