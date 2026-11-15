@@ -69,7 +69,7 @@ font facfont-20
 fgcolor 0.94 0.75 0.38 1
 }
 
-// tabs replace each other (popmenu 0), so Back always returns to the main menu
+// tabs replace each other (replacemenu), so Back always returns to the main menu
 resource
 Button
 {
@@ -85,7 +85,7 @@ anchor 30 90 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options_video"
+stuffcommand "replacemenu plus_options_video"
 }
 
 resource
@@ -103,7 +103,7 @@ anchor 30 116 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options_detail"
+stuffcommand "replacemenu plus_options_detail"
 }
 
 resource
@@ -121,7 +121,7 @@ anchor 30 142 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options_audio"
+stuffcommand "replacemenu plus_options_audio"
 }
 
 resource
@@ -139,7 +139,7 @@ anchor 30 168 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options_controls"
+stuffcommand "replacemenu plus_options_controls"
 }
 
 resource
@@ -157,7 +157,7 @@ anchor 30 194 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options_game"
+stuffcommand "replacemenu plus_options_game"
 }
 
 resource
@@ -175,7 +175,7 @@ anchor 30 220 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/scroll.wav"
-stuffcommand "popmenu 0;pushmenu plus_options"
+stuffcommand "replacemenu plus_options"
 }
 
 // Apply restarts what pending changes need, from any tab; Back drops unapplied ones

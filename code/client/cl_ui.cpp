@@ -2720,6 +2720,24 @@ void UI_PushMenu_f(void)
 
 /*
 ====================
+UI_ReplaceMenu_f
+
+Added in OpenMOHAA Plus: "replacemenu <name>", see MenuManager::ReplaceMenu
+====================
+*/
+void UI_ReplaceMenu_f(void)
+{
+    if (Cmd_Argc() <= 1) {
+        Com_Printf("Usage: replacemenu <menuname>\n");
+        return;
+    }
+
+    menuManager.ReplaceMenu(Cmd_Argv(1));
+    UI_FocusMenuIfExists();
+}
+
+/*
+====================
 UI_PushMenuSP_f
 ====================
 */
@@ -5282,6 +5300,7 @@ void CL_ShutdownUI(void)
 
     // remove all UI commands
     Cmd_RemoveCommand("pushmenu");
+    Cmd_RemoveCommand("replacemenu"); // Added in OpenMOHAA Plus
     Cmd_RemoveCommand("forcemenu");
     Cmd_RemoveCommand("popmenu");
     Cmd_RemoveCommand("showmenu");
@@ -5494,6 +5513,7 @@ void CL_InitializeUI(void)
 
     // Add all commands
     Cmd_AddCommand("pushmenu", UI_PushMenu_f);
+    Cmd_AddCommand("replacemenu", UI_ReplaceMenu_f); // Added in OpenMOHAA Plus
     Cmd_AddCommand("pushmenu_sp", UI_PushMenuSP_f);
     Cmd_AddCommand("pushmenu_dm", UI_PushMenuMP_f);
     Cmd_AddCommand("forcemenu", UI_ForceMenu_f);
