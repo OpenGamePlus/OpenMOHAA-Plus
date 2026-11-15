@@ -11,7 +11,8 @@ original, so texts fit the same boxes.
 The fonts ship in `plus/zzz-plus.pk3`, next to the executable (in the development builds and
 the AppImage it is already there; see `fs_pluspath`). If you have an old `main/zzz-plus-fonts.pk3`,
 delete it: it is no longer needed. To go back to the original fonts, remove `plus/zzz-plus.pk3`
-(the menus of the same pack go with it).
+(the menus of the same pack go with it). The Windows `.msi` installer does not include the pack yet:
+copy `zzz-plus.pk3` from the release into a `plus/` folder next to `openmohaa.exe`.
 
 | Font | Used for | Replacement |
 |---|---|---|

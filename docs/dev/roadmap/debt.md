@@ -91,6 +91,7 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | Client hang on shutdown | Not reproducible | 2026-11-11: `quit` after a kick (3 runs) exits in 0.2 s with 0; SIGTERM exits in 0.1 s with 1 (headless, glibc) |
 | `Item::SetDMMaxAmount` sets the amount | Kept | Reimplemented from the original game; changing it alters DM ammo amounts, and the original `gamex86.dll` was not compared |
 | `G_SetTime` compares `level.svsStartTime != svsTime` | Kept | Only rewrites `CS_LEVEL_START_TIME` more often than needed; no visible symptom, and it sits on the #916 stopwatch path |
+| Windows `.msi` installers | Not shipping the plus pk3 | The `.msi` (`deploy_installer_windows`) does not carry `plus/zzz-plus.pk3` yet; users copy it from the release by hand (the `.zip` does carry it) |
 
 ## Not attempted (needs data or hardware not available)
 
