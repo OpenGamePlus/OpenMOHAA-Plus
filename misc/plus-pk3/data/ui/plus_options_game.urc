@@ -286,8 +286,9 @@ scalecvar ui_plusscale
 anchor 356 144 -1 -1
 linkcvar "cg_drawviewmodel"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "None" command "set cg_drawviewmodel 0"
 addpopup "MENU" "Gun only" command "set cg_drawviewmodel 1"
 addpopup "MENU" "Full" command "set cg_drawviewmodel 2"

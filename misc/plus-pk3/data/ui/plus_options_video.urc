@@ -256,8 +256,9 @@ scalecvar ui_plusscale
 anchor 356 112 -1 -1
 linkcvar "r_mode"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Desktop" command "set r_mode -2"
 addpopup "MENU" "1280x720" command "set r_mode -1; set r_customwidth 1280; set r_customheight 720"
 addpopup "MENU" "1600x900" command "set r_mode -1; set r_customwidth 1600; set r_customheight 900"
@@ -298,8 +299,9 @@ scalecvar ui_plusscale
 anchor 356 144 -1 -1
 linkcvar "r_fullscreen"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Fullscreen" command "set r_fullscreen 1; set r_noborder 0"
 addpopup "MENU" "Window" command "set r_fullscreen 0; set r_noborder 0"
 addpopup "MENU" "Borderless" command "set r_fullscreen 0; set r_noborder 1"
@@ -363,8 +365,9 @@ scalecvar ui_plusscale
 anchor 356 208 -1 -1
 linkcvar "com_maxfps"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "60" command "set com_maxfps 60"
 addpopup "MENU" "85" command "set com_maxfps 85"
 addpopup "MENU" "120" command "set com_maxfps 120"
@@ -434,8 +437,9 @@ scalecvar ui_plusscale
 anchor 356 272 -1 -1
 linkcvar "r_picmip"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Low" command "set r_picmip 2"
 addpopup "MENU" "Medium" command "set r_picmip 1"
 addpopup "MENU" "High" command "set r_picmip 0"
@@ -469,8 +473,9 @@ scalecvar ui_plusscale
 anchor 356 304 -1 -1
 linkcvar "r_texturemode"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Bilinear" command "set r_texturemode gl_linear_mipmap_nearest"
 addpopup "MENU" "Trilinear" command "set r_texturemode gl_linear_mipmap_linear"
 }
@@ -503,8 +508,9 @@ scalecvar ui_plusscale
 anchor 356 336 -1 -1
 linkcvar "r_ext_max_anisotropy"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Off" command "set r_ext_texture_filter_anisotropic 0"
 addpopup "MENU" "2x" command "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 2"
 addpopup "MENU" "4x" command "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 4"

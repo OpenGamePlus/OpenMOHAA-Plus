@@ -46,6 +46,22 @@ class BuildPk3(unittest.TestCase):
                     expected.add(os.path.relpath(os.path.join(root, f), data).replace(os.sep, "/"))
         self.assertTrue(expected <= names, expected - names)
 
+    def test_pulldown_field(self):
+        """The pulldown field: white border and arrow (tinted by the widget), dark see-through fill,
+        power of two; the arrow cell and the clear click texture."""
+        field = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/field.tga"))).convert("RGBA")
+        self.assertEqual(field.size, (1024, 128))
+        w, h = field.size
+        self.assertEqual(field.getpixel((w // 2, 1))[:3], (255, 255, 255))      # top border
+        self.assertGreater(field.getpixel((w // 2, 1))[3], 100)
+        fill = field.getpixel((w // 3, h // 2))
+        self.assertLess(max(fill[:3]), 10)
+        self.assertTrue(30 < fill[3] < 160, fill)
+        cx = w - round(12 * w / 160)                                             # the arrow cell is 24 units
+        self.assertEqual(field.getpixel((cx, h // 2))[:3], (255, 255, 255))
+        clear = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/clear.tga"))).convert("RGBA")
+        self.assertEqual({px[3] for px in clear.getdata()}, {0})
+
     def test_tiles_are_power_of_two(self):
         for name in ("bg_l", "bg_r"):
             self.assertEqual(self.tile(name).size, (2048, 2048))

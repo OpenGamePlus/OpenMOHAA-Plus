@@ -149,8 +149,14 @@ float UIPulldownMenu::getDescWidth(uipull_describe *desc)
 {
     UIReggedMaterial *mat = desc->material;
     if (mat) {
-        // Changed in OpenMOHAA Plus: plus the value shown before the arrow
-        return uii.Rend_GetShaderWidth(mat->GetMaterial()) + getValueWidth(desc);
+        // Changed in OpenMOHAA Plus: plus the value shown before the arrow; a lone pulldown is as
+        //  wide as the widget (less the 2-unit left margin of the hit test), so its whole field
+        //  opens it, with or without a value
+        const float width = uii.Rend_GetShaderWidth(mat->GetMaterial()) + getValueWidth(desc);
+        if (m_desc.NumObjects() == 1 && m_vVirtualScale[0] > 0) {
+            return Q_max(width, m_frame.size.width / m_vVirtualScale[0] - 2.0f);
+        }
+        return width;
     }
 
     return m_font->getWidth(desc->title, -1) + 8.0f;
@@ -420,7 +426,7 @@ void UIPulldownMenu::Draw(void)
 
             m_valueFont->setColor(m_submenu == i ? m_highlightFGColor : m_foreground_color);
             m_valueFont->Print(
-                atx / m_vVirtualScale[0] + 4.0f,
+                atx / m_vVirtualScale[0] + 6.0f,
                 (boxh / m_vVirtualScale[1] - m_valueFont->getHeight(NULL)) * 0.5f,
                 Sys_LV_CL_ConvertString(m_valueTitle),
                 -1,
@@ -429,6 +435,9 @@ void UIPulldownMenu::Draw(void)
             atx += valuew;
             width -= valuew;
         }
+        // Added in OpenMOHAA Plus: the arrow keeps its size when the field is wider (getDescWidth)
+        const float arroww =
+            desc->material ? uii.Rend_GetShaderWidth(desc->material->GetMaterial()) * m_vVirtualScale[0] : width;
 
         // Set font color based on whether the current item is selected
         if (m_submenu == i) {
@@ -436,7 +445,7 @@ void UIPulldownMenu::Draw(void)
             m_font->setColor(m_highlightFGColor);
             if (desc->selected_material) {
                 uii.Rend_DrawPicStretched(
-                    atx, 0.0f, width, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->selected_material->GetMaterial()
+                    atx, 0.0f, arroww, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->selected_material->GetMaterial()
                 );
             } else {
                 DrawBox(atx, 0.0f, width, m_frame.size.height, m_highlightBGColor, 1.0f);
@@ -449,7 +458,7 @@ void UIPulldownMenu::Draw(void)
         if (desc->material) {
             if (m_submenu != i) {
                 uii.Rend_DrawPicStretched(
-                    atx, 0.0f, width, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->material->GetMaterial()
+                    atx, 0.0f, arroww, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->material->GetMaterial()
                 );
             }
         } else {

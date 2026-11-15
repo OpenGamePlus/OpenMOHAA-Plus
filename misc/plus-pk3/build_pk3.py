@@ -9,7 +9,8 @@ The pk3 holds misc/plus-pk3/data/**, the fonts from misc/fonts/make_fonts.py (un
 ART-LICENSE.md, the menu background as two 2048x2048 textures, textures/menu_plus/bg_l.tga and
 bg_r.tga: the halves of art/background.jpg (3840x1600), each stretched anamorphically, and two
 256x4 alpha gradients drawn by the menus: bar.tga (the dark left bar) and hover.tga (a highlighted
-entry). Requires Pillow (python3 -m pip install pillow).
+entry), and the pulldown field, textures/menu_plus/field.tga (see pulldown_field), with clear.tga, the
+transparent pulldown arrow that only sets the clickable area. Requires Pillow (python3 -m pip install pillow).
 """
 import argparse
 import io
@@ -19,7 +20,7 @@ import sys
 import tempfile
 import zipfile
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LANCZOS = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
@@ -52,6 +53,32 @@ def gradients():
         yield f"textures/menu_plus/{name}.tga", out.getvalue()
 
 
+def pulldown_field():
+    """(name, TGA bytes) of the pulldown field drawn over the 160x24 virtual units of a pulldown:
+    border, dark see-through fill, a divider and a down arrow in the 24-unit cell at the right.
+    White, so the widget's fgcolor tints it; 1024x128 (power of two), drawn in units."""
+    w, h, uw, uh = 1024, 128, 160, 24
+    sx, sy = w / uw, h / uh
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    white = (255, 255, 255)
+    d.rectangle((0, 0, w - 1, h - 1), fill=(0, 0, 0, 110))
+    t = 1.0                                                     # border, in units
+    for box in ((0, 0, uw, t), (0, uh - t, uw, uh), (0, 0, t, uh), (uw - t, 0, uw, uh)):
+        d.rectangle((round(box[0] * sx), round(box[1] * sy), round(box[2] * sx) - 1, round(box[3] * sy) - 1),
+                    fill=white + (150,))
+    x = uw - 24                                                 # divider of the arrow cell
+    d.rectangle((round(x * sx), round(4 * sy), round((x + 0.8) * sx) - 1, round((uh - 4) * sy) - 1),
+                fill=white + (110,))
+    cx, cy = uw - 12, uh / 2
+    d.polygon([(round((cx - 5) * sx), round((cy - 2.5) * sy)), (round((cx + 5) * sx), round((cy - 2.5) * sy)),
+               (round(cx * sx), round((cy + 3) * sy))], fill=white + (255,))
+    for name, image in (("field", img), ("clear", Image.new("RGBA", (8, 8), (0, 0, 0, 0)))):
+        out = io.BytesIO()
+        image.save(out, "TGA")
+        yield f"textures/menu_plus/{name}.tga", out.getvalue()
+
+
 def add_tree(z, root):
     for folder, _, files in os.walk(root):
         for f in sorted(files):
@@ -72,7 +99,7 @@ def main(argv=None):
             subprocess.run([sys.executable, os.path.join(HERE, "..", "fonts", "make_fonts.py"), "--out", fonts],
                            check=True)
             add_tree(z, fonts)
-        for name, data in [*tiles(), *gradients()]:
+        for name, data in [*tiles(), *gradients(), *pulldown_field()]:
             z.writestr(name, data)
         z.write(os.path.join(HERE, "ART-LICENSE.md"), "ART-LICENSE.md")
     print(f"wrote {args.out}")
