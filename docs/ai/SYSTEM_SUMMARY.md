@@ -1,6 +1,6 @@
 # System summary
 
-Last updated: 2026-11-11. Live snapshot; update when the facts below change.
+Last updated: 2026-11-15. Live snapshot; update when the facts below change.
 
 ## Repository
 
@@ -52,7 +52,7 @@ Details: [overview.md](../dev/architecture/overview.md).
 | Filesystem | GOG lookup uses MOHAA's ID (was Quake 3), Steam/Microsoft Store lookups off, `fs_eapath` (EA folder, also in Wine), clear error when the game data is missing | (phase 4) |
 | Server browser | Master lookups in the background (`code/gamespy/gs_resolve.cpp`), next master on DNS failure, unused master sockets start as `INVALID_SOCKET` | #376 |
 | Server browser | Favorites and history (`code/client/cl_serverbook.cpp`), queried directly on refresh; `dm_browser_show`, `dm_browser_search`, `dm_max_ping`, game type / pure / sprint filters; servers publish `net_gamespy_port` | (phase 4) |
-| Plus menu | `plus/zzz-plus.pk3` (`misc/plus-pk3/`): adaptive main menu, server browser and six option tabs (Video, Detail, Audio, Controls, Game, Plus); engine side: `fs_pluspath` data folder (above base, below `fs_game`, pure exemption for UI/fonts only, ADR 0007), `.urc` `anchor` and `cover`, server list `togglefavorite`/`selectitem`, `linkcvar` pulldowns matching every `set`, `ui_applylatched`/`ui_discardlatched`, scaled `FakkBindList`; `ui_plusscale`; `ui_printwidgets` (layout geometry for tests) | (phase 4) |
+| Plus menu | `plus/zzz-plus.pk3` (`misc/plus-pk3/`): adaptive main menu, server browser and six option tabs (Video, Detail, Audio, Controls, Game, Plus); engine side: `fs_pluspath` data folder (above base, below `fs_game`, pure exemption for UI/fonts only, ADR 0007), `.urc` `anchor` and `cover`, server list `togglefavorite`/`selectitem`, `linkcvar` pulldowns matching every `set` (drawn as a bordered field, list stays open on click), `replacemenu`, `ui_applylatched`/`ui_discardlatched`, scaled `FakkBindList`; `ui_plusscale`; `ui_printwidgets` (layout geometry for tests) | (phase 4) |
 | Fonts | `misc/fonts/make_fonts.py`: DejaVu-based RitualFont replacements with Latin-1, 2x textures, original widths; `plus/zzz-plus.pk3` built in CI by `misc/plus-pk3/build_pk3.py` (data tree, fonts, menu art) | (phase 4) |
 | Localization | `cl_language` overlay (`lang/<code>/`), UTF-8 to Latin-1, `localize` command, labels localized, missing Latin-1 glyphs drawn as base letters (`code/renderercommon/tr_fontfold.h`), sorted localization files | (phase 4) |
 | Packaging | Linux AppImage (x86_64, aarch64) built in CI, `misc/linux/AppRun` picks the game folder | #890 |
@@ -64,7 +64,7 @@ Details: [overview.md](../dev/architecture/overview.md).
 | Administration | Admin accounts, roles, allow/deny permissions, `ad_*` commands, audit log (`code/server/sv_admin.cpp`) | #905 |
 | Downloads | HTTP download redirection (`sv_dlURL`): `USE_CURL` defined, `cl_curl.c` fixed, server info parsed | (phase 4) |
 | Renderer | `renderer_vulkan` (`cl_renderer vulkan`): GL1 renderer on a Vulkan emulation of its GL calls (`code/renderervk`, `USE_VULKAN` in `code/sdl/sdl_glimp.c`); headless offscreen mode; Linux and Windows CI build it (`USE_RENDERER_DLOPEN=ON`), macOS not | (phase 5) |
-| Docs | Technical docs (`docs/dev`, `docs/ai`), docs checker and its workflow | - |
+| Docs | Technical docs (`docs/dev`, `docs/ai`), docs checker (also the fork's `docs/markdown` pages; specs for personal data) and its workflow; banner and palette (`docs/banner.svg`, PROJECT_CONTEXT) | - |
 
 ## Tests
 
