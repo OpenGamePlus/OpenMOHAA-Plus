@@ -326,6 +326,70 @@ class PureServer(GameTestCase):
         self.assertNotIn("Unpure", log)
 
 
+@require_game
+class PlusDataFolder(GameTestCase):
+    """The fork-only <fs_pluspath>/plus/*.pk3 folder."""
+
+    def plus_client(self, home, plus_dir, *args):
+        """A client whose fork data folder is <plus_dir>/plus ("" disables it)."""
+        c = omoh.client(home, "+set", "fs_pluspath", plus_dir, *args)
+        self.games.append(c)
+        return c
+
+    def _plus_pak(self, files):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, True)
+        os.makedirs(os.path.join(tmp, "plus"))
+        with zipfile.ZipFile(os.path.join(tmp, "plus", "zzz-plus.pk3"), "w") as z:
+            for name in files:
+                z.writestr(name, "plus")
+        return tmp
+
+    def _which(self, c, name):
+        start = len(c.log())
+        c.send(f"which {name}")
+        return c.wait_for(rf'File "{re.escape(name)}" found|File not found: "{re.escape(name)}"',
+                          start=start)[start:]
+
+    def test_plus_pak_overrides_base_menu(self):
+        c = self.plus_client(self.home, self._plus_pak(["ui/main.urc"]))
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+
+    def test_no_plus_folder_keeps_original_menu(self):
+        c = self.plus_client(self.home, "")
+        out = self._which(c, "ui/main.urc")
+        self.assertRegex(out, r"main[/\\]Pak\d+\.pk3")
+        c.quit()
+
+    def test_fs_game_mod_beats_plus_pak(self):
+        os.makedirs(os.path.join(self.home.path, "plusmod"))
+        with zipfile.ZipFile(os.path.join(self.home.path, "plusmod", "zzz-mod.pk3"), "w") as z:
+            z.writestr("ui/main.urc", "mod")
+        c = self.plus_client(self.home, self._plus_pak(["ui/main.urc"]), "+set", "fs_game", "plusmod")
+        self.assertIn("zzz-mod.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+
+    def test_plus_pak_on_pure_server(self):
+        s = self.server("+set", "developer", "1", "+set", "sv_pure", "1", "+set", "g_gametype", "1",
+                        "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        c = self.plus_client(client_home, self._plus_pak(["ui/main.urc", "maps/plus_test.txt"]),
+                             "+connect", f"127.0.0.1:{s.port}")
+        log = s.wait_for(r"entered the battle|Unpure", timeout=120)
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        self.assertIn("File not found", self._which(c, "maps/plus_test.txt"))
+        c.send("disconnect")
+        c.wait_for(r"Disconnect|disconnect")
+        time.sleep(2)
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+        self.assertEqual(s.quit(), 0)
+        self.assertNotIn("Unpure", log)
+
+
 def _quiet_handler(directory):
     class Handler(http.server.SimpleHTTPRequestHandler):
         requests = []

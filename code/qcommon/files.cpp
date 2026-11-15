@@ -234,6 +234,7 @@ typedef struct {
 	int				hashSize;					// hash table size (power of 2)
 	fileInPack_t*	*hashTable;					// hash table
 	fileInPack_t*	buildBuffer;				// buffer with the filenames etc.
+	qboolean		plusData;					// Added in OpenMOHAA Plus: from the fork data folder
 } pack_t;
 
 typedef struct {
@@ -260,6 +261,7 @@ static	cvar_t		*fs_steampath;
 static	cvar_t		*fs_gogpath;
 static	cvar_t		*fs_microsoftstorepath;
 static	cvar_t		*fs_eapath; // Added in OpenMOHAA Plus
+static	cvar_t		*fs_pluspath; // Added in OpenMOHAA Plus
 
 static	cvar_t		*fs_basepath;
 static	cvar_t		*fs_basegame;
@@ -393,6 +395,28 @@ qboolean FS_PakIsPure( pack_t *pack ) {
 		return qfalse;	// not on the pure server pak list
 	}
 	return qtrue;
+}
+
+/*
+=================
+FS_PlusDataAllowed
+
+Added in OpenMOHAA Plus: files of the fork data folder that stay readable on a pure server
+(menus and fonts only; nothing that changes the game).
+=================
+*/
+static qboolean FS_PlusDataAllowed( const pack_t *pack, const char *filename ) {
+	static const char *const prefixes[] = { "ui/", "fonts/", "gfx/fonts/", "textures/menu_plus/" };
+
+	if ( !pack->plusData ) {
+		return qfalse;
+	}
+	for ( size_t i = 0; i < ARRAY_LEN( prefixes ); i++ ) {
+		if ( !Q_stricmpn( filename, prefixes[i], strlen( prefixes[i] ) ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
 }
 
 
@@ -1412,7 +1436,7 @@ long FS_FOpenFileReadDir(const char *filename, searchpath_t *search, fileHandle_
 		if(search->pack->hashTable[hash])
 		{
 			// disregard if it doesn't match one of the allowed pure pak files
-			if(!unpure && !FS_PakIsPure(search->pack))
+			if(!unpure && !FS_PakIsPure(search->pack) && !FS_PlusDataAllowed(search->pack, filename))
 			{
 				*file = 0;
 				return -1;
@@ -1864,7 +1888,7 @@ int	FS_FileIsInPAK(const char *filename, int *pChecksum ) {
 		// is the element a pak file?
 		if ( search->pack && search->pack->hashTable[hash] ) {
 			// disregard if it doesn't match one of the allowed pure pak files
-			if ( !FS_PakIsPure(search->pack) ) {
+			if ( !FS_PakIsPure(search->pack) && !FS_PlusDataAllowed(search->pack, filename) ) {
 				continue;
 			}
 
@@ -3014,6 +3038,10 @@ qboolean FS_Which(const char *filename, void *searchPath)
 {
 	searchpath_t *search = (searchpath_t*)searchPath;
 
+	// Changed in OpenMOHAA Plus: skip paks a pure server rejects, as a real read does
+	if(search->pack && !FS_PakIsPure(search->pack) && !FS_PlusDataAllowed(search->pack, filename))
+		return qfalse;
+
 	if(FS_FOpenFileReadDir(filename, search, NULL, qfalse, qfalse) > 0)
 	{
 		if(search->pack)
@@ -3237,6 +3265,47 @@ void FS_AddGameDirectory(const char *path, const char *dir) {
 
 	search->next = fs_searchpaths;
 	fs_searchpaths = search;
+}
+
+/*
+================
+FS_AddPlusDirectory
+
+Added in OpenMOHAA Plus: adds the .pk3 files of <fs_pluspath>/plus (packs only, no loose files).
+================
+*/
+static void FS_AddPlusDirectory(void)
+{
+	char			**pakfiles;
+	int				numfiles;
+
+	if (!fs_pluspath->string[0] || com_target_game->integer) {
+		return;
+	}
+
+	pakfiles = Sys_ListFiles(FS_BaseDir_BuildOSPath(fs_pluspath->string, "plus"), ".pk3", NULL, &numfiles, qfalse);
+	if (!pakfiles) {
+		return;
+	}
+	qsort(pakfiles, numfiles, sizeof(char*), paksort);
+
+	for (int i = 0; i < numfiles; i++) {
+		pack_t *pak = FS_LoadZipFile(FS_BuildOSPath(fs_pluspath->string, "plus", pakfiles[i]), pakfiles[i]);
+		if (!pak) {
+			continue;
+		}
+
+		Q_strncpyz(pak->pakPathname, FS_BaseDir_BuildOSPath(fs_pluspath->string, "plus"), sizeof(pak->pakPathname));
+		Q_strncpyz(pak->pakGamename, "plus", sizeof(pak->pakGamename));
+		pak->plusData = qtrue;
+
+		searchpath_t *search = (searchpath_t*)Z_Malloc(sizeof(searchpath_t));
+		search->pack = pak;
+		search->next = fs_searchpaths;
+		fs_searchpaths = search;
+	}
+
+	Sys_FreeFileList(pakfiles);
 }
 
 /*
@@ -3507,7 +3576,23 @@ static void FS_ReorderPurePaks( void )
 
 	fs_reordered = qfalse;
 
-	p_insert_index = &fs_searchpaths; // we insert in order at the beginning of the list
+	// Added in OpenMOHAA Plus: the fork data folder keeps priority over the server's paks
+	// (only its menu and font files are readable on a pure server)
+	p_insert_index = &fs_searchpaths;
+	for ( p_previous = &fs_searchpaths; ( s = *p_previous ) != NULL; ) {
+		if ( s->pack && s->pack->plusData && p_previous != p_insert_index ) {
+			*p_previous = s->next;
+			s->next = *p_insert_index;
+			*p_insert_index = s;
+			p_insert_index = &s->next;
+		} else {
+			if ( s->pack && s->pack->plusData ) {
+				p_insert_index = &s->next;
+			}
+			p_previous = &s->next;
+		}
+	}
+
 	for ( i = 0 ; i < fs_numServerPaks ; i++ ) {
 		p_previous = p_insert_index; // track the pointer-to-current-item
 		for (s = *p_insert_index; s; s = s->next) {
@@ -3703,6 +3788,7 @@ static void FS_Startup(const char* gameName)
 	fs_gogpath = Cvar_Get ("fs_gogpath", Sys_GogPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_microsoftstorepath = Cvar_Get ("fs_microsoftstorepath", Sys_MicrosoftStorePath(), CVAR_INIT|CVAR_PROTECTED );
 	// Added in OpenMOHAA Plus: only searched when the base path has no game data
+	fs_pluspath = Cvar_Get ("fs_pluspath", Sys_BinaryPath(), CVAR_INIT|CVAR_PROTECTED ); // Added in OpenMOHAA Plus
 	fs_eapath = Cvar_Get ("fs_eapath", FS_HasGameData(fs_basepath->string) ? "" : FS_DetectEAPath(), CVAR_INIT|CVAR_PROTECTED );
 
 #ifdef __APPLE__
@@ -3737,6 +3823,7 @@ static void FS_Startup(const char* gameName)
 	FS_CreatePath(fs_homedatapath->string);
 	FS_CreatePath(fs_homestatepath->string);
 	FS_AddGameDirectories(gameName);
+	FS_AddPlusDirectory();
 
 	// check for additional base game so mods can be based upon other mods
 	if ( fs_basegame->string[0] && Q_stricmp( fs_basegame->string, gameName ) ) {
@@ -3862,7 +3949,7 @@ const char *FS_LoadedPakChecksums( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( !search->pack ) {
+		if ( !search->pack || search->pack->plusData ) {
 			continue;
 		}
 
@@ -3888,7 +3975,7 @@ const char *FS_LoadedPakNames( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( !search->pack ) {
+		if ( !search->pack || search->pack->plusData ) {
 			continue;
 		}
 
@@ -3918,7 +4005,7 @@ const char *FS_LoadedPakPureChecksums( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( !search->pack ) {
+		if ( !search->pack || search->pack->plusData ) {
 			continue;
 		}
 
@@ -3945,7 +4032,7 @@ const char *FS_ReferencedPakChecksums( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( search->pack ) {
+		if ( search->pack && !search->pack->plusData ) {
 			if (search->pack->referenced || Q_stricmpn(search->pack->pakGamename, com_basegame->string, strlen(com_basegame->string))) {
 				Q_strcat( info, sizeof( info ), va("%i ", search->pack->checksum ) );
 			}
@@ -3988,7 +4075,7 @@ const char *FS_ReferencedPakPureChecksums( void ) {
 		for ( search = fs_searchpaths ; search ; search = search->next ) {
 			// is the element a pak file and has it been referenced based on flag?
 			// skip paks rejected by the pure server: they may carry stale references from before connecting
-			if ( search->pack && (search->pack->referenced & nFlags) && FS_PakIsPure(search->pack) ) {
+			if ( search->pack && (search->pack->referenced & nFlags) && !search->pack->plusData && FS_PakIsPure(search->pack) ) {
 				Q_strcat( info, sizeof( info ), va("%i ", search->pack->pure_checksum ) );
 				if (nFlags & (FS_CGAME_REF | FS_UI_REF)) {
 					break;
@@ -4023,7 +4110,7 @@ const char *FS_ReferencedPakNames( void ) {
 	// and referenced one's from baseq3
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( search->pack ) {
+		if ( search->pack && !search->pack->plusData ) {
 			if (*info) {
 				Q_strcat(info, sizeof( info ), " " );
 			}
@@ -4189,6 +4276,7 @@ void FS_InitFilesystem( void ) {
 	Com_StartupVariable("fs_homedatapath");
 	Com_StartupVariable("fs_homestatepath");
 	Com_StartupVariable("fs_game");
+	Com_StartupVariable("fs_pluspath"); // Added in OpenMOHAA Plus
     Com_StartupVariable("fs_restrict");
 
 	if(!FS_FilenameCompare(Cvar_VariableString("fs_game"), com_basegame->string))

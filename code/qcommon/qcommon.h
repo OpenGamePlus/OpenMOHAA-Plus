@@ -1410,6 +1410,7 @@ qboolean Sys_Mkdir( const char *path );
 FILE	*Sys_Mkfifo( const char *ospath );
 char	*Sys_Cwd( void );
 void	Sys_SetDefaultInstallPath(const char *path);
+char	*Sys_BinaryPath(void); // Added in OpenMOHAA Plus
 char	*Sys_DefaultInstallPath(void);
 char	*Sys_SteamPath(void);
 char	*Sys_GogPath(void);
