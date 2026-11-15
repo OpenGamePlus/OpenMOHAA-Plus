@@ -356,6 +356,16 @@ class PlusDataFolder(GameTestCase):
         self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
         c.quit()
 
+    def test_plus_fonts_beat_old_fonts_pak(self):
+        name = "fonts/plus_test.RitualFont"  # not a real font: the game must not load it
+        old = os.path.join(self.home.path, "main", "zzz-plus-fonts.pk3")
+        os.makedirs(os.path.dirname(old), exist_ok=True)
+        with zipfile.ZipFile(old, "w") as z:
+            z.writestr(name, "old")
+        c = self.plus_client(self.home, self._plus_pak([name]))
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, name))
+        c.quit()
+
     def test_no_plus_folder_keeps_original_menu(self):
         c = self.plus_client(self.home, "")
         out = self._which(c, "ui/main.urc")

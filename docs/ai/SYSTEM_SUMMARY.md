@@ -10,7 +10,7 @@ Last updated: 2026-11-11. Live snapshot; update when the facts below change.
 | Default branch | `main`; work branches are merged with `--no-ff` and deleted |
 | User docs site | GitHub Pages from `.github/workflows/doxygen-publish.yml` (source "GitHub Actions", on push to `main`) |
 | Upstream base | `a2f34019` (docs: clarify contribution guidelines) |
-| Fork-only files | `AGENTS.md`, `LICENSE` (AGPL-3.0), `README.es.md`, `docs/banner.svg`, `docs/dev/`, `docs/ai/`, `tests/`, `misc/docs-check/`, `misc/scr-tools/`, `misc/vscode-mohaa/`, `misc/mods/`, `misc/fonts/`, `misc/i18n/`, `misc/linux/`, `code/renderervk/`, `cmake/renderer_vulkan.cmake`, `code/fgame/g_antilag.*`, `docs/markdown/**/*plus-*.md`, `.github/workflows/docs-check.yml`, `.github/workflows/upstream-sync.yml` |
+| Fork-only files | `AGENTS.md`, `LICENSE` (AGPL-3.0), `README.es.md`, `docs/banner.svg`, `docs/dev/`, `docs/ai/`, `tests/`, `misc/docs-check/`, `misc/scr-tools/`, `misc/vscode-mohaa/`, `misc/mods/`, `misc/fonts/`, `misc/plus-pk3/`, `misc/i18n/`, `misc/linux/`, `code/renderervk/`, `cmake/renderer_vulkan.cmake`, `code/fgame/g_antilag.*`, `docs/markdown/**/*plus-*.md`, `.github/workflows/docs-check.yml`, `.github/workflows/upstream-sync.yml` |
 | Upstream files modified (merge conflict risk) | `LAYOUT.md` (pointer), `.gitignore`, `README.md`, `docs/markdown/04-coding/02-coding.md`, `.github/workflows/{branches-build,shared-build-linux,tags-publish-release}.yml`, the files touched by the fixes below |
 
 ## Build outputs
@@ -52,7 +52,7 @@ Details: [overview.md](../dev/architecture/overview.md).
 | Filesystem | GOG lookup uses MOHAA's ID (was Quake 3), Steam/Microsoft Store lookups off, `fs_eapath` (EA folder, also in Wine), clear error when the game data is missing | (phase 4) |
 | Server browser | Master lookups in the background (`code/gamespy/gs_resolve.cpp`), next master on DNS failure, unused master sockets start as `INVALID_SOCKET` | #376 |
 | Server browser | Favorites and history (`code/client/cl_serverbook.cpp`), queried directly on refresh; `dm_browser_show`, `dm_browser_search`, `dm_max_ping`, game type / pure / sprint filters; servers publish `net_gamespy_port` | (phase 4) |
-| Fonts | `misc/fonts/make_fonts.py`: DejaVu-based RitualFont replacements with Latin-1, 2x textures, original widths; `zzz-plus-fonts.pk3` built in CI | (phase 4) |
+| Fonts | `misc/fonts/make_fonts.py`: DejaVu-based RitualFont replacements with Latin-1, 2x textures, original widths; `plus/zzz-plus.pk3` built in CI by `misc/plus-pk3/build_pk3.py` (data tree, fonts, menu art) | (phase 4) |
 | Localization | `cl_language` overlay (`lang/<code>/`), UTF-8 to Latin-1, `localize` command, labels localized, missing Latin-1 glyphs drawn as base letters (`code/renderercommon/tr_fontfold.h`), sorted localization files | (phase 4) |
 | Packaging | Linux AppImage (x86_64, aarch64) built in CI, `misc/linux/AppRun` picks the game folder | #890 |
 | Competition mod | `misc/mods/plus-match` (scripts only): rounds, halftime side swap, draw, team timeouts | (phase 3) |

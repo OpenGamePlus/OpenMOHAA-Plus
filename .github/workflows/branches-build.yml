@@ -59,7 +59,7 @@ jobs:
           'linux-amd64',
           'linux-amd64-appimage',
           'linux-arm64-appimage',
-          'fonts',
+          'plus-data',
           'linux-i686',
           'linux-arm64',
           'linux-armhf',
@@ -88,13 +88,20 @@ jobs:
         name: 'out-${{matrix.target_os}}'
         path: ${{github.workspace}}/${{matrix.target_os}}
 
+    # Added in OpenMOHAA Plus: the data pack goes in plus/ next to the executable (flat package on every platform)
+    - uses: actions/download-artifact@v4
+      if: ${{ env.PUBLISH == 'true' && (startsWith(matrix.target_os, 'windows-') || startsWith(matrix.target_os, 'macos-')) && !endsWith(matrix.target_os, '-pdb') }}
+      with:
+        name: out-plus-data
+        path: ${{github.workspace}}/${{matrix.target_os}}/plus
+
     - name: Zip
-      if: ${{ env.PUBLISH == 'true' && !endsWith(matrix.target_os, '-appimage') && matrix.target_os != 'fonts' }}
+      if: ${{ env.PUBLISH == 'true' && !endsWith(matrix.target_os, '-appimage') && matrix.target_os != 'plus-data' }}
       working-directory: '${{github.workspace}}/${{matrix.target_os}}'
       run: zip -9 -r "../${{env.RELEASE_NAME}}.zip" ./
 
     - name: Release
-      if: ${{ env.PUBLISH == 'true' && !endsWith(matrix.target_os, '-appimage') && matrix.target_os != 'fonts' }}
+      if: ${{ env.PUBLISH == 'true' && !endsWith(matrix.target_os, '-appimage') && matrix.target_os != 'plus-data' }}
       uses: softprops/action-gh-release@v2.3.2
       with:
         tag_name: 'dev'
@@ -108,8 +115,8 @@ jobs:
         tag_name: 'dev'
         files: ${{github.workspace}}/${{matrix.target_os}}/*.AppImage
 
-    - name: Release fonts
-      if: ${{ matrix.target_os == 'fonts' }}
+    - name: Release plus data
+      if: ${{ matrix.target_os == 'plus-data' }}
       uses: softprops/action-gh-release@v2.3.2
       with:
         tag_name: 'dev'
