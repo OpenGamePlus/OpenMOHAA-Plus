@@ -1211,7 +1211,8 @@ end.
     OPTIONS_BAR = ["title", "tab_video", "tab_detail", "tab_audio", "tab_controls", "tab_game", "tab_plus",
                    "apply", "back"]
     # option tabs and their number of rows (one label per row)
-    OPTION_TABS = [("plus_options_video", 8), ("plus_options", 7)]
+    OPTION_TABS = [("plus_options_video", 8), ("plus_options_detail", 10), ("plus_options_game", 7),
+                   ("plus_options", 7)]
 
     def urc_command(self, urc, name):
         """The stuffcommand of the widget <name> in ui/<urc>.urc of the test pk3."""
@@ -1286,6 +1287,14 @@ end.
         v = self.pulldown_values(c, "plus_options_video", "set r_mode -2", "set r_fullscreen 1;set r_noborder 0",
                                  "set r_ext_texture_filter_anisotropic 0")
         self.assertEqual((v[0], v[1], v[5]), ("Desktop", "Fullscreen", "Off"))
+        self.assertEqual(c.quit(), 0)
+
+    def test_detail_presets_show_values(self):
+        # model detail, terrain, effects, curves, shadows: presets that set several cvars
+        _, c = self.start(1280, 720)
+        v = self.pulldown_values(c, "plus_options_detail", "set r_lodscale 0.55;set r_lodcap 0.5;set r_lodviewmodelcap 0.55",
+                                 "set cg_effectdetail 0.7;set vss_maxcount 20")
+        self.assertEqual((v[0], v[2]), ("High", "Medium"))
         self.assertEqual(c.quit(), 0)
 
     def top_menu(self, c):
