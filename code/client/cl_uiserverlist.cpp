@@ -1008,7 +1008,11 @@ int UIFAKKServerList::ServerCompareFunction(const UIListCtrlItem *i1, const UILi
 //  its header and row height; the original list keeps the HUD scale, so its text stays small
 const vec2_t& UIFAKKServerList::getItemScale() const
 {
-    return (m_flags & WF_ANCHORED) ? getVirtualScale() : getHighResScale();
+    // not ?: , MSVC decays the two arrays to pointers there
+    if (m_flags & WF_ANCHORED) {
+        return getVirtualScale();
+    }
+    return getHighResScale();
 }
 
 // Added in OpenMOHAA Plus: "ui_printwidgets" also prints the scale the rows are drawn at
