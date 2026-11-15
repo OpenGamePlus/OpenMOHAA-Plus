@@ -596,7 +596,7 @@ void UIFAKKServerList::RefreshServerList(Event *ev)
             AddFilter(filter, "numplayers < maxplayers", sizeof(filter));
         }
 
-        // Changed in OpenMOHAA Plus: dm_browser_show 1/2 lists only favorite/recent servers, without the
+        // Changed in OpenMOHAA Plus: dm_browser_show 1/2/3 lists only favorite/recent servers, without the
         // masters
         static cvar_t *dm_browser_show = Cvar_Get("dm_browser_show", "0", CVAR_ARCHIVE);
         if (!dm_browser_show->integer) {
@@ -1240,6 +1240,8 @@ void UIFAKKServerList::UpdateServerListCallBack(
                 bHide = !bFavorite;
             } else if (dm_browser_show->integer == 2) {
                 bHide = !bFavorite && !bRecent;
+            } else if (dm_browser_show->integer == 3) {
+                bHide = !bRecent;
             } else if (!bFavorite) {
                 // favorites are never hidden by the filters
                 // the game type filter cvars were declared but never applied: game types as in g_gametype

@@ -657,6 +657,33 @@ class ServerBrowser(GameTestCase):
         self.assertNotIn("Bravo", listed)
         self.assertEqual(c.quit(), 0)
 
+    def test_recent_only_filter(self):
+        servers = []
+        for name in ("Alpha", "Bravo"):
+            home = omoh.Home()
+            self.addCleanup(home.cleanup)
+            s = omoh.server(home, "+set", "sv_hostname", name, "+map", "dm/mohdm1")
+            self.games.append(s)
+            s.wait_for(r"==== InitGame ====")
+            s.send("net_gamespy_port")
+            qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+            servers.append(f"127.0.0.1:{s.port} {qport}")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverfavorites.txt", servers[0] + "\n")     # Alpha is a favourite only
+        client_home.write("serverhistory.txt", servers[1] + "\n")       # Bravo is recent only
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("dm_browser_show 3")
+        listed = self._list(c, r"Server list \(\d+\):(\n  .*)*\n.*Bravo")
+        self.assertIn("Bravo", listed)
+        self.assertNotIn("Alpha", listed)
+        self.assertEqual(c.quit(), 0)
+
     def test_favorites_history_and_search(self):
         alpha = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
         home_b = omoh.Home()
@@ -1027,6 +1054,21 @@ end.
             x = w * 3 // 4
             column = [y for y in range(h) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
             self.assertAlmostEqual(column[-1] + 1, h - 40 * s, delta=2)
+
+    def test_browser_screen_opens(self):
+        for w, h in ((1280, 720), (2560, 1080)):
+            home, c = self.start(w, h)
+            c.send("pushmenu plus_browser")
+            time.sleep(2)
+            _, _, rows = self.screenshot(home, c)
+            log = c.log()
+            self.assertEqual(c.quit(), 0)
+            for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+                self.assertNotIn(error, log)
+            # the content panel (a dark fill, unlike the red/blue tiles) ends 20 units from the right edge
+            y = int(h * 0.6)
+            panel = [x for x in range(w // 2, w) if rows[y][x][2] < 150]
+            self.assertAlmostEqual(panel[-1] + 1, w - 20 * h / 480, delta=3, msg=(w, h))
 
     def test_no_ui_errors(self):
         _, c = self.start(1280, 720)
