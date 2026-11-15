@@ -996,9 +996,10 @@ end.
     def tearDownClass(cls):
         shutil.rmtree(cls.plus_dir, True)
 
-    def start(self, width, height, *args):
-        home = omoh.Home()
-        self.addCleanup(home.cleanup)
+    def start(self, width, height, *args, home=None):
+        if home is None:
+            home = omoh.Home()
+            self.addCleanup(home.cleanup)
         c = PlusDataFolder.plus_client(self, home, self.plus_dir, "+set", "r_mode", "-1",
                                        "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height),
                                        *args)
@@ -1289,8 +1290,37 @@ end.
         for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
             self.assertNotIn(error, log)
 
+    def test_browser_names_without_version(self):
+        # the Plus list has a Version column, so names are shown as the server sends them; the
+        # original list keeps "(1.11) " before the name
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        s = omoh.server(home, "+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
+        self.games.append(s)
+        s.wait_for(r"==== InitGame ====")
+        s.send("net_gamespy_port")
+        qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+        home_c = omoh.Home()
+        self.addCleanup(home_c.cleanup)
+        home_c.write("serverhistory.txt", f"127.0.0.1:{s.port} {qport}\n")
+        _, c = self.start(1920, 1080, *ServerBrowser.NO_MASTERS, "+set", "dm_browser_show", "3", home=home_c)
+        lines = {}
+        for menu in ("plus_browser", "joinnetgame"):
+            c.send("pushmenu " + menu)
+            time.sleep(2)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist refreshserverlist")
+            time.sleep(6)
+            c.send("widgetcommand netgamelist printlist")
+            lines[menu] = c.wait_for(r"Server list \(\d+\):\n.*Alpha.*\n", start=mark, timeout=20)[mark:]
+            c.send("popmenu 0")
+            time.sleep(1)
+        self.assertEqual(c.quit(), 0)
+        self.assertRegex(lines["plus_browser"], r"\n  Alpha( \(recent\))? \|.*\| \d\.\d+")
+        self.assertRegex(lines["joinnetgame"], r"\n   \(\d\.\d+[^)]*\) Alpha")
+
     def test_browser_columns_follow_width(self):
-        # a list wider than 800 virtual units also shows the game version
+        # a list wider than 800 virtual units also shows the IP
         for w, h, columns in ((1280, 720, 6), (2560, 1080, 7)):
             home, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
             c.send("pushmenu plus_browser")
