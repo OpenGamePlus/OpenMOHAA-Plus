@@ -115,11 +115,25 @@ fgcolor 0.93 0.89 0.80 1
 }
 
 resource
+Label
+{
+name "cl_renderer value"
+rect 440 116 95 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+linkcvar "cl_renderer"
+font facfont-20
+fgcolor 0.94 0.75 0.38 1
+}
+
+resource
 PulldownMenuContainer
 {
-title "OpenGL"
+title "Choose..."
 name "cl_renderer list"
-rect 440 116 170 24
+rect 540 116 100 24
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
@@ -263,11 +277,25 @@ fgcolor 0.93 0.89 0.80 1
 }
 
 resource
+Label
+{
+name "cl_language value"
+rect 440 316 95 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+linkcvar "cl_language"
+font facfont-20
+fgcolor 0.94 0.75 0.38 1
+}
+
+resource
 PulldownMenuContainer
 {
-title "Game default"
+title "Choose..."
 name "cl_language list"
-rect 440 316 170 24
+rect 540 316 100 24
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
@@ -275,10 +303,7 @@ scalecvar ui_plusscale
 menushader "MENU" "textures/menu/pulldownarrow"
 selmenushader "MENU" "textures/menu/pulldownarrow_sel"
 addpopup "MENU" "Game default" command "reset cl_language"
-addpopup "MENU" "English" command "set cl_language en"
-addpopup "MENU" "Espanol" command "set cl_language es"
-addpopup "MENU" "Francais" command "set cl_language fr"
-addpopup "MENU" "Deutsch" command "set cl_language de"
+addpopup "MENU" "Spanish" command "set cl_language es"
 }
 
 resource
@@ -310,4 +335,18 @@ slidertype float
 setrange 0.85 1.1
 stepsize 0.05
 }
+resource
+Label
+{
+name "language note"
+rect 240 400 380 40
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Language: restart the game after a change; needs lang/<code> files."
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
 end.

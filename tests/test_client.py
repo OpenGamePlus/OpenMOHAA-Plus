@@ -1110,7 +1110,13 @@ end.
             self.assertIn(f"Columns: {columns}", found, (w, h))
 
     def test_plus_options_opens(self):
-        _, c = self.start(1280, 720)
+        # the pulldowns cannot show their cvar, so each has a label bound to it (pixel text is not
+        # checked; only that the bindings are in the .urc and the screen opens with a value set)
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            urc = z.read("ui/plus_options.urc").decode()
+        for cvar in ("cl_renderer", "cl_language"):
+            self.assertRegex(urc, r'name "%s value"[^}]*linkcvar "%s"' % (cvar, cvar))
+        _, c = self.start(1280, 720, "+set", "cl_language", "es")
         c.send("pushmenu plus_options")
         time.sleep(2)
         log = c.log()
