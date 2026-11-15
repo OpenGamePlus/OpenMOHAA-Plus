@@ -34,10 +34,24 @@ Start the game with `+set fs_pluspath ""` (or remove `plus/zzz-plus.pk3`). The P
   new game.
 - Server browser: Internet, LAN, Favourites and Recent tabs, a refresh button and a favourite
   button.
-- Plus options: renderer (press Apply to restart the video), HUD scale, menu aspect, crosshair
-  size and scale, language and menu scale. A language change needs a restart of the game, and the
-  Spanish choice needs the `lang/es/` files of [the translations](07-plus-translations.md), which
-  the fork does not ship.
+- Options (the main menu's Options and Plus entries), six tabs in the left bar:
+  - Video: resolution (Desktop, or 1280x720 up to 3840x2160, 21:9 2560x1080 and 3440x1440, 4:3
+    1024x768, 5:4 1280x1024), fullscreen, window or borderless window, vsync, maximum FPS,
+    brightness, texture quality, texture filter and anisotropic filtering.
+  - Detail: the original model, terrain, effect and curve presets, shadows, lighting, smoke and
+    decals.
+  - Audio: volume, music, ambience, quality and speakers.
+  - Controls: the game's key list, mouse sensitivity, invert mouse, mouse filter, always run, and
+    Defaults (the original defaults).
+  - Game: field of view, weapon model, weather, subtitles, console, weapons bar, crosshair.
+  - Plus: renderer, HUD scale, menu aspect, crosshair size and scale, language and menu scale. A
+    language change needs a restart of the game, and the Spanish choice needs the `lang/es/` files
+    of [the translations](07-plus-translations.md), which the fork does not ship.
+
+  Settings that need a restart (resolution, display mode, textures, renderer, sound quality) wait
+  for Apply, from any tab; Back returns to the main menu and drops them if Apply was not pressed.
+  Other settings (volumes, brightness, sensitivity...) apply at once. Antialiasing is not offered:
+  the Vulkan renderer does not support it.
 
 ## Pure servers
 

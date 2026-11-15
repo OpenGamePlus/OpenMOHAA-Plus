@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus options tabs (modernised port of the option screens)
+- Six tabs replace `options_main` and its screens (Video, Detail, Audio, Controls, Game, Plus), tabs replace each other (`popmenu 0;pushmenu`). `ui_checkrestart` only compares the current menu's `linkcvar` widgets, so a resolution change (only `r_customwidth/height` move) or one made on another tab was missed: Apply is `ui_applylatched` (any pending latched cvar), Back `ui_discardlatched`. Pulldown items match when every `set` matches (quotes, numbers), so resolutions and detail presets show their title.
+- `FakkBindList` in a scaled menu: `ui_plusscale` changes reach it through `AlignPosition`, not `Realign`, so rows kept the old size; columns come from `ui/bind.scr` in fixed units (about 330, more than the 5:4 x1.1 panel). Now relaid out on scale change and narrowed to fit, scalecvar lists only (original screen geometry identical). A list height must be whole 16-unit rows or the last row is cut.
+- Checked before keeping options: borderless and brightness work on Vulkan (SDL window flags and gamma ramp), `cg_fov` is client side (65-120, not zoom/cameras), all five audio cvars are read by the OpenAL code; antialiasing left out (Vulkan has one sample).
+
 ## 2026-11-15 — Plus browser columns reworked
 - Screenshots with real servers (the headless Linux client reaches the masters unless `NO_MASTERS`): at 1080p the list is ~590 virtual units, so the Version column (> 800) never showed while every name carried OPM's "(1.11) " prefix. The anchored list now drops the prefix, always has a version column ("Ver." when narrow) and shows IP only above 800 units; the original list is unchanged.
 - Title widths decide the narrow split (5:4 at ui_plusscale 1.1): "Gametype" needs ~19%, "Players" ~15%, "Version" would need 15%, hence "Ver.". `printlist` lines end with the version. `+set ui_consoleposition "<x> <y> 8 8"` moves the console out of headless screenshots.
