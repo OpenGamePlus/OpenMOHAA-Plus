@@ -16,6 +16,7 @@ Update when a fix leaves something open or an issue is rejected. Issue numbers a
 
 ## Known gaps (not fixed)
 
+- Plus server browser: the LAN tab (sets `dm_browser_show 0`, then `refreshlanserverlist`) has no test, because the headless client finds no LAN server on loopback (checked with a server on port 12301, even with the filter at 0).
 - The 1.11 `errormessage` menu shows `com_errorMessage` on one centered line, so long reasons (e.g.
   the "Unpure Client ..." text) are clipped on screen; the console has the full text.
 - "Unknown client game command: disconnect" is still printed by cgame for mid-connection drops
@@ -91,6 +92,12 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | Client hang on shutdown | Not reproducible | 2026-11-11: `quit` after a kick (3 runs) exits in 0.2 s with 0; SIGTERM exits in 0.1 s with 1 (headless, glibc) |
 | `Item::SetDMMaxAmount` sets the amount | Kept | Reimplemented from the original game; changing it alters DM ammo amounts, and the original `gamex86.dll` was not compared |
 | `G_SetTime` compares `level.svsStartTime != svsTime` | Kept | Only rewrites `CS_LEVEL_START_TIME` more often than needed; no visible symptom, and it sits on the #916 stopwatch path |
+| Windows `.msi` installers | Not shipping the plus pk3 | The `.msi` (`deploy_installer_windows`) does not carry `plus/zzz-plus.pk3` yet; users copy it from the release by hand (the `.zip` does carry it) |
+| Plus menu: macOS | `plus/` folder next to the app unchecked | `fs_pluspath` defaults to the binary folder; the macOS bundle path was not tried on a real Mac |
+| Plus menu: pulldowns | Cannot show the current value | The options pulldowns do not display the selected value; labels beside them show it |
+| Plus menu: entries | Hover and click of entries not tested | Tests open the screens and drive cvars/commands; no pointer events were simulated |
+| Plus menu: install | `plus/` not found from symlinks | `Sys_BinaryPath` does not resolve symlinks, so `cmake --install` and launcher symlinks need `fs_pluspath` |
+| Plus menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
 
 ## Not attempted (needs data or hardware not available)
 

@@ -12,6 +12,7 @@ on:
       - 'misc/scr-tools/**'
       - 'misc/i18n/**'
       - 'misc/fonts/**'
+      - 'misc/plus-pk3/**'
       - '.github/workflows/docs-check.yml'
       - 'code/**'
       - 'cmake/**'
@@ -51,6 +52,9 @@ jobs:
 
       - name: Font tool tests (skip without Pillow)
         run: python3 -m unittest discover -s misc/fonts -v
+
+      - name: Plus pk3 builder tests (skip without Pillow)
+        run: python3 -m unittest discover -s misc/plus-pk3 -v
 
       - name: Check docs
         run: python3 -I misc/docs-check/check_docs.py

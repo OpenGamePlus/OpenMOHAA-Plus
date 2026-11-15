@@ -2467,6 +2467,19 @@ void UI_MainMenuWidgetsUpdate(void)
         menuManager.PassEventToWidget("backtogame", event);
     }
 
+    // Added in OpenMOHAA Plus: entries of the Plus main menu, "disconnect" in any game and "savegame" in
+    //  a single-player game this client runs (saves are local). The original main has neither: send nothing to it, as
+    //  an event no widget takes is never freed.
+    Menu *menu = menuManager.CurrentMenu();
+    if (menu && menu->GetNamedWidget("disconnect")) {
+        menu->PassEventToWidget("disconnect", new Event(clc.state > CA_PRIMED ? EV_Widget_Enable : EV_Widget_Disable));
+    }
+    if (menu && menu->GetNamedWidget("savegame")) {
+        menu->PassEventToWidget(
+            "savegame", new Event(clc.state > CA_PRIMED && com_sv_running->integer && !cg_gametype->integer ? EV_Widget_Enable : EV_Widget_Disable)
+        );
+    }
+
     UI_UpdateContinueGame();
 }
 
@@ -3897,6 +3910,9 @@ void UI_ResolutionChange(void)
     ui_hudscale = Cvar_Get("ui_hudscale", "1", CVAR_ARCHIVE | CVAR_LATCH);
     // Added in OpenMOHAA Plus: 1 keeps menus 4:3 with side bars on wide screens (upstream #583), 0 stretches
     Cvar_Get("ui_menuaspect", "1", CVAR_ARCHIVE | CVAR_LATCH);
+    // Added in OpenMOHAA Plus: size of the Plus menus ("scalecvar ui_plusscale"), 1 = 480 virtual units high
+    //  Clamped to 0.85..1.1: larger runs the bar past the screen bottom, smaller leaves the menu short of the edges at 32:9
+    Cvar_CheckRange(Cvar_Get("ui_plusscale", "1", CVAR_ARCHIVE), 0.85f, 1.1f, qfalse);
     float hudScale = ui_hudscale->value < 0.5f ? 0.5f : (ui_hudscale->value > 4.0f ? 4.0f : ui_hudscale->value);
 
     // Added in OPM

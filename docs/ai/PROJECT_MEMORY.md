@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-14 — Plus menu (adaptive main menu, browser, options)
+- Engine: `fs_pluspath` data folder loads `plus/*.pk3` above base and below `fs_game` (Allied Assault only), pure-exempt only for UI/fonts/menu art and never reported to servers (ADR 0007); `.urc` gained opt-in `anchor` and `cover`, the server list `togglefavorite`/`selectitem`. `misc/plus-pk3/build_pk3.py` builds `zzz-plus.pk3`; CI ships it in zips, AppImages and as an asset.
+- Mod paks must beat the fork folder on pure servers (fixed after the first cut); the background uses `cover` so 32:9 needs no dark sides; pulldowns cannot show their value, so labels do. Art is AI-generated (CC BY-SA 4.0). The HD remaster of the original menus (`feat/menu-hd`) was discarded for this menu and never merged.
+- Open (debt.md): `.msi` lacks the pk3, macOS path, LAN tab test, entry hover/click untested, Spanish needs translation files.
+
 ## 2026-11-12 — 4:3 menus: knobs and popups
 - Seen by the maintainer on Windows (Vulkan) but renderer-independent: four `uilib` widgets computed width/640 and height/480 themselves instead of `SetVirtualScale`, so the #583 uniform scale missed them (advanced options knobs stretched and cut). Grep for `vidWidth / 640` before adding a scaled widget.
 

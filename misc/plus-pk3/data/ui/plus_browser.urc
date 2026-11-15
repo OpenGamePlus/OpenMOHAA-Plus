@@ -1,0 +1,264 @@
+// Copyright (C) 2026 the OpenMOHAA Plus contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// OpenMOHAA Plus server browser. Same frame, background and bar as main.urc (see there for the
+// units). The list is a FAKKServerList anchored in the content panel, so it widens with the screen.
+// Tabs set "dm_browser_show" (0 all, 1 favourites, 3 recent) and refresh; the browser restarts the
+// list itself when the filter changes.
+
+menu "plus_browser" 2048 480 NONE 0
+bgcolor 0 0 0 0
+borderstyle NONE
+bgfill 0 0 0 1
+fullscreen 1
+virtualres 1
+scalecvar ui_plusscale
+
+resource
+Label
+{
+name "background left"
+rect 0 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+cover 1152 480
+shader "textures/menu_plus/bg_l"
+}
+
+resource
+Label
+{
+name "background right"
+rect 576 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+cover 1152 480
+shader "textures/menu_plus/bg_r"
+}
+
+resource
+Label
+{
+name "bar"
+rect 0 0 300 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+stretch vertical
+shader "textures/menu_plus/bar"
+}
+
+resource
+Label
+{
+name "title"
+rect 0 30 200 32
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Multiplayer"
+font facfont-20
+fgcolor 0.94 0.75 0.38 1
+}
+
+resource
+Button
+{
+name "internet"
+rect 0 100 200 28
+title "Internet"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
+}
+
+resource
+Button
+{
+name "favourites"
+rect 0 128 200 28
+title "Favourites"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "set dm_browser_show 1;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
+}
+
+resource
+Button
+{
+name "recent"
+rect 0 156 200 28
+title "Recent"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "set dm_browser_show 3;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
+}
+
+resource
+Button
+{
+name "lan"
+rect 0 184 200 28
+title "LAN"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshlanserverlist;vstr plus_browser_refresh"
+}
+
+resource
+Button
+{
+name "refresh"
+rect 0 232 200 28
+title "Refresh"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "vstr plus_browser_refresh"
+}
+
+resource
+Button
+{
+name "join"
+rect 0 260 200 28
+title "Join"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "widgetcommand netgamelist connect"
+}
+
+resource
+Button
+{
+name "favourite"
+rect 0 288 200 28
+title "Favourite"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "widgetcommand netgamelist togglefavorite"
+}
+
+resource
+Button
+{
+name "createserver"
+rect 0 336 200 28
+title "Create server"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu multiplayerstart"
+}
+
+resource
+Button
+{
+name "playersetup"
+rect 0 364 200 28
+title "Player setup"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "ui_getplayermodel;pushmenu mpoptions"
+}
+
+resource
+Button
+{
+name "back"
+rect 0 0 200 28
+title "Back"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 0 -1 -1 40
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/back.wav"
+stuffcommand "popmenu 0"
+}
+
+// dark content panel, 20 units from the right edge
+resource
+Label
+{
+name "panel"
+rect 0 0 64 64
+bgcolor 0.02 0.04 0.02 0.8
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 220 100 20 40
+}
+
+resource
+FAKKServerList
+{
+name "netgamelist"
+rect 0 0 64 64
+fgcolor 0.94 0.75 0.38 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 230 110 30 50
+}
+end.

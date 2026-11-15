@@ -53,12 +53,14 @@ Event EV_FAKKServerList_LANListing(
 
 Event EV_FAKKServerList_UpdateServer("updateserver", EV_DEFAULT, NULL, NULL, "Update the selected server");
 // Added in OpenMOHAA Plus
+Event EV_FAKKServerList_ToggleFavorite("togglefavorite", EV_DEFAULT, NULL, NULL, "Toggle the selected server as favorite");
+Event EV_FAKKServerList_SelectItem("selectitem", EV_DEFAULT, "i", "item", "Select the item with this number"); // Added in OpenMOHAA Plus
 Event EV_FAKKServerList_PrintList("printlist", EV_DEFAULT, NULL, NULL, "Print the listed servers to the console");
 
 class FAKKServerListItem : public UIListCtrlItem
 {
     UIFAKKServerList *m_parent; // Added in OPM
-    str               m_strings[6];
+    str               m_strings[7]; // [6]: game version, shown on wide lists (Added in OpenMOHAA Plus)
     str               m_sVersion;
     bool              m_bDifferentVersion;
     bool              m_bFavorite;
@@ -123,6 +125,7 @@ FAKKServerListItem::FAKKServerListItem(
     m_strings[4] = string5;
     m_strings[5] = string6;
     m_sVersion   = ver;
+    m_strings[6] = ver;
 
     m_bFavorite    = false;
     m_bQueryDone   = false;
@@ -290,6 +293,7 @@ str FAKKServerListItem::GetListItemVersion() const
 void FAKKServerListItem::SetListItemVersion(str sNewVer)
 {
     m_sVersion = sNewVer;
+    m_strings[6] = sNewVer; // Added in OpenMOHAA Plus
 }
 
 void FAKKServerListItem::SetDifferentVersion(bool bIsDifferentVersion)
@@ -317,6 +321,8 @@ CLASS_DECLARATION(UIListCtrl, UIFAKKServerList, NULL) {
     {&EV_FAKKServerList_LANListing,           &UIFAKKServerList::MakeLANListing      },
     {&EV_FAKKServerList_UpdateServer,         &UIFAKKServerList::UpdateServer        },
     {&EV_FAKKServerList_PrintList,            &UIFAKKServerList::PrintList           },
+    {&EV_FAKKServerList_SelectItem,           &UIFAKKServerList::SelectItemEvent     },
+    {&EV_FAKKServerList_ToggleFavorite,       &UIFAKKServerList::ToggleFavoriteEvent },
     {NULL,                                    NULL                                   }
 };
 
@@ -475,16 +481,31 @@ void UIFAKKServerList::UpdateUIElement(void)
 {
     float width;
 
+    // Added in OpenMOHAA Plus: the Plus browser's Refresh button runs this (its tabs set it)
+    Cvar_Get("plus_browser_refresh", "widgetcommand netgamelist refreshserverlist", 0);
+
     RemoveAllColumns();
 
     width = getClientFrame().size.width;
 
-    AddColumn("Server Name", 0, width * 0.31f, false, false);
-    AddColumn("Map", 5, width * 0.135f, false, false);
-    AddColumn("Players", 3, width * 0.085f, true, true);
-    AddColumn("Gametype", 4, width * 0.18f, false, false);
-    AddColumn("Ping", 2, width * 0.05f, true, false);
-    AddColumn("IP", 1, width * 0.23f, false, false);
+    // Added in OpenMOHAA Plus: a list wider than 800 virtual units (1/480 of the screen height) also
+    // shows the game version
+    if (width / getVirtualScale()[0] > 800) {
+        AddColumn("Server Name", 0, width * 0.27f, false, false);
+        AddColumn("Map", 5, width * 0.12f, false, false);
+        AddColumn("Players", 3, width * 0.075f, true, true);
+        AddColumn("Gametype", 4, width * 0.15f, false, false);
+        AddColumn("Ping", 2, width * 0.045f, true, false);
+        AddColumn("IP", 1, width * 0.2f, false, false);
+        AddColumn("Version", 6, width * 0.14f, false, false);
+    } else {
+        AddColumn("Server Name", 0, width * 0.31f, false, false);
+        AddColumn("Map", 5, width * 0.135f, false, false);
+        AddColumn("Players", 3, width * 0.085f, true, true);
+        AddColumn("Gametype", 4, width * 0.18f, false, false);
+        AddColumn("Ping", 2, width * 0.05f, true, false);
+        AddColumn("IP", 1, width * 0.23f, false, false);
+    }
 
     RefreshStatus();
     uWinMan.ActivateControl(this);
@@ -596,7 +617,7 @@ void UIFAKKServerList::RefreshServerList(Event *ev)
             AddFilter(filter, "numplayers < maxplayers", sizeof(filter));
         }
 
-        // Changed in OpenMOHAA Plus: dm_browser_show 1/2 lists only favorite/recent servers, without the
+        // Changed in OpenMOHAA Plus: dm_browser_show 1/2/3 lists only favorite/recent servers, without the
         // masters
         static cvar_t *dm_browser_show = Cvar_Get("dm_browser_show", "0", CVAR_ARCHIVE);
         if (!dm_browser_show->integer) {
@@ -1240,6 +1261,8 @@ void UIFAKKServerList::UpdateServerListCallBack(
                 bHide = !bFavorite;
             } else if (dm_browser_show->integer == 2) {
                 bHide = !bFavorite && !bRecent;
+            } else if (dm_browser_show->integer == 3) {
+                bHide = !bRecent;
             } else if (!bFavorite) {
                 // favorites are never hidden by the filters
                 // the game type filter cvars were declared but never applied: game types as in g_gametype
@@ -1463,10 +1486,21 @@ void UIFAKKServerList::ToggleFavorite(void)
     SortByLastSortColumn();
 }
 
+void UIFAKKServerList::SelectItemEvent(Event *ev)
+{
+    TrySelectItem(ev->GetInteger(1));
+}
+
+void UIFAKKServerList::ToggleFavoriteEvent(Event *ev)
+{
+    ToggleFavorite();
+}
+
 void UIFAKKServerList::PrintList(Event *ev)
 {
     int i;
 
+    Com_Printf("Columns: %d\n", m_columnlist.NumObjects());
     Com_Printf("Server list (%d):\n", getNumItems());
     for (i = 1; i <= getNumItems(); i++) {
         const FAKKServerListItem *pItem = static_cast<const FAKKServerListItem *>(GetItem(i));

@@ -326,6 +326,99 @@ class PureServer(GameTestCase):
         self.assertNotIn("Unpure", log)
 
 
+@require_game
+class PlusDataFolder(GameTestCase):
+    """The fork-only <fs_pluspath>/plus/*.pk3 folder."""
+
+    def plus_client(self, home, plus_dir, *args):
+        """A client whose fork data folder is <plus_dir>/plus ("" disables it)."""
+        c = omoh.client(home, "+set", "fs_pluspath", plus_dir, *args)
+        self.games.append(c)
+        return c
+
+    def _plus_pak(self, files):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, True)
+        os.makedirs(os.path.join(tmp, "plus"))
+        with zipfile.ZipFile(os.path.join(tmp, "plus", "zzz-plus.pk3"), "w") as z:
+            for name in files:
+                z.writestr(name, "plus")
+        return tmp
+
+    def _which(self, c, name):
+        start = len(c.log())
+        c.send(f"which {name}")
+        return c.wait_for(rf'File "{re.escape(name)}" found|File not found: "{re.escape(name)}"',
+                          start=start)[start:]
+
+    def test_plus_pak_overrides_base_menu(self):
+        c = self.plus_client(self.home, self._plus_pak(["ui/main.urc"]))
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+
+    def test_plus_fonts_beat_old_fonts_pak(self):
+        name = "fonts/plus_test.RitualFont"  # not a real font: the game must not load it
+        old = os.path.join(self.home.path, "main", "zzz-plus-fonts.pk3")
+        os.makedirs(os.path.dirname(old), exist_ok=True)
+        with zipfile.ZipFile(old, "w") as z:
+            z.writestr(name, "old")
+        c = self.plus_client(self.home, self._plus_pak([name]))
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, name))
+        c.quit()
+
+    def test_no_plus_folder_keeps_original_menu(self):
+        c = self.plus_client(self.home, "")
+        out = self._which(c, "ui/main.urc")
+        self.assertRegex(out, r"main[/\\]Pak\d+\.pk3")
+        c.quit()
+
+    def test_fs_game_mod_beats_plus_pak(self):
+        os.makedirs(os.path.join(self.home.path, "plusmod"))
+        with zipfile.ZipFile(os.path.join(self.home.path, "plusmod", "zzz-mod.pk3"), "w") as z:
+            z.writestr("ui/main.urc", "mod")
+        c = self.plus_client(self.home, self._plus_pak(["ui/main.urc"]), "+set", "fs_game", "plusmod")
+        self.assertIn("zzz-mod.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+
+    def test_fs_game_mod_beats_plus_pak_on_pure_server(self):
+        def mod_pak(home):
+            os.makedirs(os.path.join(home.path, "plusmod"))
+            with zipfile.ZipFile(os.path.join(home.path, "plusmod", "zzz-mod.pk3"), "w") as z:
+                z.writestr("ui/main.urc", "mod")
+        mod_pak(self.home)
+        s = self.server("+set", "developer", "1", "+set", "sv_pure", "1", "+set", "g_gametype", "1",
+                        "+set", "fs_game", "plusmod", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        mod_pak(client_home)
+        c = self.plus_client(client_home, self._plus_pak(["ui/main.urc"]),
+                             "+set", "fs_game", "plusmod", "+connect", f"127.0.0.1:{s.port}")
+        s.wait_for(r"entered the battle|Unpure", timeout=120)
+        self.assertIn("zzz-mod.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+        s.quit()
+
+    def test_plus_pak_on_pure_server(self):
+        s = self.server("+set", "developer", "1", "+set", "sv_pure", "1", "+set", "g_gametype", "1",
+                        "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        c = self.plus_client(client_home, self._plus_pak(["ui/main.urc", "maps/plus_test.txt"]),
+                             "+connect", f"127.0.0.1:{s.port}")
+        log = s.wait_for(r"entered the battle|Unpure", timeout=120)
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        self.assertIn("File not found", self._which(c, "maps/plus_test.txt"))
+        c.send("disconnect")
+        c.wait_for(r"Disconnect|disconnect")
+        time.sleep(2)
+        self.assertIn("plus/zzz-plus.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+        self.assertEqual(s.quit(), 0)
+        self.assertNotIn("Unpure", log)
+
+
 def _quiet_handler(directory):
     class Handler(http.server.SimpleHTTPRequestHandler):
         requests = []
@@ -564,6 +657,60 @@ class ServerBrowser(GameTestCase):
         self.assertNotIn("Bravo", listed)
         self.assertEqual(c.quit(), 0)
 
+    def test_recent_only_filter(self):
+        servers = []
+        for name in ("Alpha", "Bravo"):
+            home = omoh.Home()
+            self.addCleanup(home.cleanup)
+            s = omoh.server(home, "+set", "sv_hostname", name, "+map", "dm/mohdm1")
+            self.games.append(s)
+            s.wait_for(r"==== InitGame ====")
+            s.send("net_gamespy_port")
+            qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+            servers.append(f"127.0.0.1:{s.port} {qport}")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverfavorites.txt", servers[0] + "\n")     # Alpha is a favourite only
+        client_home.write("serverhistory.txt", servers[1] + "\n")       # Bravo is recent only
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("dm_browser_show 3")
+        listed = self._list(c, r"Server list \(\d+\):(\n  .*)*\n.*Bravo")
+        self.assertIn("Bravo", listed)
+        self.assertNotIn("Alpha", listed)
+        self.assertEqual(c.quit(), 0)
+
+    def test_favourite_button_toggles(self):
+        s = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        s.send("net_gamespy_port")
+        qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverhistory.txt", f"127.0.0.1:{s.port} {qport}\n")
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("dm_browser_show 2")
+        self._list(c, r"Server list \(1\):\n.*Alpha")
+        c.send("widgetcommand netgamelist selectitem 1")            # the Plus screen has the player click it
+        for marked in (True, False):
+            c.send("widgetcommand netgamelist togglefavorite")      # what the Plus Favourite button runs
+            time.sleep(1)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist printlist")
+            listed = c.wait_for(r"Server list \(\d+\):\n.*Alpha", start=mark, timeout=20)[mark:]
+            self.assertEqual("  * " in listed, marked, listed)
+        self.assertEqual(c.quit(), 0)
+        self.assertNotIn("127.0.0.1", open(client_home.file("serverfavorites.txt")).read())
+
     def test_favorites_history_and_search(self):
         alpha = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
         home_b = omoh.Home()
@@ -767,6 +914,261 @@ def vulkan_renderer():
     """The renderer_vulkan module next to the binaries, or None."""
     found = glob.glob(os.path.join(omoh.bin_dir() or "", "renderer_vulkan*"))
     return found[0] if found else None
+
+
+# the tool needs Pillow, often a user install that "python3 -I" (how these tests run) does not see
+HAVE_PILLOW = subprocess.run([sys.executable, "-c", "import PIL"], capture_output=True).returncode == 0
+
+
+PLUS_PK3 = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "misc", "plus-pk3",
+                        "build_pk3.py")
+
+
+def _tga(width, rows):
+    """An uncompressed 24-bit TGA; rows of one colour each, bottom row first."""
+    header = struct.pack("<3B2HB4H2B", 0, 0, 2, 0, 0, 0, 0, 0, width, len(rows), 24, 0)
+    return header + b"".join(bytes(rgb[::-1]) * width for rgb in rows)
+
+
+@require_game
+@unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
+class PlusMenu(GameTestCase):
+    """The fork's main menu (misc/plus-pk3/data/ui/main.urc), with plain background tiles: the left
+    half red with its bottom quarter green, the right half blue."""
+
+    # virtual units are 1/480 of the screen height (ui_plusscale 1)
+    BAR_FADE_END = 300                     # the bar gradient is transparent from here
+    # x0 y0 x1 y1 of the text area of the entries shown in a game only
+    IN_GAME_ENTRIES = {"backtogame": (60, 100, 140, 128), "savegame": (60, 344, 140, 372),
+                       "disconnect": (60, 372, 140, 400)}
+
+    # a test menu with a green panel anchored like the Plus content panel
+    ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+Label
+{
+name "panel"
+rect 0 0 64 64
+scalecvar ui_plusscale
+bgcolor 0 1 0 1
+borderstyle "NONE"
+anchor 220 100 20 40
+}
+end.
+"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.plus_dir = tempfile.mkdtemp()
+        built = os.path.join(cls.plus_dir, "built.pk3")
+        subprocess.run([sys.executable, PLUS_PK3, "--out", built, "--skip-fonts"], check=True, capture_output=True)
+        os.makedirs(os.path.join(cls.plus_dir, "plus"))
+        left = _tga(4, [(0, 255, 0)] * 64 + [(255, 0, 0)] * 192)
+        right = _tga(4, [(0, 0, 255)] * 256)
+        with zipfile.ZipFile(built) as src, \
+                zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
+            for name in src.namelist():
+                if name not in ("textures/menu_plus/bg_l.tga", "textures/menu_plus/bg_r.tga"):
+                    z.writestr(name, src.read(name))
+            z.writestr("textures/menu_plus/bg_l.tga", left)
+            z.writestr("textures/menu_plus/bg_r.tga", right)
+            z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.plus_dir, True)
+
+    def start(self, width, height, *args):
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        c = PlusDataFolder.plus_client(self, home, self.plus_dir, "+set", "r_mode", "-1",
+                                       "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height),
+                                       *args)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)                      # the main menu is up
+        return home, c
+
+    def screenshot(self, home, c):
+        for old in glob.glob(os.path.join(home.path, "main", "screenshots", "shot*.tga")):
+            os.remove(old)
+        c.send("screenshot silent")
+        time.sleep(2)
+        return read_tga(glob.glob(os.path.join(home.path, "main", "screenshots", "shot*.tga"))[0])
+
+    def shot(self, width, height, *commands):
+        home, c = self.start(width, height)
+        for command in commands:
+            c.send(command)
+            time.sleep(2)
+        picture = self.screenshot(home, c)
+        self.assertEqual(c.quit(), 0)
+        return picture
+
+    @staticmethod
+    def is_blue(p):
+        return p[2] > 200 and p[0] < 60 and p[1] < 60
+
+    @staticmethod
+    def is_green(p):
+        return p[1] > 200 and p[0] < 60 and p[2] < 60
+
+    @staticmethod
+    def mean_brightness(rows, x0, x1, y0, y1):
+        return statistics.mean(sum(rows[y][x]) / 3 for y in range(y0, y1) for x in range(x0, x1))
+
+    def test_main_fills_any_aspect(self):
+        # the 2.4:1 picture covers the screen, centred and undistorted: cropped at the sides when the
+        # screen is narrower, at the top and bottom when wider. Sampled below the console, which
+        # covers the top half at start-up.
+        for w, h in ((1280, 720), (2560, 1080), (1024, 768), (3840, 1080)):
+            _, _, rows = self.shot(w, h)
+            y = int(h * 0.6)
+            self.assertTrue(self.is_blue(rows[y][w - 5]), (w, h, rows[y][w - 5]))   # reaches the right edge
+            # the halves meet at the centre of the screen
+            middle = next(x for x in range(w // 2 - 50, w) if self.is_blue(rows[y][x]))
+            self.assertAlmostEqual(middle, w / 2, delta=3, msg=(w, h))
+            # the green bottom quarter of the left half starts 3/4 down a picture 1/2.4 as high as wide
+            height = max(h, w / 2.4)
+            x = w // 2 - 8
+            green = next(y for y in range(int(h * 0.55), h) if self.is_green(rows[y][x]))
+            self.assertAlmostEqual(green, (h - height) / 2 + height * 0.75, delta=height / 256 + 3, msg=(w, h))
+            ys = (int(h * 0.55), int(h * 0.65))
+            bar = self.mean_brightness(rows, 0, int(h * 0.1), *ys)
+            self.assertLess(bar, self.mean_brightness(rows, w - 20, w - 5, *ys) / 2, (w, h))
+
+    def test_bar_size_follows_height(self):
+        def fade_end(w, h):
+            _, _, rows = self.shot(w, h)
+            y = int(h * 0.6)
+            return next(x for x in range(w) if rows[y][x][0] >= 250) / h
+
+        a, b = fade_end(1280, 720), fade_end(2560, 1080)
+        self.assertAlmostEqual(a, b, delta=0.02 * a)
+        self.assertAlmostEqual(a, self.BAR_FADE_END / 480, delta=0.02 * a)
+
+    def test_back_to_game_only_in_game(self):
+        # one game: in a level Back to game, Save game and Disconnect show; after "disconnect" (no game)
+        # they are hidden. The start-up screen would do too, but the console covers the top half of it.
+        w, h = 1280, 720
+        home, c = self.start(w, h, "+devmap", "training")
+        c.wait_for(r"==== InitGame ====", timeout=120)
+        time.sleep(15)
+        c.send("pushmenu main")
+        time.sleep(3)
+        _, _, in_game = self.screenshot(home, c)
+        c.send("disconnect")
+        time.sleep(5)
+        _, _, no_game = self.screenshot(home, c)
+        self.assertEqual(c.quit(), 0)
+        for name, rect in self.IN_GAME_ENTRIES.items():
+            x0, y0, x1, y1 = (v * h // 480 for v in rect)
+            self.assertGreater(self.mean_brightness(in_game, x0, x1, y0, y1)
+                               - self.mean_brightness(no_game, x0, x1, y0, y1), 40 / 3, name)
+        self.assertTrue(self.is_blue(no_game[int(h * 0.6)][w - 5]), "the Plus main menu is up")
+
+    def test_anchor_follows_screen_edges(self):
+        for w, h in ((1280, 720), (2560, 1080)):
+            _, _, rows = self.shot(w, h, "pushmenu plus_anchor_test")
+            s = h / 480
+            y = int(h * 0.6)
+            green = [x for x in range(w) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
+            self.assertAlmostEqual(green[0], 220 * s, delta=2)
+            self.assertAlmostEqual(green[-1] + 1, w - 20 * s, delta=2)
+            x = w * 3 // 4
+            column = [y for y in range(h) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
+            self.assertAlmostEqual(column[-1] + 1, h - 40 * s, delta=2)
+
+    def test_browser_screen_opens(self):
+        for w, h in ((1280, 720), (2560, 1080)):
+            home, c = self.start(w, h)
+            c.send("pushmenu plus_browser")
+            time.sleep(2)
+            _, _, rows = self.screenshot(home, c)
+            log = c.log()
+            self.assertEqual(c.quit(), 0)
+            for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+                self.assertNotIn(error, log)
+            # the content panel (a dark fill, unlike the red/blue tiles) ends 20 units from the right edge
+            y = int(h * 0.6)
+            panel = [x for x in range(w // 2, w) if rows[y][x][2] < 150]
+            self.assertAlmostEqual(panel[-1] + 1, w - 20 * h / 480, delta=3, msg=(w, h))
+
+    def test_original_screens_reachable(self):
+        # the buttons that open the original screens, run as the .urc holds them
+        cmds = []
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            for urc, name in (("plus_browser", "createserver"), ("plus_browser", "playersetup"),
+                              ("main", "warrecords")):
+                text = z.read("ui/%s.urc" % urc).decode()
+                cmds.append(re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1))
+        _, c = self.start(1280, 720)
+        for cmd in cmds:
+            c.send(cmd)
+            time.sleep(1.5)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
+
+    def test_browser_columns_follow_width(self):
+        # a list wider than 800 virtual units also shows the game version
+        for w, h, columns in ((1280, 720, 6), (2560, 1080, 7)):
+            home, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
+            c.send("pushmenu plus_browser")
+            time.sleep(2)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist printlist")
+            found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
+            self.assertEqual(c.quit(), 0)
+            self.assertIn(f"Columns: {columns}", found, (w, h))
+
+    def test_plus_options_opens(self):
+        # the pulldowns cannot show their cvar, so each has a label bound to it (pixel text is not
+        # checked; only that the bindings are in the .urc and the screen opens with a value set)
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            urc = z.read("ui/plus_options.urc").decode()
+        for cvar in ("cl_renderer", "cl_language"):
+            self.assertRegex(urc, r'name "%s value"[^}]*linkcvar "%s"' % (cvar, cvar))
+        _, c = self.start(1280, 720, "+set", "cl_language", "es")
+        c.send("pushmenu plus_options")
+        time.sleep(2)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
+
+    def test_renderer_apply_restarts(self):
+        # run the Apply button's command string as the .urc holds it
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            urc = z.read("ui/plus_options.urc").decode()
+        apply_cmd = re.search(r'name "apply".*?stuffcommand "([^"]*)"', urc, re.S).group(1)
+        _, c = self.start(1280, 720)
+        c.send("set cl_renderer opengl1")
+        mark = len(c.log())
+        c.send(apply_cmd)
+        c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
+        self.assertEqual(c.quit(), 0)
+
+    def test_plus_scale_is_clamped(self):
+        _, c = self.start(1280, 720)
+        for value, expected in (("3", "1.1"), ("0.1", "0.85")):
+            c.send("set ui_plusscale " + value)
+            mark = len(c.log())
+            c.send("ui_plusscale")
+            found = c.wait_for(r'"ui_plusscale" is:"[^"]*"', start=mark, timeout=20)[mark:]
+            self.assertIn('is:"%s' % expected, found)
+        self.assertEqual(c.quit(), 0)
+
+    def test_no_ui_errors(self):
+        _, c = self.start(1280, 720)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
 
 
 # Mesa's software Vulkan driver, when installed: same pictures on every machine, no GPU needed

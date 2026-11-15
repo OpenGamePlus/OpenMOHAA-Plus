@@ -11,6 +11,7 @@ An accepted ADR is never edited; a later ADR supersedes it and the old one gets
 | [0004](0004-module-may-stay-resident.md) | A game module may stay resident after unload | Accepted |
 | [0005](0005-vulkan-renderer-emulates-gl1.md) | The Vulkan renderer emulates the GL1 renderer's OpenGL calls | Accepted |
 | [0006](0006-fork-licensed-agpl-3.md) | The fork is distributed under AGPL-3.0 | Accepted |
+| [0007](0007-fork-data-folder.md) | A fork-only data folder next to the executable | Accepted |
 
 ## Template (MADR-lite)
 

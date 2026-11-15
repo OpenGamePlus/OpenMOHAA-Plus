@@ -52,6 +52,7 @@ jobs:
           #'macos-x86_64',
           #'macos-arm64',
           'macos-multiarch-arm64-x86_64',
+          'plus-data',
         ]
 
     runs-on: ubuntu-24.04
@@ -67,7 +68,15 @@ jobs:
         name: 'out-${{matrix.target_os}}'
         path: ${{github.workspace}}/${{matrix.target_os}}
 
+    # Added in OpenMOHAA Plus: the data pack goes in plus/ next to the executable (flat package on every platform)
+    - uses: actions/download-artifact@v4
+      if: ${{ (startsWith(matrix.target_os, 'windows-') || startsWith(matrix.target_os, 'macos-')) && !endsWith(matrix.target_os, '-pdb') }}
+      with:
+        name: out-plus-data
+        path: ${{github.workspace}}/${{matrix.target_os}}/plus
+
     - name: Zip
+      if: ${{ matrix.target_os != 'plus-data' }}
       working-directory: '${{github.workspace}}/${{matrix.target_os}}'
       # upload-artifact does not preserve file permissions, restore the executable bit
       run: |
@@ -75,9 +84,16 @@ jobs:
         zip -9 -r "../${{ env.RELEASE_NAME }}.zip" ./
 
     - name: Release
+      if: ${{ matrix.target_os != 'plus-data' }}
       uses: softprops/action-gh-release@v2.3.2
       with:
         files: ${{github.workspace}}/${{ env.RELEASE_NAME }}.zip
+
+    - name: Release plus data
+      if: ${{ matrix.target_os == 'plus-data' }}
+      uses: softprops/action-gh-release@v2.3.2
+      with:
+        files: ${{github.workspace}}/${{matrix.target_os}}/*.pk3
 
   deploy_installer_windows:
     strategy:

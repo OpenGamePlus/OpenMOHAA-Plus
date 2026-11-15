@@ -1,6 +1,8 @@
 # HD menus with widescreen side art (design)
 
-Date: 2026-11-12. Status: approved approach (A); design reviewed by a builder check, waiting for approval.
+Date: 2026-11-12. Status: **discarded** (2026-11-15). The maintainer dropped the remaster of the
+original menu in favour of a new fork menu (`docs/superpowers/specs/2026-11-14-plus-menu-design.md`);
+the `feat/menu-hd` branch was never merged and was deleted. Kept as a record of what was tried.
 
 ## Intent
 
