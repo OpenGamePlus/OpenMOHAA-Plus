@@ -1343,14 +1343,21 @@ end.
         self.assertEqual(c.quit(), 0)
 
     def test_tabs_do_not_stack(self):
-        # after visiting several tabs, Back returns to the main menu in one step
+        # every tab entry opens its tab (as the .urc runs it), and after visiting them all Back
+        # returns to the main menu in one step
+        tabs = [("tab_video", "plus_options_video"), ("tab_detail", "plus_options_detail"),
+                ("tab_audio", "plus_options_audio"), ("tab_controls", "plus_options_controls"),
+                ("tab_game", "plus_options_game"), ("tab_plus", "plus_options")]
         _, c = self.start(1280, 720)
-        c.send("pushmenu plus_options_video")
-        for urc, tab in (("plus_options_video", "tab_plus"), ("plus_options", "tab_video"),
-                         ("plus_options_video", "tab_plus")):
-            c.send(self.urc_command(urc, tab))
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        current = "plus_options_video"
+        for tab, menu in tabs[1:] + tabs[:1]:
+            c.send(self.urc_command(current, tab))
             time.sleep(1.5)
-        c.send(self.urc_command("plus_options", "back"))
+            self.assertEqual(self.top_menu(c), menu, (current, tab))
+            current = menu
+        c.send(self.urc_command(current, "back"))
         time.sleep(2)
         self.assertEqual(self.top_menu(c), "main")
         self.assertEqual(c.quit(), 0)

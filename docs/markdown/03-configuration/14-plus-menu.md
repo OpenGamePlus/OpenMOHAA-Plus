@@ -103,6 +103,9 @@ command matches while that cvar is at its default; other commands are ignored, s
 matching item the pulldown shows the linked cvar's value itself. Make
 the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
 
+`replacemenu <name>` puts a menu in place of the one on top in one step (the option tabs use it;
+`popmenu 0;pushmenu <name>` does not work, because popping locks the menus until the next frame).
+
 Three console commands for option screens. `ui_marklatched` (run when the Plus options open)
 records which cvars already wait for a restart and the values of the sound and terrain cvars
 (their `CVAR_SOUND_LATCH`/`CVAR_TERRAIN_LATCH` flags never latch: those cvars change at once and

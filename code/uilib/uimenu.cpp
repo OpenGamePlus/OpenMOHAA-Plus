@@ -583,6 +583,51 @@ bool MenuManager::ShowMenu(str name)
     return true;
 }
 
+// Added in OpenMOHAA Plus: puts a menu in place of the one on top of the stack in one step (the
+//  Plus option tabs). "popmenu 0;pushmenu X" does not work: PopMenu locks the menus until its
+//  unlock event is processed, so the push is ignored, and it schedules a "showmenu" for the menu
+//  below. Pushes the menu if the stack is empty; does nothing if it is already on top.
+bool MenuManager::ReplaceMenu(str name)
+{
+    Menu *m;
+    Menu *top;
+    float maxouttime = 0.0;
+
+    if (m_lock) {
+        return false;
+    }
+
+    m = FindMenu(name);
+    if (!m) {
+        uii.Sys_Printf("Couldn't find menu %s\n", name.c_str());
+        return false;
+    }
+
+    top = m_menustack.Head();
+    if (top == m) {
+        return false;
+    }
+    if (top) {
+        m_menustack.Pop();
+        maxouttime = top->GetMaxMotionTime();
+        top->ProcessEvent(Event("hidemenu"));
+    }
+
+    m->SaveCVars();
+    if (maxouttime == 0.0) {
+        m->ProcessEvent(Event("showmenu"));
+    } else {
+        m->PostEvent(Event("showmenu"), maxouttime);
+    }
+
+    Lock(NULL);
+    PostEvent(EV_UnlockMenus, m->GetMaxMotionTime() + maxouttime);
+
+    m_menustack.Push(m);
+
+    return true;
+}
+
 void MenuManager::PushMenu(Event *ev)
 {
     if (!ui_pLoadingMenu || CurrentMenu() != ui_pLoadingMenu) {

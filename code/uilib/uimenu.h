@@ -100,6 +100,7 @@ public:
     void  ResetCVars(void);
     void  CheckRestart(void);
     bool  ForceMenu(str name);
+    bool  ReplaceMenu(str name); // Added in OpenMOHAA Plus
 };
 
 extern MenuManager menuManager;
