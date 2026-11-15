@@ -3802,8 +3802,10 @@ static void FS_Startup(const char* gameName)
 	fs_steampath = Cvar_Get ("fs_steampath", Sys_SteamPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_gogpath = Cvar_Get ("fs_gogpath", Sys_GogPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_microsoftstorepath = Cvar_Get ("fs_microsoftstorepath", Sys_MicrosoftStorePath(), CVAR_INIT|CVAR_PROTECTED );
+	// Added in OpenMOHAA Plus: the folder holding plus/. A bare argv[0] (started from its own folder)
+	//  gives an empty binary path on Windows ("." on Unix): that folder is then the current one.
+	fs_pluspath = Cvar_Get ("fs_pluspath", Sys_BinaryPath()[0] ? Sys_BinaryPath() : Sys_Cwd(), CVAR_INIT|CVAR_PROTECTED );
 	// Added in OpenMOHAA Plus: only searched when the base path has no game data
-	fs_pluspath = Cvar_Get ("fs_pluspath", Sys_BinaryPath(), CVAR_INIT|CVAR_PROTECTED ); // Added in OpenMOHAA Plus
 	fs_eapath = Cvar_Get ("fs_eapath", FS_HasGameData(fs_basepath->string) ? "" : FS_DetectEAPath(), CVAR_INIT|CVAR_PROTECTED );
 
 #ifdef __APPLE__
