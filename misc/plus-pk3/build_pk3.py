@@ -6,9 +6,10 @@
   python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 [--skip-fonts]
 
 The pk3 holds misc/plus-pk3/data/**, the fonts from misc/fonts/make_fonts.py (unless --skip-fonts),
-ART-LICENSE.md and the menu background as two 2048x2048 textures, textures/menu_plus/bg_l.tga and
-bg_r.tga: the halves of art/background.jpg (3840x1600), each stretched anamorphically. Requires
-Pillow (python3 -m pip install pillow).
+ART-LICENSE.md, the menu background as two 2048x2048 textures, textures/menu_plus/bg_l.tga and
+bg_r.tga: the halves of art/background.jpg (3840x1600), each stretched anamorphically, and two
+256x4 alpha gradients drawn by the menus: bar.tga (the dark left bar) and hover.tga (a highlighted
+entry). Requires Pillow (python3 -m pip install pillow).
 """
 import argparse
 import io
@@ -35,6 +36,22 @@ def tiles():
         yield f"textures/menu_plus/{name}.tga", out.getvalue()
 
 
+def bar_alpha(x):
+    """Opacity of the bar at x of its 300 virtual units: 0.9 to 0.65 over 0-200, then fading to 0 at 300."""
+    return 0.9 - 0.25 * x / 200 if x < 200 else 0.65 * max(0.0, (300 - x) / 100)
+
+
+def gradients():
+    """(name, TGA bytes) of the bar and hover gradients, 256x4, left to right."""
+    for name, rgb, alpha in (("bar", (10, 10, 8), lambda u: bar_alpha(u * 300)),
+                             ("hover", (240, 191, 97), lambda u: 0.45 * (1 - u))):
+        img = Image.new("RGBA", (256, 4))
+        img.putdata([rgb + (round(255 * alpha(i / 255)),) for i in range(256)] * 4)
+        out = io.BytesIO()
+        img.save(out, "TGA")
+        yield f"textures/menu_plus/{name}.tga", out.getvalue()
+
+
 def add_tree(z, root):
     for folder, _, files in os.walk(root):
         for f in sorted(files):
@@ -55,7 +72,7 @@ def main(argv=None):
             subprocess.run([sys.executable, os.path.join(HERE, "..", "fonts", "make_fonts.py"), "--out", fonts],
                            check=True)
             add_tree(z, fonts)
-        for name, data in tiles():
+        for name, data in [*tiles(), *gradients()]:
             z.writestr(name, data)
         z.write(os.path.join(HERE, "ART-LICENSE.md"), "ART-LICENSE.md")
     print(f"wrote {args.out}")

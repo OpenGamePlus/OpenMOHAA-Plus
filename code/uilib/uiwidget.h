@@ -59,6 +59,8 @@ public:
 #define WF_ALWAYS_TOP         (1 << 5)
 #define WF_NOPARENTADJUST     (1 << 6)
 #define WF_DONTLOCALIZE       (1 << 7)
+// Added in OpenMOHAA Plus: the frame follows the screen edges set by "anchor"
+#define WF_ANCHORED           (1 << 8)
 
 // widget alignment flags
 #define WA_LEFT    (1 << 0)
@@ -174,6 +176,11 @@ protected:
     //
     float lastShowTime;
 
+    //
+    // Added in OpenMOHAA Plus
+    //  margins from the screen edges (left top right bottom), in virtual units; < 0 leaves the edge to rect
+    float m_anchor[4];
+
 public:
     CLASS_PROTOTYPE(UIWidget);
 
@@ -251,6 +258,9 @@ public:
     void LayoutAliasCache(Event *ev);
     void SetEnabledCvar(Event *ev);
     void SetScaleCvar(Event *ev);
+    // Added in OpenMOHAA Plus
+    void LayoutAnchor(Event *ev);
+    void ApplyAnchor(void);
 
     // Added in 2.0
     //====

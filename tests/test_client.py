@@ -862,6 +862,170 @@ def vulkan_renderer():
     return found[0] if found else None
 
 
+# the tool needs Pillow, often a user install that "python3 -I" (how these tests run) does not see
+HAVE_PILLOW = subprocess.run([sys.executable, "-c", "import PIL"], capture_output=True).returncode == 0
+
+
+PLUS_PK3 = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "misc", "plus-pk3",
+                        "build_pk3.py")
+
+
+def _solid_tga(rgb, size=8):
+    """An uncompressed 24-bit TGA of one colour."""
+    return struct.pack("<3B2HB4H2B", 0, 0, 2, 0, 0, 0, 0, 0, size, size, 24, 0) + bytes(rgb[::-1]) * size * size
+
+
+@require_game
+@unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
+class PlusMenu(GameTestCase):
+    """The fork's main menu (misc/plus-pk3/data/ui/main.urc), with solid red background tiles."""
+
+    # virtual units are 1/480 of the screen height (ui_plusscale 1)
+    BAR_FADE_END = 300                     # the bar gradient is transparent from here
+    BACKTOGAME = (60, 100, 140, 128)       # x0 y0 x1 y1 of the "backtogame" entry's text area
+
+    # a test menu with a green panel anchored like the Plus content panel
+    ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+Label
+{
+name "panel"
+rect 0 0 64 64
+scalecvar ui_plusscale
+bgcolor 0 1 0 1
+borderstyle "NONE"
+anchor 220 100 20 40
+}
+end.
+"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.plus_dir = tempfile.mkdtemp()
+        built = os.path.join(cls.plus_dir, "built.pk3")
+        subprocess.run([sys.executable, PLUS_PK3, "--out", built, "--skip-fonts"], check=True, capture_output=True)
+        os.makedirs(os.path.join(cls.plus_dir, "plus"))
+        red = _solid_tga((255, 0, 0))
+        with zipfile.ZipFile(built) as src, \
+                zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
+            for name in src.namelist():
+                if name not in ("textures/menu_plus/bg_l.tga", "textures/menu_plus/bg_r.tga"):
+                    z.writestr(name, src.read(name))
+            z.writestr("textures/menu_plus/bg_l.tga", red)
+            z.writestr("textures/menu_plus/bg_r.tga", red)
+            z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.plus_dir, True)
+
+    def start(self, width, height, *args):
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        c = PlusDataFolder.plus_client(self, home, self.plus_dir, "+set", "r_mode", "-1",
+                                       "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height),
+                                       *args)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)                      # the main menu is up
+        return home, c
+
+    def screenshot(self, home, c):
+        for old in glob.glob(os.path.join(home.path, "main", "screenshots", "shot*.tga")):
+            os.remove(old)
+        c.send("screenshot silent")
+        time.sleep(2)
+        return read_tga(glob.glob(os.path.join(home.path, "main", "screenshots", "shot*.tga"))[0])
+
+    def shot(self, width, height, *commands):
+        home, c = self.start(width, height)
+        for command in commands:
+            c.send(command)
+            time.sleep(2)
+        picture = self.screenshot(home, c)
+        self.assertEqual(c.quit(), 0)
+        return picture
+
+    @staticmethod
+    def is_red(p):
+        return p[0] > 200 and p[1] < 60 and p[2] < 60
+
+    @staticmethod
+    def mean_brightness(rows, x0, x1, y0, y1):
+        return statistics.mean(sum(rows[y][x]) / 3 for y in range(y0, y1) for x in range(x0, x1))
+
+    def test_main_fills_any_aspect(self):
+        # below the console, which covers the top half at start-up
+        for w, h in ((1280, 720), (2560, 1080), (1024, 768), (3840, 1080)):
+            _, _, rows = self.shot(w, h)
+            y = int(h * 0.6)
+            ys = (int(h * 0.55), int(h * 0.65))
+            bar = self.mean_brightness(rows, 0, int(h * 0.1), *ys)
+            if w / h <= 2.4:
+                # the 2.4:1 background covers the screen: it reaches the right edge
+                self.assertTrue(self.is_red(rows[y][w - 5]), (w, h, rows[y][w - 5]))
+                lit = self.mean_brightness(rows, w - 20, w - 5, *ys)
+            else:
+                # wider than 2.4:1: the background keeps its shape, centred on a dark fill
+                self.assertLess(sum(rows[y][w - 5]), 30, (w, h, rows[y][w - 5]))
+                edge = (w - 1152 * h // 480) // 2
+                self.assertTrue(self.is_red(rows[y][edge + 5]), (w, h, rows[y][edge + 5]))
+                self.assertLess(sum(rows[y][edge - 5]), 30, (w, h, rows[y][edge - 5]))
+                lit = self.mean_brightness(rows, w * 5 // 8, w * 5 // 8 + 15, *ys)
+            self.assertLess(bar, lit / 2, (w, h))
+
+    def test_bar_size_follows_height(self):
+        def fade_end(w, h):
+            _, _, rows = self.shot(w, h)
+            y = int(h * 0.6)
+            return next(x for x in range(w) if rows[y][x][0] >= 250) / h
+
+        a, b = fade_end(1280, 720), fade_end(2560, 1080)
+        self.assertAlmostEqual(a, b, delta=0.02 * a)
+        self.assertAlmostEqual(a, self.BAR_FADE_END / 480, delta=0.02 * a)
+
+    def test_back_to_game_only_in_game(self):
+        # one game: in a level the entry shows; after "disconnect" (no game) it is hidden. The
+        # start-up screen would do too, but the console covers the top half of it.
+        w, h = 1280, 720
+        home, c = self.start(w, h, "+devmap", "training")
+        c.wait_for(r"==== InitGame ====", timeout=120)
+        time.sleep(15)
+        c.send("pushmenu main")
+        time.sleep(3)
+        x0, y0, x1, y1 = (v * h // 480 for v in self.BACKTOGAME)
+        _, _, in_game = self.screenshot(home, c)
+        c.send("disconnect")
+        time.sleep(5)
+        _, _, no_game = self.screenshot(home, c)
+        self.assertEqual(c.quit(), 0)
+        self.assertGreater(self.mean_brightness(in_game, x0, x1, y0, y1)
+                           - self.mean_brightness(no_game, x0, x1, y0, y1), 40 / 3)
+        self.assertTrue(self.is_red(no_game[int(h * 0.6)][w - 5]), "the Plus main menu is up")
+
+    def test_anchor_follows_screen_edges(self):
+        for w, h in ((1280, 720), (2560, 1080)):
+            _, _, rows = self.shot(w, h, "pushmenu plus_anchor_test")
+            s = h / 480
+            y = int(h * 0.6)
+            green = [x for x in range(w) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
+            self.assertAlmostEqual(green[0], 220 * s, delta=2)
+            self.assertAlmostEqual(green[-1] + 1, w - 20 * s, delta=2)
+            x = w * 3 // 4
+            column = [y for y in range(h) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
+            self.assertAlmostEqual(column[-1] + 1, h - 40 * s, delta=2)
+
+    def test_no_ui_errors(self):
+        _, c = self.start(1280, 720)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
+
+
 # Mesa's software Vulkan driver, when installed: same pictures on every machine, no GPU needed
 LAVAPIPE = "/usr/share/vulkan/icd.d/lvp_icd.json"
 

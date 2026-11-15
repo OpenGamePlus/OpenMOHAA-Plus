@@ -1,0 +1,247 @@
+// Copyright (C) 2026 the OpenMOHAA Plus contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// OpenMOHAA Plus main menu. Sizes are virtual units, 1/480 of the screen height ("scalecvar
+// ui_plusscale" on every widget). The menu is a 2048-unit-wide frame centred on the screen, wide
+// enough to cover it up to 4.2:1: its children (the background) stay centred, while "align" and
+// "anchor" place the bar on the screen edges. The background is 1152x480 (2.4:1): it covers screens
+// up to 2.4:1 and is cropped at the sides on narrower ones; wider screens show the dark fill.
+// The engine shows or hides "backtogame", "continue game" and "new game" by name.
+
+menu "main" 2048 480 NONE 0
+bgcolor 0 0 0 0
+borderstyle NONE
+bgfill 0 0 0 1
+fullscreen 1
+virtualres 1
+scalecvar ui_plusscale
+
+resource
+Label
+{
+name "background left"
+rect 448 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu_plus/bg_l"
+}
+
+resource
+Label
+{
+name "background right"
+rect 1024 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu_plus/bg_r"
+}
+
+resource
+Label
+{
+name "bar"
+rect 0 0 300 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+stretch vertical
+shader "textures/menu_plus/bar"
+}
+
+resource
+Label
+{
+name "title"
+rect 0 30 200 32
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "OpenMOHAA Plus"
+font facfont-20
+fgcolor 0.94 0.75 0.38 1
+}
+
+// shown in a game only
+
+resource
+Button
+{
+name "backtogame"
+rect 0 100 200 28
+title "Back to game"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/back.wav"
+stuffcommand "popmenu 0;popmenu 0;popmenu 0;popmenu 0"
+}
+
+// one of the two, in the same place: "continue game" when the last save exists
+
+resource
+Button
+{
+name "continue game"
+rect 0 128 200 28
+title "Continue"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "loadlastgame"
+}
+
+resource
+Button
+{
+name "new game"
+rect 0 128 200 28
+title "New game"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu briefingroom"
+}
+
+resource
+Button
+{
+name "campaign"
+rect 0 176 200 28
+title "Campaign"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu briefingroom"
+}
+
+resource
+Button
+{
+name "multiplayer"
+rect 0 204 200 28
+title "Multiplayer"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu plus_browser"
+}
+
+resource
+Button
+{
+name "options"
+rect 0 232 200 28
+title "Options"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu options_main"
+}
+
+resource
+Button
+{
+name "plus"
+rect 0 260 200 28
+title "Plus"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu plus_options"
+}
+
+resource
+Button
+{
+name "loadsave"
+rect 0 308 200 28
+title "Load / Save"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu_sp loadsave;pushmenu_dm loadsave_mp"
+}
+
+resource
+Button
+{
+name "disconnect"
+rect 0 336 200 28
+title "Disconnect"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/back.wav"
+stuffcommand "disconnect"
+}
+
+// 40 units above the bottom edge whatever the scale
+
+resource
+Button
+{
+name "quit"
+rect 0 0 200 28
+title "Quit"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 0 -1 -1 40
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/back.wav"
+stuffcommand "quit"
+}
+end.

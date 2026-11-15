@@ -59,6 +59,14 @@ class BuildPk3(unittest.TestCase):
                               (self.tile("bg_r").getpixel((2047, ty)), self.art.getpixel((w - 1, y)))):
                 self.assertTrue(all(abs(a - b) < 24 for a, b in zip(got, want)), (y, got, want))
 
+    def test_bar_gradient_fades_out(self):
+        bar = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/bar.tga")))
+        self.assertEqual((bar.mode, bar.size), ("RGBA", (256, 4)))
+        alphas = [bar.getpixel((x, 0))[3] for x in range(256)]
+        self.assertGreater(alphas[0], 200)
+        self.assertEqual(alphas[-1], 0)
+        self.assertEqual(alphas, sorted(alphas, reverse=True))
+
 
 if __name__ == "__main__":
     unittest.main()

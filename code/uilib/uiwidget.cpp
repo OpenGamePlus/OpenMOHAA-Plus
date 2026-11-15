@@ -410,6 +410,16 @@ Event EV_Widget_ScaleCvar
     "Set the cvar to check to scale this component"
 );
 
+// Added in OpenMOHAA Plus
+Event EV_Layout_Anchor
+(
+    "anchor",
+    EV_DEFAULT,
+    "ffff",
+    "left top right bottom",
+    "Keep the widget at these distances (virtual units) from the screen edges; -1 leaves that edge to rect"
+);
+
 Event EV_Layout_AliasCache
 (
     "aliascache",
@@ -502,6 +512,8 @@ CLASS_DECLARATION(USignal, UIWidget, NULL) {
     {&EV_Widget_Disable,            &UIWidget::DisableEvent            },
     {&EV_Widget_EnabledCvar,        &UIWidget::SetEnabledCvar          },
     {&EV_Widget_ScaleCvar,          &UIWidget::SetScaleCvar            },
+    // Added in OpenMOHAA Plus
+    {&EV_Layout_Anchor,             &UIWidget::LayoutAnchor            },
 
     //
     // Added in 2.0
@@ -695,6 +707,8 @@ UIWidget::UIWidget()
     m_bVirtual                 = false;
     m_scaleCvar                = NULL;
     m_enabledCvar              = "";
+    // Added in OpenMOHAA Plus
+    m_anchor[0] = m_anchor[1] = m_anchor[2] = m_anchor[3] = -1;
 
     m_fadeSequenceDelay    = 0;
     m_fadeSequenceFadeIn   = 0;
@@ -1097,6 +1111,8 @@ void UIWidget::AlignPosition(void)
     } else if (m_align & WA_TOP) {
         m_frame.pos.y = 0;
     }
+
+    ApplyAnchor();
 
     setFrame(m_frame);
 }
@@ -2188,7 +2204,10 @@ void UIWidget::Realign(void)
         m_frame.pos.y = 0;
     }
 
-    if ((m_align & WA_FULL) || (m_flags & (WF_STRETCH_HORIZONTAL | WF_STRETCH_VERTICAL)) || bScaled) {
+    ApplyAnchor();
+
+    // Changed in OpenMOHAA Plus: anchored widgets too
+    if ((m_align & WA_FULL) || (m_flags & (WF_STRETCH_HORIZONTAL | WF_STRETCH_VERTICAL | WF_ANCHORED)) || bScaled) {
         setFrame(m_frame);
         m_startingpos = m_frame.pos;
     }
@@ -2427,6 +2446,45 @@ void UIWidget::SetEnabledCvar(Event *ev)
 void UIWidget::SetScaleCvar(Event *ev)
 {
     m_scaleCvar = uii.Cvar_Find(ev->GetString(1).c_str());
+}
+
+// Added in OpenMOHAA Plus: "anchor left top right bottom", screen-relative like align and stretch
+void UIWidget::LayoutAnchor(Event *ev)
+{
+    for (int i = 0; i < 4; i++) {
+        m_anchor[i] = ev->GetFloat(i + 1);
+    }
+
+    m_flags |= WF_ANCHORED | WF_NOPARENTADJUST | WF_DIRECTED;
+}
+
+// Added in OpenMOHAA Plus: applied after align and stretch
+void UIWidget::ApplyAnchor(void)
+{
+    if (!(m_flags & WF_ANCHORED)) {
+        return;
+    }
+
+    const vec2_t& scale = getVirtualScale();
+    const float   left = m_anchor[0], top = m_anchor[1], right = m_anchor[2], bottom = m_anchor[3];
+
+    if (left >= 0 && right >= 0) {
+        m_frame.pos.x      = left * scale[0];
+        m_frame.size.width = uid.vidWidth - (left + right) * scale[0];
+    } else if (left >= 0) {
+        m_frame.pos.x = left * scale[0];
+    } else if (right >= 0) {
+        m_frame.pos.x = uid.vidWidth - right * scale[0] - m_frame.size.width;
+    }
+
+    if (top >= 0 && bottom >= 0) {
+        m_frame.pos.y       = top * scale[1];
+        m_frame.size.height = uid.vidHeight - (top + bottom) * scale[1];
+    } else if (top >= 0) {
+        m_frame.pos.y = top * scale[1];
+    } else if (bottom >= 0) {
+        m_frame.pos.y = uid.vidHeight - bottom * scale[1] - m_frame.size.height;
+    }
 }
 
 void UIWidget::SetVirtualScale(vec2_t out)
