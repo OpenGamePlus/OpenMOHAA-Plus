@@ -420,6 +420,17 @@ Event EV_Layout_Anchor
     "Keep the widget at these distances (virtual units) from the screen edges; -1 leaves that edge to rect"
 );
 
+// Added in OpenMOHAA Plus
+Event EV_Layout_Cover
+(
+    "cover",
+    EV_DEFAULT,
+    "ff",
+    "width height",
+    "The widget is the rect part of a width x height picture centred on the screen and scaled, undistorted,\n"
+    "to cover it (cropped on the sides or top and bottom)"
+);
+
 Event EV_Layout_AliasCache
 (
     "aliascache",
@@ -514,6 +525,7 @@ CLASS_DECLARATION(USignal, UIWidget, NULL) {
     {&EV_Widget_ScaleCvar,          &UIWidget::SetScaleCvar            },
     // Added in OpenMOHAA Plus
     {&EV_Layout_Anchor,             &UIWidget::LayoutAnchor            },
+    {&EV_Layout_Cover,              &UIWidget::LayoutCover             },
 
     //
     // Added in 2.0
@@ -709,6 +721,8 @@ UIWidget::UIWidget()
     m_enabledCvar              = "";
     // Added in OpenMOHAA Plus
     m_anchor[0] = m_anchor[1] = m_anchor[2] = m_anchor[3] = -1;
+    m_coverSize[0] = m_coverSize[1] = 0;
+    m_coverRectSet                  = false;
 
     m_fadeSequenceDelay    = 0;
     m_fadeSequenceFadeIn   = 0;
@@ -1113,6 +1127,7 @@ void UIWidget::AlignPosition(void)
     }
 
     ApplyAnchor();
+    ApplyCover();
 
     setFrame(m_frame);
 }
@@ -2205,9 +2220,10 @@ void UIWidget::Realign(void)
     }
 
     ApplyAnchor();
+    ApplyCover();
 
     // Changed in OpenMOHAA Plus: anchored widgets too
-    if ((m_align & WA_FULL) || (m_flags & (WF_STRETCH_HORIZONTAL | WF_STRETCH_VERTICAL | WF_ANCHORED)) || bScaled) {
+    if ((m_align & WA_FULL) || (m_flags & (WF_STRETCH_HORIZONTAL | WF_STRETCH_VERTICAL | WF_ANCHORED | WF_COVER)) || bScaled) {
         setFrame(m_frame);
         m_startingpos = m_frame.pos;
     }
@@ -2485,6 +2501,40 @@ void UIWidget::ApplyAnchor(void)
     } else if (bottom >= 0) {
         m_frame.pos.y = uid.vidHeight - bottom * scale[1] - m_frame.size.height;
     }
+}
+
+// Added in OpenMOHAA Plus: "cover width height"
+void UIWidget::LayoutCover(Event *ev)
+{
+    m_coverSize[0] = ev->GetFloat(1);
+    m_coverSize[1] = ev->GetFloat(2);
+
+    if (m_coverSize[0] > 0 && m_coverSize[1] > 0) {
+        m_flags |= WF_COVER | WF_NOPARENTADJUST | WF_DIRECTED;
+    }
+}
+
+// Added in OpenMOHAA Plus: applied last; the rect is read once, in picture units
+void UIWidget::ApplyCover(void)
+{
+    if (!(m_flags & WF_COVER)) {
+        return;
+    }
+
+    if (!m_coverRectSet) {
+        const vec2_t& scale = getVirtualScale();
+        m_coverRect         = UIRect2D(
+            m_frame.pos.x / scale[0], m_frame.pos.y / scale[1], m_frame.size.width / scale[0], m_frame.size.height / scale[1]
+        );
+        m_coverRectSet = true;
+    }
+
+    const float k = Q_max(uid.vidWidth / m_coverSize[0], uid.vidHeight / m_coverSize[1]);
+
+    m_frame.pos.x       = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
+    m_frame.pos.y       = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
+    m_frame.size.width  = m_coverRect.size.width * k;
+    m_frame.size.height = m_coverRect.size.height * k;
 }
 
 void UIWidget::SetVirtualScale(vec2_t out)

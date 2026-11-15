@@ -2467,6 +2467,19 @@ void UI_MainMenuWidgetsUpdate(void)
         menuManager.PassEventToWidget("backtogame", event);
     }
 
+    // Added in OpenMOHAA Plus: entries of the Plus main menu, "disconnect" in any game and "savegame" in
+    //  a game this client runs (saves are local). The original main has neither: send nothing to it, as
+    //  an event no widget takes is never freed.
+    Menu *menu = menuManager.CurrentMenu();
+    if (menu && menu->GetNamedWidget("disconnect")) {
+        menu->PassEventToWidget("disconnect", new Event(clc.state > CA_PRIMED ? EV_Widget_Enable : EV_Widget_Disable));
+    }
+    if (menu && menu->GetNamedWidget("savegame")) {
+        menu->PassEventToWidget(
+            "savegame", new Event(clc.state > CA_PRIMED && com_sv_running->integer ? EV_Widget_Enable : EV_Widget_Disable)
+        );
+    }
+
     UI_UpdateContinueGame();
 }
 

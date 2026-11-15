@@ -3,10 +3,11 @@
 //
 // OpenMOHAA Plus main menu. Sizes are virtual units, 1/480 of the screen height ("scalecvar
 // ui_plusscale" on every widget). The menu is a 2048-unit-wide frame centred on the screen, wide
-// enough to cover it up to 4.2:1: its children (the background) stay centred, while "align" and
-// "anchor" place the bar on the screen edges. The background is 1152x480 (2.4:1): it covers screens
-// up to 2.4:1 and is cropped at the sides on narrower ones; wider screens show the dark fill.
-// The engine shows or hides "backtogame", "continue game" and "new game" by name.
+// enough to take clicks anywhere up to 4.2:1; "align" and "anchor" place the bar on the screen
+// edges. The background is a 1152x480 picture (2.4:1) in two halves; "cover" scales it, undistorted,
+// to cover the screen, cropped at the sides (narrower than 2.4:1) or top and bottom (wider).
+// The engine shows or hides "backtogame", "continue game", "new game", "savegame" and "disconnect"
+// by name.
 
 menu "main" 2048 480 NONE 0
 bgcolor 0 0 0 0
@@ -20,11 +21,12 @@ resource
 Label
 {
 name "background left"
-rect 448 0 576 480
+rect 0 0 576 480
 fgcolor 1 1 1 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+cover 1152 480
 shader "textures/menu_plus/bg_l"
 }
 
@@ -32,11 +34,12 @@ resource
 Label
 {
 name "background right"
-rect 1024 0 576 480
+rect 576 0 576 480
 fgcolor 1 1 1 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+cover 1152 480
 shader "textures/menu_plus/bg_r"
 }
 
@@ -69,7 +72,7 @@ font facfont-20
 fgcolor 0.94 0.75 0.38 1
 }
 
-// shown in a game only
+// shown in a game only (Disconnect too)
 
 resource
 Button
@@ -195,9 +198,28 @@ stuffcommand "pushmenu plus_options"
 resource
 Button
 {
-name "loadsave"
+name "loadgame"
 rect 0 308 200 28
-title "Load / Save"
+title "Load game"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu_sp loadsave;pushmenu_dm loadsave_mp"
+}
+
+// shown in a game this client runs
+
+resource
+Button
+{
+name "savegame"
+rect 0 336 200 28
+title "Save game"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
@@ -213,7 +235,7 @@ resource
 Button
 {
 name "disconnect"
-rect 0 336 200 28
+rect 0 364 200 28
 title "Disconnect"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1

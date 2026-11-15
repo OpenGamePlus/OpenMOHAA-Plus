@@ -870,19 +870,23 @@ PLUS_PK3 = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
                         "build_pk3.py")
 
 
-def _solid_tga(rgb, size=8):
-    """An uncompressed 24-bit TGA of one colour."""
-    return struct.pack("<3B2HB4H2B", 0, 0, 2, 0, 0, 0, 0, 0, size, size, 24, 0) + bytes(rgb[::-1]) * size * size
+def _tga(width, rows):
+    """An uncompressed 24-bit TGA; rows of one colour each, bottom row first."""
+    header = struct.pack("<3B2HB4H2B", 0, 0, 2, 0, 0, 0, 0, 0, width, len(rows), 24, 0)
+    return header + b"".join(bytes(rgb[::-1]) * width for rgb in rows)
 
 
 @require_game
 @unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
 class PlusMenu(GameTestCase):
-    """The fork's main menu (misc/plus-pk3/data/ui/main.urc), with solid red background tiles."""
+    """The fork's main menu (misc/plus-pk3/data/ui/main.urc), with plain background tiles: the left
+    half red with its bottom quarter green, the right half blue."""
 
     # virtual units are 1/480 of the screen height (ui_plusscale 1)
     BAR_FADE_END = 300                     # the bar gradient is transparent from here
-    BACKTOGAME = (60, 100, 140, 128)       # x0 y0 x1 y1 of the "backtogame" entry's text area
+    # x0 y0 x1 y1 of the text area of the entries shown in a game only
+    IN_GAME_ENTRIES = {"backtogame": (60, 100, 140, 128), "savegame": (60, 336, 140, 364),
+                       "disconnect": (60, 364, 140, 392)}
 
     # a test menu with a green panel anchored like the Plus content panel
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
@@ -909,14 +913,15 @@ end.
         built = os.path.join(cls.plus_dir, "built.pk3")
         subprocess.run([sys.executable, PLUS_PK3, "--out", built, "--skip-fonts"], check=True, capture_output=True)
         os.makedirs(os.path.join(cls.plus_dir, "plus"))
-        red = _solid_tga((255, 0, 0))
+        left = _tga(4, [(0, 255, 0)] * 64 + [(255, 0, 0)] * 192)
+        right = _tga(4, [(0, 0, 255)] * 256)
         with zipfile.ZipFile(built) as src, \
                 zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
             for name in src.namelist():
                 if name not in ("textures/menu_plus/bg_l.tga", "textures/menu_plus/bg_r.tga"):
                     z.writestr(name, src.read(name))
-            z.writestr("textures/menu_plus/bg_l.tga", red)
-            z.writestr("textures/menu_plus/bg_r.tga", red)
+            z.writestr("textures/menu_plus/bg_l.tga", left)
+            z.writestr("textures/menu_plus/bg_r.tga", right)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
 
     @classmethod
@@ -950,32 +955,36 @@ end.
         return picture
 
     @staticmethod
-    def is_red(p):
-        return p[0] > 200 and p[1] < 60 and p[2] < 60
+    def is_blue(p):
+        return p[2] > 200 and p[0] < 60 and p[1] < 60
+
+    @staticmethod
+    def is_green(p):
+        return p[1] > 200 and p[0] < 60 and p[2] < 60
 
     @staticmethod
     def mean_brightness(rows, x0, x1, y0, y1):
         return statistics.mean(sum(rows[y][x]) / 3 for y in range(y0, y1) for x in range(x0, x1))
 
     def test_main_fills_any_aspect(self):
-        # below the console, which covers the top half at start-up
+        # the 2.4:1 picture covers the screen, centred and undistorted: cropped at the sides when the
+        # screen is narrower, at the top and bottom when wider. Sampled below the console, which
+        # covers the top half at start-up.
         for w, h in ((1280, 720), (2560, 1080), (1024, 768), (3840, 1080)):
             _, _, rows = self.shot(w, h)
             y = int(h * 0.6)
+            self.assertTrue(self.is_blue(rows[y][w - 5]), (w, h, rows[y][w - 5]))   # reaches the right edge
+            # the halves meet at the centre of the screen
+            middle = next(x for x in range(w // 2 - 50, w) if self.is_blue(rows[y][x]))
+            self.assertAlmostEqual(middle, w / 2, delta=3, msg=(w, h))
+            # the green bottom quarter of the left half starts 3/4 down a picture 1/2.4 as high as wide
+            height = max(h, w / 2.4)
+            x = w // 2 - 8
+            green = next(y for y in range(int(h * 0.55), h) if self.is_green(rows[y][x]))
+            self.assertAlmostEqual(green, (h - height) / 2 + height * 0.75, delta=height / 256 + 3, msg=(w, h))
             ys = (int(h * 0.55), int(h * 0.65))
             bar = self.mean_brightness(rows, 0, int(h * 0.1), *ys)
-            if w / h <= 2.4:
-                # the 2.4:1 background covers the screen: it reaches the right edge
-                self.assertTrue(self.is_red(rows[y][w - 5]), (w, h, rows[y][w - 5]))
-                lit = self.mean_brightness(rows, w - 20, w - 5, *ys)
-            else:
-                # wider than 2.4:1: the background keeps its shape, centred on a dark fill
-                self.assertLess(sum(rows[y][w - 5]), 30, (w, h, rows[y][w - 5]))
-                edge = (w - 1152 * h // 480) // 2
-                self.assertTrue(self.is_red(rows[y][edge + 5]), (w, h, rows[y][edge + 5]))
-                self.assertLess(sum(rows[y][edge - 5]), 30, (w, h, rows[y][edge - 5]))
-                lit = self.mean_brightness(rows, w * 5 // 8, w * 5 // 8 + 15, *ys)
-            self.assertLess(bar, lit / 2, (w, h))
+            self.assertLess(bar, self.mean_brightness(rows, w - 20, w - 5, *ys) / 2, (w, h))
 
     def test_bar_size_follows_height(self):
         def fade_end(w, h):
@@ -988,23 +997,24 @@ end.
         self.assertAlmostEqual(a, self.BAR_FADE_END / 480, delta=0.02 * a)
 
     def test_back_to_game_only_in_game(self):
-        # one game: in a level the entry shows; after "disconnect" (no game) it is hidden. The
-        # start-up screen would do too, but the console covers the top half of it.
+        # one game: in a level Back to game, Save game and Disconnect show; after "disconnect" (no game)
+        # they are hidden. The start-up screen would do too, but the console covers the top half of it.
         w, h = 1280, 720
         home, c = self.start(w, h, "+devmap", "training")
         c.wait_for(r"==== InitGame ====", timeout=120)
         time.sleep(15)
         c.send("pushmenu main")
         time.sleep(3)
-        x0, y0, x1, y1 = (v * h // 480 for v in self.BACKTOGAME)
         _, _, in_game = self.screenshot(home, c)
         c.send("disconnect")
         time.sleep(5)
         _, _, no_game = self.screenshot(home, c)
         self.assertEqual(c.quit(), 0)
-        self.assertGreater(self.mean_brightness(in_game, x0, x1, y0, y1)
-                           - self.mean_brightness(no_game, x0, x1, y0, y1), 40 / 3)
-        self.assertTrue(self.is_red(no_game[int(h * 0.6)][w - 5]), "the Plus main menu is up")
+        for name, rect in self.IN_GAME_ENTRIES.items():
+            x0, y0, x1, y1 = (v * h // 480 for v in rect)
+            self.assertGreater(self.mean_brightness(in_game, x0, x1, y0, y1)
+                               - self.mean_brightness(no_game, x0, x1, y0, y1), 40 / 3, name)
+        self.assertTrue(self.is_blue(no_game[int(h * 0.6)][w - 5]), "the Plus main menu is up")
 
     def test_anchor_follows_screen_edges(self):
         for w, h in ((1280, 720), (2560, 1080)):
