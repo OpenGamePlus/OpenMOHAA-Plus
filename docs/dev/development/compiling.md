@@ -23,10 +23,11 @@ cmake --install .cmake          # binaries and modules go to <PREFIX>/lib/openmo
 
 ## Windows (MSVC)
 
-Same CMake project with the Visual Studio generator (`-A x64`); steps in the upstream page above.
+Same CMake project with the Visual Studio generator (`-G "Visual Studio 16 2019" -A x64`).
 MSVC rejects code that GCC and Clang accept, for example a `?:` whose branches are two
-`const vec2_t&` array references (C2440 on Windows; use an `if`). Build a C++ change on Windows before handing it
-over; when it is only a test build, `git archive` the tree into a separate source folder there.
+`const vec2_t&` array references (C2440; use an `if`). Build a C++ change on Windows, or let the
+Windows CI build it, before merging; for a local test build, `git archive` the tree into a
+separate source folder there.
 
 ## Game data
 

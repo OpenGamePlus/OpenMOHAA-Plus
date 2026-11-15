@@ -148,6 +148,8 @@ class ScopeTests(RepoTestCase):
         self.assertEqual(self.problems(), [])
 
     def test_fork_pages_in_upstream_docs_are_checked(self):
+        self.write("docs/markdown/04-coding/02-scripting/03-plus-events.md", "[x](nope.md)\n")
+        self.assertEqual(self.kinds(), ["broken-link"])
         self.write("docs/markdown/03-configuration/04-plus-admin.md", "[x](nope.md) `code/nope.c`\n")
         self.assertEqual(self.kinds(), ["broken-link", "missing-path"])
 

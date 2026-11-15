@@ -4,7 +4,8 @@ Append-only operational memory. Newest first, at most 3 bullets per stage, never
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
 ## 2026-11-15 — Docs audit
-- Audit with the ai-docs-system checklist: structure, ADRs and memory were sound; drift was in what recent work never wrote down. New `docs/dev/architecture/ui-menus.md` (code map, opt-in rule, pitfalls that each cost a debugging round, testing limits) gathers what was only in memory stages; doc-sync rows for menus, pk3 art and the banner; spec and plan locations; the MSVC strictness note moved from the assistant's private memory into `compiling.md`.
+- Structure, ADRs and memory were sound; the drift was in what recent work never wrote down. New `docs/dev/architecture/ui-menus.md` gathers the UI code map, the opt-in rule and the pitfalls that were only in memory stages.
+- Also added: doc-sync rows (menus, pk3 art, banner), where specs and plans live, and the MSVC strictness note in `compiling.md`. A fresh review caught three overstatements (`cover` flag, white textures, ART-LICENSE scope), fixed before merge.
 - The checker now covers the fork's `docs/markdown/**/NN-plus-*.md` pages (fork files, never checked) and the committed specs, the latter for personal data only: a discarded spec names files that were never written, which is history, not a broken path. The workflow also triggers on those folders and the READMEs.
 
 ## 2026-11-15 — New banner and visual identity

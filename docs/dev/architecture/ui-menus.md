@@ -20,25 +20,25 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 
 ## Rules
 
-- Fork behaviour is opt-in: `anchor`/`cover` set `WF_ANCHORED`, `scalecvar` sets `m_scaleCvar`,
-  `linkcvar` turns on the pulldown value. Branch on those, never on menu names; the one exception
+- Fork behaviour is opt-in: `anchor` sets `WF_ANCHORED`, `cover` sets `WF_COVER`, `scalecvar`
+  sets `m_scaleCvar`, `linkcvar` turns on the pulldown value. Branch on those, never on menu names; the one exception
   is the Esc hook on `plus_options*` menus.
-- Virtual units are 1/480 of the screen height, times `ui_plusscale` (0.85 to 1.1). Every Plus
-  widget has an `anchor`: without `align` or `anchor` a widget lands in the menu's 2048-unit frame,
-  off screen; `align left` puts it at x=0 whatever its `rect`.
-- Textures in the pak are powers of two. Generated widget art is white and takes the widget's
-  `fgcolor` as tint.
+- Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
+  the user page, "Writing menus".
+- Textures in the pak are powers of two. Widget art meant to follow the widget's colour is
+  generated white, so `fgcolor` tints it (`field.tga`); the bar and hover gradients carry their
+  own colour.
 - New user-visible behaviour is documented on the user page in the same commit.
 
 ## Pitfalls (each cost a debugging round)
 
 | Pitfall | Consequence |
 |---|---|
-| `MenuManager::PopMenu` locks the menus until a posted unlock event and posts `showmenu` to the menu below | `popmenu 0;pushmenu X` on one line silently fails; use `replacemenu` (`MenuManager::ReplaceMenu`) |
+| `MenuManager::PopMenu` locks the menus until a posted unlock event and posts `showmenu` to the menu below | `popmenu 0;pushmenu X` on one line silently fails; `replacemenu` (`MenuManager::ReplaceMenu`) swaps in one step |
 | A container clips its children to its own `rect` | A child taller than the container (the pulldown, as tall as its arrow shader) must centre its text on the parent, not on itself |
 | A `ui_plusscale` change reaches widgets through `AlignPosition`, not `Realign` | Widgets that lay out children (`FakkBindList`) relayout in `Draw` when the scale moved |
-| `ui/bind.scr` gives bind-list columns in fixed units, rows are 16 units | Columns are narrowed to fit scaled lists; a list height must be whole rows |
-| `WF_NOPARENTADJUST` children got the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
+| The game's `ui/bind.scr` gives bind-list columns in fixed units; rows are 16 units (`commandheight`) | Columns are narrowed to fit scaled lists; a list height must be whole rows |
+| Children of a `WF_NOPARENTADJUST` widget were placed from the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
 | `CVAR_SOUND_LATCH` / `CVAR_TERRAIN_LATCH` never latch in `cvar.c` | `ui_marklatched` snapshots their values; Apply and Back compare against it |
 | While its list is open a pulldown is the first responder and gets every mouse event | A list left open by a hidden menu closes on the next mouse event |
 
