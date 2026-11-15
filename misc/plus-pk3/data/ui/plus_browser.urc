@@ -82,7 +82,7 @@ scalecvar ui_plusscale
 align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "set dm_browser_show 0;widgetcommand netgamelist refreshserverlist"
+stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
 }
 
 resource
@@ -99,7 +99,7 @@ scalecvar ui_plusscale
 align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "set dm_browser_show 1;widgetcommand netgamelist refreshserverlist"
+stuffcommand "set dm_browser_show 1;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
 }
 
 resource
@@ -116,7 +116,7 @@ scalecvar ui_plusscale
 align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "set dm_browser_show 3;widgetcommand netgamelist refreshserverlist"
+stuffcommand "set dm_browser_show 3;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
 }
 
 resource
@@ -133,7 +133,7 @@ scalecvar ui_plusscale
 align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "widgetcommand netgamelist refreshlanserverlist"
+stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshlanserverlist;vstr plus_browser_refresh"
 }
 
 resource
@@ -150,7 +150,7 @@ scalecvar ui_plusscale
 align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "widgetcommand netgamelist refreshserverlist"
+stuffcommand "vstr plus_browser_refresh"
 }
 
 resource
@@ -168,6 +168,23 @@ align left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "widgetcommand netgamelist connect"
+}
+
+resource
+Button
+{
+name "favourite"
+rect 0 288 200 28
+title "Favourite"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "widgetcommand netgamelist togglefavorite"
 }
 
 resource

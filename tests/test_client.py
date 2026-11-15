@@ -684,6 +684,33 @@ class ServerBrowser(GameTestCase):
         self.assertNotIn("Alpha", listed)
         self.assertEqual(c.quit(), 0)
 
+    def test_favourite_button_toggles(self):
+        s = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        s.send("net_gamespy_port")
+        qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverhistory.txt", f"127.0.0.1:{s.port} {qport}\n")
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("dm_browser_show 2")
+        self._list(c, r"Server list \(1\):\n.*Alpha")
+        c.send("widgetcommand netgamelist selectitem 1")            # the Plus screen has the player click it
+        for marked in (True, False):
+            c.send("widgetcommand netgamelist togglefavorite")      # what the Plus Favourite button runs
+            time.sleep(1)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist printlist")
+            listed = c.wait_for(r"Server list \(\d+\):\n.*Alpha", start=mark, timeout=20)[mark:]
+            self.assertEqual("  * " in listed, marked, listed)
+        self.assertEqual(c.quit(), 0)
+        self.assertNotIn("127.0.0.1", open(client_home.file("serverfavorites.txt")).read())
+
     def test_favorites_history_and_search(self):
         alpha = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
         home_b = omoh.Home()
@@ -1069,6 +1096,18 @@ end.
             y = int(h * 0.6)
             panel = [x for x in range(w // 2, w) if rows[y][x][2] < 150]
             self.assertAlmostEqual(panel[-1] + 1, w - 20 * h / 480, delta=3, msg=(w, h))
+
+    def test_browser_columns_follow_width(self):
+        # a list wider than 800 virtual units also shows the game version
+        for w, h, columns in ((1280, 720, 6), (2560, 1080, 7)):
+            home, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
+            c.send("pushmenu plus_browser")
+            time.sleep(2)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist printlist")
+            found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
+            self.assertEqual(c.quit(), 0)
+            self.assertIn(f"Columns: {columns}", found, (w, h))
 
     def test_no_ui_errors(self):
         _, c = self.start(1280, 720)

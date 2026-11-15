@@ -16,6 +16,7 @@ Update when a fix leaves something open or an issue is rejected. Issue numbers a
 
 ## Known gaps (not fixed)
 
+- Plus server browser: the LAN tab (sets `dm_browser_show 0`, then `refreshlanserverlist`) has no test, because the headless client finds no LAN server on loopback (checked with a server on port 12301, even with the filter at 0).
 - The 1.11 `errormessage` menu shows `com_errorMessage` on one centered line, so long reasons (e.g.
   the "Unpure Client ..." text) are clipped on screen; the console has the full text.
 - "Unknown client game command: disconnect" is still printed by cgame for mid-connection drops

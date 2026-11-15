@@ -71,6 +71,8 @@ protected:
     void     UpdateServer(Event *ev);
     void     RefreshStatus();
     void     ToggleFavorite(void);       // Added in OpenMOHAA Plus
+    void     ToggleFavoriteEvent(Event *ev); // Added in OpenMOHAA Plus
+    void     SelectItemEvent(Event *ev);     // Added in OpenMOHAA Plus
     void     PrintList(Event *ev);       // Added in OpenMOHAA Plus
     void     QueryServerBook(void);      // Added in OpenMOHAA Plus
 
