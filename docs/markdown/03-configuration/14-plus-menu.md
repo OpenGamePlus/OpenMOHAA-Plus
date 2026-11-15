@@ -2,8 +2,9 @@
 
 OpenMOHAA Plus ships its own main menu, server browser and options screen for Allied Assault. They
 adapt to the screen: the background covers any aspect ratio (4:3 up to 32:9) without stretching,
-the buttons and lists follow the screen edges, and a "Version" column appears in the server list
-when it is wide enough. Spearhead, Breakthrough and any mod that brings its own `ui/` files are
+the buttons and lists follow the screen edges, and the server list shows each server's game
+version in its own column (names appear as the server sends them, without the "(1.11)" the
+original list adds) and the IP when it is wide enough. Spearhead, Breakthrough and any mod that brings its own `ui/` files are
 not affected.
 
 ## Install
@@ -69,11 +70,12 @@ screens is 2048 units wide and starts off the screen: give every widget an `anch
 puts the widget at the screen edge whatever the `rect` says.
 
 The server list widget also takes the events `togglefavorite` (favourite on or off for the
-selected server) and `selectitem <n>`. Its `printlist` command prints a `Columns: N` line first;
-the "Version" column appears when the list is wider than 800 virtual units. An anchored list has
+selected server) and `selectitem <n>`. Its `printlist` command prints a `Columns: N` line first,
+then one line per server ending with its version. An anchored list has a version column ("Ver."
+when narrow), names without the version, and an IP column when wider than 800 virtual units. An anchored list has
 its header in the row font, draws its rows at the menu's scale (the original list keeps the HUD
-scale) and its columns end at the scroll bar. Text longer than its column is cut at the column's
-edge.
+scale) and its columns end at the scroll bar. Text longer than its column is cut 4 units before
+the column's edge.
 
 A `PulldownMenuContainer` with `linkcvar <cvar>` shows, before its arrow and in its own `font`
 and `fgcolor`, the title of the item whose command starts with `set <cvar> <value>` (or `seta`)

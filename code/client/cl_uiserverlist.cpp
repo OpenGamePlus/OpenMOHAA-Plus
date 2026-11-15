@@ -162,11 +162,13 @@ void FAKKServerListItem::DrawListItem(int iColumn, const UIRect2D& drawRect, boo
     virtualScale[0] = m_parent->getItemScale()[0];
     virtualScale[1] = m_parent->getItemScale()[1];
 
-    // Fixed in OpenMOHAA Plus: a cell's text is cut at its column's edge instead of running over the
-    //  next column (seen with long server names once the Plus list drew its rows at its own scale)
+    // Fixed in OpenMOHAA Plus: a cell's text is cut 4 units before its column's edge instead of
+    //  running over the next column (seen with long server names once the Plus list drew its rows at
+    //  its own scale)
     const str text   = getListItemString(iColumn);
     int       maxlen = text.length();
-    while (maxlen > 0 && pFont->getWidth(text.c_str(), maxlen) * virtualScale[0] > newRect.size.width - 2) {
+    while (maxlen > 0
+           && pFont->getWidth(text.c_str(), maxlen) * virtualScale[0] > newRect.size.width - 4 * virtualScale[0]) {
         maxlen--;
     }
 
@@ -499,25 +501,26 @@ void UIFAKKServerList::UpdateUIElement(void)
     if (m_flags & WF_ANCHORED) {
         // Added in OpenMOHAA Plus: the Plus browser's list (anchored) has its header in the row font,
         //  and its columns end at the scroll bar and are wide enough for their titles; a list wider
-        //  than 800 virtual units (1/480 of the screen height) also shows the game version
+        //  than 800 virtual units (1/480 of the screen height) also shows the IP
         setHeaderFont(NULL);
         width -= 16;
         if (width / getVirtualScale()[0] > 800) {
-            AddColumn("Server Name", 0, width * 0.28f, false, false);
-            AddColumn("Map", 5, width * 0.12f, false, false);
-            AddColumn("Players", 3, width * 0.075f, true, true);
-            AddColumn("Gametype", 4, width * 0.15f, false, false);
-            AddColumn("Ping", 2, width * 0.045f, true, false);
-            AddColumn("IP", 1, width * 0.19f, false, false);
-            AddColumn("Version", 6, width * 0.14f, false, false);
+            AddColumn("Server Name", 0, width * 0.30f, false, false);
+            AddColumn("Map", 5, width * 0.15f, false, false);
+            AddColumn("Players", 3, width * 0.08f, true, true);
+            AddColumn("Gametype", 4, width * 0.16f, false, false);
+            AddColumn("Ping", 2, width * 0.06f, true, false);
+            AddColumn("Version", 6, width * 0.07f, false, false);
+            AddColumn("IP", 1, width * 0.18f, false, false);
         } else {
-            // the titles still fit on the narrowest list (5:4, ui_plusscale 1.1)
-            AddColumn("Server Name", 0, width * 0.27f, false, false);
-            AddColumn("Map", 5, width * 0.13f, false, false);
+            // no IP, a short version title; the titles still fit on the narrowest list (5:4,
+            //  ui_plusscale 1.1)
+            AddColumn("Server Name", 0, width * 0.30f, false, false);
+            AddColumn("Map", 5, width * 0.16f, false, false);
             AddColumn("Players", 3, width * 0.15f, true, true);
-            AddColumn("Gametype", 4, width * 0.2f, false, false);
-            AddColumn("Ping", 2, width * 0.09f, true, false);
-            AddColumn("IP", 1, width * 0.16f, false, false);
+            AddColumn("Gametype", 4, width * 0.20f, false, false);
+            AddColumn("Ping", 2, width * 0.10f, true, false);
+            AddColumn("Ver.", 6, width * 0.09f, false, false);
         }
     } else {
         AddColumn("Server Name", 0, width * 0.31f, false, false);
@@ -1234,7 +1237,11 @@ void UIFAKKServerList::UpdateServerListCallBack(
             }
         }
         // always show the version
-        if (!bIsDemo) {
+        if (uiServerList->m_flags & WF_ANCHORED) {
+            // Added in OpenMOHAA Plus: the Plus browser's list (anchored) has a Version column, so
+            //  the name is left as the server sends it
+            sServerName = pszHostName;
+        } else if (!bIsDemo) {
             sServerName = va(" (%s) %s", pszGameVerNumber, pszHostName);
         } else {
             sServerName = va(" (d%s) %s", pszGameVerNumber, pszHostName);
@@ -1544,13 +1551,14 @@ void UIFAKKServerList::PrintList(Event *ev)
     for (i = 1; i <= getNumItems(); i++) {
         const FAKKServerListItem *pItem = static_cast<const FAKKServerListItem *>(GetItem(i));
         Com_Printf(
-            "  %s%s | %s | %s | %s players | %s\n",
+            "  %s%s | %s | %s | %s players | %s | %s\n", // Added in OpenMOHAA Plus: the version
             pItem->IsFavorite() ? "* " : "",
             pItem->getListItemString(0).c_str(),
             pItem->getListItemString(1).c_str(),
             pItem->getListItemString(5).c_str(),
             pItem->getListItemString(3).c_str(),
-            pItem->getListItemString(2).c_str()
+            pItem->getListItemString(2).c_str(),
+            pItem->getListItemString(6).c_str()
         );
     }
 }

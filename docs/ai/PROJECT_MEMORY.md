@@ -3,6 +3,10 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus browser columns reworked
+- Screenshots with real servers (the headless Linux client reaches the masters unless `NO_MASTERS`): at 1080p the list is ~590 virtual units, so the Version column (> 800) never showed while every name carried OPM's "(1.11) " prefix. The anchored list now drops the prefix, always has a version column ("Ver." when narrow) and shows IP only above 800 units; the original list is unchanged.
+- Title widths decide the narrow split (5:4 at ui_plusscale 1.1): "Gametype" needs ~19%, "Players" ~15%, "Version" would need 15%, hence "Ver.". `printlist` lines end with the version. `+set ui_consoleposition "<x> <y> 8 8"` moves the console out of headless screenshots.
+
 ## 2026-11-15 — Plus options pulldowns show their value
 - `PulldownMenuContainer` with `linkcvar` (opt-in, unused by the original menus) shows the title of the item whose first command is `set|seta <cvar> <value>`, or `reset <cvar>` at the default; the pending value of a latched cvar (`cl_renderer`, `cl_language`), else the raw value. The two value labels are gone.
 - The pulldown widget is as tall as its arrow shader (68 units) but the container clips it to its own `rect`, so the value is centred on the container: centred on its own frame it was drawn below the visible part. `ui_printwidgets` prints `pulldown value` and the drawn width, which must fit the `rect` ("Game default" needed 160 units, not 148).
