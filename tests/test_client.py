@@ -1220,14 +1220,15 @@ end.
             text = z.read("ui/%s.urc" % urc).decode()
         return re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1)
 
-    def assert_options_tab(self, screen, menu, rows, msg):
+    def assert_options_tab(self, screen, menu, rows, msg, bar=None):
         """An option tab: the tab bar, every row inside the panel, label on the left and control to
         its right, no text over another widget, rows evenly spaced, pulldowns clickable."""
         self.assertEqual(screen["menu"], menu, msg)
         widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
         panel = widgets["panel"]["rect"]
+        expected_bar = bar
         bar = [n for n, _ in self.assert_bar(screen, msg)]
-        self.assertEqual(bar, self.OPTIONS_BAR, msg)
+        self.assertEqual(bar, expected_bar or self.OPTIONS_BAR, msg)
         in_panel = [n for n in widgets if n.endswith((" label", " slider", " checkbox", " list"))
                     or n.startswith("language note")]
         labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
@@ -1296,6 +1297,40 @@ end.
                                  "set cg_effectdetail 0.7;set vss_maxcount 20")
         self.assertEqual((v[0], v[2]), ("High", "Medium"))
         self.assertEqual(c.quit(), 0)
+
+    def test_controls_layout(self):
+        # the key list in the panel above four rows, its rows and scroll bar inside it; a Defaults
+        # entry in the bar runs the original defaults
+        self.assertEqual(self.urc_command("plus_options_controls", "defaults"), "ui_resetcvars;exec default.cfg")
+        for w, h, scales in self.LAYOUT_SCREENS:
+            _, c = self.start(w, h)
+            for scale in scales:
+                msg = (w, h, scale)
+                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_options_controls")
+                c.send("popmenu 0")
+                self.assert_options_tab(screen, "plus_options_controls", 4, msg,
+                                        bar=self.OPTIONS_BAR[:-1] + ["defaults", "back"])
+                names = list(screen["widgets"])
+                i = names.index("bindlist")
+                lst = screen["widgets"]["bindlist"]
+                self.assertTrue(self.inside(lst["rect"], screen["widgets"]["panel"]["rect"]), msg)
+                children = []
+                for name in names[i + 1:]:
+                    v = screen["widgets"][name]
+                    if v["depth"] <= lst["depth"]:
+                        break
+                    children.append((name, v))
+                self.assertTrue(children, msg)
+                for name, v in children:
+                    if v["shown"] and v["depth"] == lst["depth"] + 1:
+                        self.assertTrue(self.inside(v["rect"], lst["rect"], slack=2), (msg, name, v["rect"], lst["rect"]))
+                scroll = [v["rect"] for _, v in children if v["class"] == "UIVertScroll"]
+                self.assertEqual(len(scroll), 1, msg)
+                self.assertAlmostEqual(scroll[0][2], lst["rect"][2], delta=3, msg=(msg, scroll, lst["rect"]))
+                # the rows are below the list
+                labels = [v for n, v in screen["widgets"].items() if n.endswith(" label") and v["depth"] == 1]
+                self.assertTrue(all(v["rect"][1] >= lst["rect"][3] for v in labels), msg)
+            self.assertEqual(c.quit(), 0)
 
     def top_menu(self, c):
         return self.widgets(c)["menu"]

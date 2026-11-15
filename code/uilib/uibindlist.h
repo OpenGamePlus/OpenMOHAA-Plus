@@ -33,6 +33,7 @@ class UIFakkBindList : public UIWidget
     int                   m_activerow;
     int                   m_activeitem;
     bind_t               *m_bind;
+    vec2_t                m_layoutScale; // Added in OpenMOHAA Plus: see Draw
 
 public:
     CLASS_PROTOTYPE(UIFakkBindList);
