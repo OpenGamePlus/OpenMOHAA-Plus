@@ -61,6 +61,8 @@ protected:
     UIPopupMenu                 *m_submenuptr;
     UColor                       m_highlightBGColor;
     UColor                       m_highlightFGColor;
+    str                          m_valueTitle; // Added in OpenMOHAA Plus: see setValue
+    UIFont                      *m_valueFont;  // Added in OpenMOHAA Plus: the container's font, not owned
 
 public:
     CLASS_PROTOTYPE(UIPulldownMenu);
@@ -68,6 +70,7 @@ public:
 protected:
     UIRect2D         getAlignmentRect(UIWidget *parent);
     float            getDescWidth(uipull_describe *desc);
+    float            getValueWidth(uipull_describe *desc); // Added in OpenMOHAA Plus
     float            getDescHeight(uipull_describe *desc);
     uipull_describe *getPulldown(str title);
     void             HighlightBGColor(Event *ev);
@@ -94,4 +97,6 @@ public:
     void setSelectedPulldownShader(const char *title, UIReggedMaterial *mat);
     void Realign(void) override;
     void Draw(void) override;
+    void setValue(const str& title, UIFont *font); // Added in OpenMOHAA Plus
+    void PrintGeometry(int depth) override;        // Added in OpenMOHAA Plus: ui_printwidgets
 };

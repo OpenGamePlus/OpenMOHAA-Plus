@@ -83,6 +83,8 @@ UIPulldownMenu::UIPulldownMenu()
     // uninitialized in original game
     m_submenuptr = NULL;
 
+    m_valueFont = NULL; // Added in OpenMOHAA Plus
+
     // Added in OPM
     //  This is so the window manager knows it can be activated
     //  and appropriately handle this as the first responder
@@ -125,11 +127,30 @@ UIRect2D UIPulldownMenu::getAlignmentRect(UIWidget *parent)
     return UIRect2D(parentRect.pos.x, parentRect.pos.y, parentRect.size.width, (maxheight + 4) * m_vVirtualScale[1]);
 }
 
+// Added in OpenMOHAA Plus: the first pulldown shows the value set by setValue before its arrow,
+//  so clicking the value also opens the popup; in virtual units
+float UIPulldownMenu::getValueWidth(uipull_describe *desc)
+{
+    if (!m_valueFont || !m_valueTitle.length() || desc != m_desc.ObjectAt(1)) {
+        return 0;
+    }
+
+    return m_valueFont->getWidth(Sys_LV_CL_ConvertString(m_valueTitle), -1) + 8.0f;
+}
+
+// Added in OpenMOHAA Plus: the text shown before the first pulldown (empty: none, the original look)
+void UIPulldownMenu::setValue(const str& title, UIFont *font)
+{
+    m_valueTitle = title;
+    m_valueFont  = font;
+}
+
 float UIPulldownMenu::getDescWidth(uipull_describe *desc)
 {
     UIReggedMaterial *mat = desc->material;
     if (mat) {
-        return uii.Rend_GetShaderWidth(mat->GetMaterial());
+        // Changed in OpenMOHAA Plus: plus the value shown before the arrow
+        return uii.Rend_GetShaderWidth(mat->GetMaterial()) + getValueWidth(desc);
     }
 
     return m_font->getWidth(desc->title, -1) + 8.0f;
@@ -390,6 +411,24 @@ void UIPulldownMenu::Draw(void)
         uipull_describe *desc   = m_desc.ObjectAt(i);
         float            width  = getDescWidth(desc) * m_vVirtualScale[0];
         float            height = getDescHeight(desc) * m_vVirtualScale[1];
+        float            valuew = getValueWidth(desc) * m_vVirtualScale[0];
+
+        // Added in OpenMOHAA Plus: the value first, then the arrow after it; centred on the
+        //  container, which clips this widget (taller when the arrow shader is)
+        if (valuew) {
+            const float boxh = (m_parent ? m_parent->getClientFrame().size.height : m_frame.size.height);
+
+            m_valueFont->setColor(m_submenu == i ? m_highlightFGColor : m_foreground_color);
+            m_valueFont->Print(
+                atx / m_vVirtualScale[0] + 4.0f,
+                (boxh / m_vVirtualScale[1] - m_valueFont->getHeight(NULL)) * 0.5f,
+                Sys_LV_CL_ConvertString(m_valueTitle),
+                -1,
+                m_vVirtualScale
+            );
+            atx += valuew;
+            width -= valuew;
+        }
 
         // Set font color based on whether the current item is selected
         if (m_submenu == i) {
@@ -422,4 +461,17 @@ void UIPulldownMenu::Draw(void)
 
         atx += width;
     }
+}
+
+// Added in OpenMOHAA Plus: "ui_printwidgets" also prints the value shown and the width, in pixels,
+//  of what is drawn (value and arrows), which must fit the widget to be clickable
+void UIPulldownMenu::PrintGeometry(int depth)
+{
+    float width = 0;
+
+    UIWidget::PrintGeometry(depth);
+    for (int i = 1; i <= m_desc.NumObjects(); i++) {
+        width += getDescWidth(m_desc.ObjectAt(i)) * m_vVirtualScale[0];
+    }
+    uii.Sys_Printf("pulldown value \"%s\" width %.0f\n", m_valueTitle.c_str(), width);
 }

@@ -298,3 +298,64 @@ void UIPulldownMenuContainer::AddPopup(Event *ev)
     m_popups.AddObject(uipd);
     m_menu->AddUIPopupDescribe(menu, uipd);
 }
+
+// Added in OpenMOHAA Plus: with a "linkcvar", the title of the popup that sets the cvar to its
+//  current (or latched) value: "set|seta <cvar> <value>", or "reset <cvar>" while the cvar is at its default,
+//  as the first command of the item; the bare value if no item matches; empty without linkcvar
+str UIPulldownMenuContainer::getValueTitle(void) const
+{
+    if (!m_cvarname.length()) {
+        return "";
+    }
+
+    const cvar_t *cvar = uii.Cvar_Find(m_cvarname.c_str());
+    // a latched cvar (cl_renderer) shows the choice waiting for the restart
+    const str value = (cvar && cvar->latchedString) ? cvar->latchedString : uii.Cvar_GetString(m_cvarname.c_str(), "");
+    const str     set   = str("set ") + m_cvarname + " " + value;
+    const str     seta  = str("seta ") + m_cvarname + " " + value;
+    const str     reset = str("reset ") + m_cvarname;
+
+    for (int i = 1; i <= m_popups.NumObjects(); i++) {
+        const uipopup_describe *uipd = m_popups.ObjectAt(i);
+        if (uipd->type != UIP_CMD && uipd->type != UIP_CVAR) {
+            continue;
+        }
+
+        char  command[MAX_STRING_CHARS];
+        char *end;
+
+        Q_strncpyz(command, (const char *)uipd->data, sizeof(command));
+        end = strchr(command, ';');
+        if (!end) {
+            end = command + strlen(command);
+        }
+        while (end > command && end[-1] == ' ') {
+            end--;
+        }
+        *end = 0;
+
+        if (!Q_stricmp(command, set) || !Q_stricmp(command, seta)) {
+            return uipd->title;
+        }
+        if (!Q_stricmp(command, reset) && cvar && !strcmp(value.c_str(), cvar->resetString)) {
+            return uipd->title;
+        }
+    }
+
+    return value;
+}
+
+// Added in OpenMOHAA Plus: the pulldown shows the current value (see getValueTitle) in this
+//  widget's font; the container itself draws nothing, as before
+void UIPulldownMenuContainer::Draw(void)
+{
+    m_menu->setValue(getValueTitle(), m_font);
+}
+
+// Added in OpenMOHAA Plus: "ui_printwidgets"; the value is set first so the pulldown (a child)
+//  prints what the next frame draws
+void UIPulldownMenuContainer::PrintGeometry(int depth)
+{
+    m_menu->setValue(getValueTitle(), m_font);
+    UIWidget::PrintGeometry(depth);
+}

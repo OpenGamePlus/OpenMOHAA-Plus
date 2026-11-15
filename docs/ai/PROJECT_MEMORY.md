@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus options pulldowns show their value
+- `PulldownMenuContainer` with `linkcvar` (opt-in, unused by the original menus) shows the title of the item whose first command is `set|seta <cvar> <value>`, or `reset <cvar>` at the default; the pending value of a latched cvar (`cl_renderer`, `cl_language`), else the raw value. The two value labels are gone.
+- The pulldown widget is as tall as its arrow shader (68 units) but the container clips it to its own `rect`, so the value is centred on the container: centred on its own frame it was drawn below the visible part. `ui_printwidgets` prints `pulldown value` and the drawn width, which must fit the `rect` ("Game default" needed 160 units, not 148).
+- `test_plus_options_opens` failed twice (pulldowns missing from the output) in the first runs after a pause, then passed 8 times; likely `start()`'s fixed 8 s wait for the main menu.
+
 ## 2026-11-15 — Plus browser rows readable
 - Seen on the maintainer's 1920x1080 screenshot: rows were tall but their text tiny, because `FAKKServerListItem::DrawListItem` prints at `getHighResScale()` (`uid.scaleRes`, 1 unless `ui_hudscale` is set) while the header and row height use the list's virtual scale. The anchored list now draws rows at its virtual scale; the original list is unchanged.
 - Cells are cut at their column's edge (long server names ran over Map at the new size). `ui_printwidgets` prints `items scale`; `test_browser_layout` checks it. The cut is not tested: the headless client gets no rows (no masters, no LAN server).

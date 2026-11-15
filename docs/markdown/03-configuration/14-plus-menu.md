@@ -75,8 +75,15 @@ its header in the row font, draws its rows at the menu's scale (the original lis
 scale) and its columns end at the scroll bar. Text longer than its column is cut at the column's
 edge.
 
+A `PulldownMenuContainer` with `linkcvar <cvar>` shows, before its arrow and in its own `font`
+and `fgcolor`, the title of the item whose command starts with `set <cvar> <value>` (or `seta`)
+for the cvar's value, or with `reset <cvar>` while the cvar is at its default. A latched cvar
+shows the value waiting for the restart. With no matching item it shows the value itself. Make
+the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
+
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
+pulldown with `linkcvar` the value it shows and the width of what it draws (`pulldown value`); for a
 server list also the header and row heights, the scale its rows are drawn at (`items scale`) and
 each column's position, width and title width.
 The tests use it to check the layout.
