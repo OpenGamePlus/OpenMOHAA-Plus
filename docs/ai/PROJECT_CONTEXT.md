@@ -5,6 +5,21 @@ OpenMOHAA Plus: a fork of OpenMoHAA (`openmoh/openmohaa`), the open reimplementa
 Medal of Honor: Allied Assault, Spearhead and Breakthrough (client, dedicated server, game logic)
 on an ioquake3-based engine, sibling of the maintainer's OpenCoD2-Plus.
 
+## Visual identity
+[docs/banner.svg](../banner.svg) (the maintainer's design) sets the look of the repo; use its palette
+for new art and badges:
+
+| Use | Colours |
+|-----|---------|
+| Background (olive, centre to edge) | `#2f3a22`, `#1b2214`, `#0c100a` |
+| Ribbon olive (badges) | `#6e7f3c` |
+| Gold (accents, rules, frame) | `#c9a85a`; highlights `#e3c069`, text gradient `#f3dd9a` to `#b89048` |
+| Cream (main text) | `#f1e6c8`, `#efe3c2`; muted `#b9b08f` |
+| Red accent | `#9b2a26` |
+
+Fonts: Playfair Display 900 (name), Oswald 500 (upper-case headings), Rajdhani 500 (body), all OFL.
+The banner's text is outlined, since GitHub shows an SVG as an image, which cannot load web fonts.
+
 ## Goal
 Move OpenMoHAA forward with AI coding agents, which upstream does not accept: fix bugs reported
 upstream (and others found along the way) and add new features beyond the original game (e.g.
