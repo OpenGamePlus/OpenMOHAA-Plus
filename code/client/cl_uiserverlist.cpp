@@ -159,8 +159,16 @@ void FAKKServerListItem::DrawListItem(int iColumn, const UIRect2D& drawRect, boo
     UIRect2D       newRect       = drawRect;
     vec2_t         virtualScale;
 
-    virtualScale[0] = m_parent->getHighResScale()[0];
-    virtualScale[1] = m_parent->getHighResScale()[1];
+    virtualScale[0] = m_parent->getItemScale()[0];
+    virtualScale[1] = m_parent->getItemScale()[1];
+
+    // Fixed in OpenMOHAA Plus: a cell's text is cut at its column's edge instead of running over the
+    //  next column (seen with long server names once the Plus list drew its rows at its own scale)
+    const str text   = getListItemString(iColumn);
+    int       maxlen = text.length();
+    while (maxlen > 0 && pFont->getWidth(text.c_str(), maxlen) * virtualScale[0] > newRect.size.width - 2) {
+        maxlen--;
+    }
 
     if (!pColoringType->integer) {
         if (IfQueryFailed() || (IsDifferentVersion() && IsQueried())) {
@@ -192,8 +200,8 @@ void FAKKServerListItem::DrawListItem(int iColumn, const UIRect2D& drawRect, boo
         pFont->Print(
             newRect.pos.x / virtualScale[0] + 1.0,
             newRect.pos.y / virtualScale[1],
-            getListItemString(iColumn).c_str(),
-            -1,
+            text.c_str(),
+            maxlen,
             virtualScale
         );
     } else {
@@ -226,8 +234,8 @@ void FAKKServerListItem::DrawListItem(int iColumn, const UIRect2D& drawRect, boo
         pFont->Print(
             newRect.pos.x / virtualScale[0] + 1.0,
             newRect.pos.y / virtualScale[1],
-            getListItemString(iColumn).c_str(),
-            -1,
+            text.c_str(),
+            maxlen,
             virtualScale
         );
     }
@@ -994,6 +1002,20 @@ int UIFAKKServerList::ServerCompareFunction(const UIListCtrlItem *i1, const UILi
     }
 
     return iCompResult;
+}
+
+// Added in OpenMOHAA Plus: the Plus browser's list (anchored) draws its rows at its own scale, like
+//  its header and row height; the original list keeps the HUD scale, so its text stays small
+const vec2_t& UIFAKKServerList::getItemScale() const
+{
+    return (m_flags & WF_ANCHORED) ? getVirtualScale() : getHighResScale();
+}
+
+// Added in OpenMOHAA Plus: "ui_printwidgets" also prints the scale the rows are drawn at
+void UIFAKKServerList::PrintGeometry(int depth)
+{
+    UIListCtrl::PrintGeometry(depth);
+    uii.Sys_Printf("items scale %.3f %.3f\n", getItemScale()[0], getItemScale()[1]);
 }
 
 void UIFAKKServerList::Draw(void)

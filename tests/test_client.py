@@ -1054,6 +1054,8 @@ end.
             elif line.startswith("list "):
                 parts = line.split()
                 result["list"] = {"header": int(parts[3]), "row": int(parts[5])}
+            elif line.startswith("items scale "):
+                result["items"] = float(line.split()[3])
             elif line.startswith("column "):
                 m2 = re.match(r'column "([^"]*)" x (\S+) width (\S+) text (\S+)', line)
                 result["columns"].append({"title": m2.group(1), "x": float(m2.group(2)),
@@ -1222,6 +1224,8 @@ end.
                 self.assertAlmostEqual(scroll[2], lst[2], delta=3, msg=(msg, scroll, lst))
                 self.assertTrue(self.inside(scroll, lst), (msg, scroll, lst))
                 self.assertLessEqual(screen["list"]["header"], 1.6 * screen["list"]["row"], msg)
+                # rows are drawn at the list's scale, not at the HUD's (text was tiny at 1080p)
+                self.assertAlmostEqual(screen["items"], h / 480 * float(scale), delta=0.01, msg=msg)
                 columns = screen["columns"]
                 self.assertGreaterEqual(len(columns), 6, msg)
                 for col in columns:

@@ -3,6 +3,10 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus browser rows readable
+- Seen on the maintainer's 1920x1080 screenshot: rows were tall but their text tiny, because `FAKKServerListItem::DrawListItem` prints at `getHighResScale()` (`uid.scaleRes`, 1 unless `ui_hudscale` is set) while the header and row height use the list's virtual scale. The anchored list now draws rows at its virtual scale; the original list is unchanged.
+- Cells are cut at their column's edge (long server names ran over Map at the new size). `ui_printwidgets` prints `items scale`; `test_browser_layout` checks it. The cut is not tested: the headless client gets no rows (no masters, no LAN server).
+
 ## 2026-11-15 — Plus menu layout fixed, geometry tests
 - Seen on the maintainer's 5:4 Windows screenshots: `align left` puts a widget at x=0 whatever its `rect`, and a widget with neither `align` nor `anchor` lands in the 2048-unit frame, off the screen (options labels piled in the bar, controls invisible). Every Plus widget now uses `anchor`; bar texts left-aligned, in-game entries grouped above Quit, "New game" kept only as an empty zero-size widget (the engine sends it events that would leak otherwise).
 - Browser: a widget with `WF_NOPARENTADJUST` gave its children the screen origin, so the list's scroll bar sat at `width - 16` from the screen's left edge; fixed for anchored widgets only. The anchored list takes its header in the row font and leaves room for the scroll bar; the original browser keeps its columns.
