@@ -4339,6 +4339,11 @@ S_StopMovieAudio
 */
 void S_StopMovieAudio()
 {
+    // Fixed in OpenMOHAA Plus: no OpenAL calls when sound never started (crashed on the intro movie)
+    if (!s_bSoundStarted) {
+        return;
+    }
+
     openal.chan_movie.stop();
 }
 
@@ -4350,6 +4355,11 @@ S_SetupMovieAudio
 void S_SetupMovieAudio(const char *pszMovieName)
 {
     char filename[MAX_QPATH];
+
+    // Fixed in OpenMOHAA Plus: no OpenAL calls when sound never started
+    if (!s_bSoundStarted) {
+        return;
+    }
 
     S_StopMovieAudio();
 
@@ -4379,6 +4389,11 @@ S_CurrentMoviePosition
 */
 int S_CurrentMoviePosition()
 {
+    // Fixed in OpenMOHAA Plus: no OpenAL calls when sound never started
+    if (!s_bSoundStarted) {
+        return 0;
+    }
+
     return openal.chan_movie.sample_ms_offset();
 }
 

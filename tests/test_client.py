@@ -150,6 +150,19 @@ end
 
 
 @require_game
+class NoSound(GameTestCase):
+    def test_intro_movie_without_sound(self):
+        # the intro movie set up its audio through OpenAL even when sound never started: crash at startup
+        if not glob.glob(os.path.join(game_dir(), "main", "video", "[Ee][Aa]logo.[Rr]o[Qq]")):
+            self.skipTest("the game data has no intro movie (main/video/EAlogo.RoQ)")
+        c = self.client("+set", "s_initsound", "0", "+set", "cl_playintro", "1")   # the helper turns the intro off
+        c.wait_for(r"Loading inventory", timeout=60)
+        time.sleep(10)                     # the intro plays; the console takes no input meanwhile
+        self.assertIsNone(c.proc.poll(), c.log()[-2000:])
+        c.kill()
+
+
+@require_game
 class Hrtf(GameTestCase):
     def test_s_hrtf_forces_hrtf(self):
         c = self.client("+set", "s_hrtf", "1")
