@@ -496,3 +496,6 @@ checked with a working and a broken synthetic mod. Real community mods still hav
   libraries. Recommendation so far: keep both, document `+set dedicated 1`.
 - **Saves from the original game** (upstream #601): not listed in Load Game; check whether they can
   be listed and loaded.
+- **Military menu style** (parked 2026-11-15): a second main menu style with short public-domain
+  Allied WWII clips, chosen in the Plus options; design and open questions in
+  [the military menu design](../../superpowers/specs/2026-11-15-plus-military-menu-design.md).
