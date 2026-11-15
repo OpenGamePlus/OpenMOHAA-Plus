@@ -1211,8 +1211,8 @@ end.
     OPTIONS_BAR = ["title", "tab_video", "tab_detail", "tab_audio", "tab_controls", "tab_game", "tab_plus",
                    "apply", "back"]
     # option tabs and their number of rows (one label per row)
-    OPTION_TABS = [("plus_options_video", 8), ("plus_options_detail", 10), ("plus_options_game", 7),
-                   ("plus_options", 7)]
+    OPTION_TABS = [("plus_options_video", 8), ("plus_options_detail", 10), ("plus_options_audio", 5),
+                   ("plus_options_game", 7), ("plus_options", 7)]
 
     def urc_command(self, urc, name):
         """The stuffcommand of the widget <name> in ui/<urc>.urc of the test pk3."""
