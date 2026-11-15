@@ -1423,6 +1423,35 @@ end.
         c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
         self.assertEqual(c.quit(), 0)
 
+    def assert_no_restart(self, c, command, seconds=5):
+        mark = len(c.log())
+        c.send(command)
+        time.sleep(seconds)
+        self.assertNotIn("Initializing Renderer", c.log()[mark:], command)
+
+    def test_apply_latched_restarts_only_when_pending(self):
+        _, c = self.start(1280, 720)
+        self.assert_no_restart(c, "ui_applylatched")
+        c.send("set r_customwidth 1000")                       # latched
+        mark = len(c.log())
+        c.send("ui_applylatched")
+        c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
+        self.assertEqual(c.quit(), 0)
+
+    def test_discard_latched_keeps_immediate_settings(self):
+        _, c = self.start(1280, 720)
+        c.send("set r_customwidth 1000")
+        c.send("set s_volume 0.3")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("r_customwidth")
+        c.send("s_volume")
+        out = c.wait_for(r'"s_volume" is:"[^"]*"', start=mark, timeout=20)[mark:]
+        self.assertNotIn("latched", out)
+        self.assertIn('"s_volume" is:"0.3', out)
+        self.assert_no_restart(c, "ui_applylatched")
+        self.assertEqual(c.quit(), 0)
+
     def test_plus_scale_is_clamped(self):
         _, c = self.start(1280, 720)
         for value, expected in (("3", "1.1"), ("0.1", "0.85")):

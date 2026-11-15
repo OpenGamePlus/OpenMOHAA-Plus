@@ -4237,7 +4237,8 @@ void UI_ClearState(void)
 UI_CheckRestart
 ====================
 */
-void UI_CheckRestart(void)
+// Changed in OpenMOHAA Plus: the console part of UI_CheckRestart, shared with UI_ApplyLatched_f
+static void UI_UpdateConsoles(void)
 {
     if (ui_console->integer && !fakk_console) {
         fakk_console = getNewConsole();
@@ -4295,8 +4296,49 @@ void UI_CheckRestart(void)
         dmbox->setAlwaysOnBottom(true);
         dmbox->setBorderStyle(border_outline);
     }
+}
 
+void UI_CheckRestart(void)
+{
+    UI_UpdateConsoles();
     menuManager.CheckRestart();
+}
+
+/*
+====================
+UI_ApplyLatched_f
+
+Added in OpenMOHAA Plus: like ui_checkrestart, but restarts for any cvar waiting for a restart,
+whichever menu changed it (ui_checkrestart only checks the current menu's widgets), and does
+nothing when none is waiting
+====================
+*/
+void UI_ApplyLatched_f(void)
+{
+    UI_UpdateConsoles();
+
+    if (Cvar_HasLatched(CVAR_LATCH)) {
+        Cbuf_AddText("vid_restart\n");
+        return;
+    }
+    if (Cvar_HasLatched(CVAR_SOUND_LATCH)) {
+        Cbuf_AddText("snd_restart\n");
+    }
+    if (Cvar_HasLatched(CVAR_TERRAIN_LATCH)) {
+        Cbuf_AddText("ter_restart\n");
+    }
+}
+
+/*
+====================
+UI_DiscardLatched_f
+
+Added in OpenMOHAA Plus: drops the values waiting for a restart (a menu's Back without Apply)
+====================
+*/
+void UI_DiscardLatched_f(void)
+{
+    Cvar_DiscardLatched();
 }
 
 /*
@@ -5182,6 +5224,8 @@ void CL_ShutdownUI(void)
     Cmd_RemoveCommand("ui_hud");
     Cmd_RemoveCommand("ui_resetcvars");
     Cmd_RemoveCommand("ui_checkrestart");
+    Cmd_RemoveCommand("ui_applylatched");   // Added in OpenMOHAA Plus
+    Cmd_RemoveCommand("ui_discardlatched"); // Added in OpenMOHAA Plus
     Cmd_RemoveCommand("ui_addhud");
     Cmd_RemoveCommand("ui_removehud");
     Cmd_RemoveCommand("centerprint");
@@ -5396,6 +5440,8 @@ void CL_InitializeUI(void)
     Cmd_AddCommand("ui_hud", UI_Hud_f);
     Cmd_AddCommand("ui_resetcvars", UI_ResetCvars);
     Cmd_AddCommand("ui_checkrestart", UI_CheckRestart);
+    Cmd_AddCommand("ui_applylatched", UI_ApplyLatched_f);     // Added in OpenMOHAA Plus
+    Cmd_AddCommand("ui_discardlatched", UI_DiscardLatched_f); // Added in OpenMOHAA Plus
     Cmd_AddCommand("centerprint", UI_CenterPrint_f);
     Cmd_AddCommand("locationprint", UI_LocationPrint_f);
     Cmd_AddCommand("ui_addhud", UI_AddHud_f);

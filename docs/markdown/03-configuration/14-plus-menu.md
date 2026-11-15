@@ -87,6 +87,12 @@ command matches while that cvar is at its default; other commands are ignored, s
 matching item the pulldown shows the linked cvar's value itself. Make
 the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
 
+Two console commands for option screens: `ui_applylatched` restarts what pending changes need
+(`vid_restart` when any cvar waits for a restart, else `snd_restart` or `ter_restart`) whichever
+menu changed them, and does nothing when nothing is pending (`ui_checkrestart` only looks at the
+current menu's widgets); `ui_discardlatched` drops every value waiting for a restart, so the
+cvars keep their current values.
+
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
 pulldown with `linkcvar` the value it shows and the width of what it draws (`pulldown value`); for a
