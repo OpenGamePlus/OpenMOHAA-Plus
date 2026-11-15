@@ -957,6 +957,42 @@ class PlusMenu(GameTestCase):
     LAYOUT_SCREENS = ((1280, 1024, ("0.85", "1.1")), (1920, 1080, ("1",)), (2560, 1080, ("1",)))
 
     # a test menu with a green panel anchored like the Plus content panel
+    # two pulldowns whose items set several cvars (Plus options' resolution and effect presets)
+    PULLDOWN_URC = """menu "plus_pulldown_test" 640 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+PulldownMenuContainer
+{
+name "res list"
+rect 0 0 200 24
+scalecvar ui_plusscale
+anchor 100 100 -1 -1
+linkcvar "r_mode"
+menushader "MENU" "textures/menu/pulldownarrow"
+addpopup "MENU" "Desktop" command "set r_mode -2"
+addpopup "MENU" "1920x1080" command "set r_mode -1; set r_customwidth 1920; set r_customheight 1080"
+addpopup "MENU" "2560x1440" command "set r_mode -1;set r_customwidth 2560;set r_customheight 1440"
+addpopup "MENU" "Quoted" command "set r_mode -1; set r_customwidth \\"1000\\"; set r_customheight 1000.0"
+addpopup "MENU" "Bare" command "r_mode 5"
+}
+resource
+PulldownMenuContainer
+{
+name "fx list"
+rect 0 0 200 24
+scalecvar ui_plusscale
+anchor 100 140 -1 -1
+linkcvar "cg_effectdetail"
+menushader "MENU" "textures/menu/pulldownarrow"
+addpopup "MENU" "Low" command "set cg_effectdetail \\"0.5\\";set vss_maxcount 22"
+addpopup "MENU" "Max" command "set cg_effectdetail \\"1.0\\";set vss_maxcount 10"
+}
+end.
+"""
+
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -991,6 +1027,7 @@ end.
             z.writestr("textures/menu_plus/bg_l.tga", left)
             z.writestr("textures/menu_plus/bg_r.tga", right)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
+            z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
 
     @classmethod
     def tearDownClass(cls):
@@ -1171,54 +1208,152 @@ end.
         # the in-game group sits right above Quit
         self.assertEqual(names[-4:], ["backtogame", "savegame", "disconnect", "quit"])
 
+    OPTIONS_BAR = ["title", "tab_video", "tab_detail", "tab_audio", "tab_controls", "tab_game", "tab_plus",
+                   "apply", "back"]
+    # option tabs and their number of rows (one label per row)
+    OPTION_TABS = [("plus_options_video", 8), ("plus_options_detail", 10), ("plus_options_audio", 5),
+                   ("plus_options_game", 7), ("plus_options", 7)]
+
+    def urc_command(self, urc, name):
+        """The stuffcommand of the widget <name> in ui/<urc>.urc of the test pk3."""
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            text = z.read("ui/%s.urc" % urc).decode()
+        return re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1)
+
+    def assert_options_tab(self, screen, menu, rows, msg, bar=None):
+        """An option tab: the tab bar, every row inside the panel, label on the left and control to
+        its right, no text over another widget, rows evenly spaced, pulldowns clickable."""
+        self.assertEqual(screen["menu"], menu, msg)
+        widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
+        panel = widgets["panel"]["rect"]
+        expected_bar = bar
+        bar = [n for n, _ in self.assert_bar(screen, msg)]
+        self.assertEqual(bar, expected_bar or self.OPTIONS_BAR, msg)
+        in_panel = [n for n in widgets if n.endswith((" label", " slider", " checkbox", " list"))
+                    or n.startswith("language note")]
+        labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
+        self.assertEqual(len(labels), rows, (msg, labels))
+        for p in screen["pulldowns"]:
+            self.assertLessEqual(p["width"], p["rect"][2] - p["rect"][0] + 1, (msg, p))
+        texts = []
+        for name in in_panel:
+            v = widgets[name]
+            self.assertTrue(self.inside(v["rect"], panel), (msg, name, v["rect"], panel))
+            if "text" in v:
+                self.assertTrue(self.inside(v["text"], panel), (msg, name, v["text"], panel))
+                self.assertTrue(self.inside(v["text"], v["rect"]), (msg, name))
+                texts.append(name)
+        # no text over another widget's text or control
+        for name in texts:
+            for other in in_panel:
+                if other != name:
+                    self.assertFalse(self.overlap(widgets[name]["text"], widgets[other]["rect"]),
+                                     (msg, name, other))
+        # rows evenly spaced, controls to the right of their label
+        steps = {round(b[0] - a[0]) for a, b in zip(labels, labels[1:])}
+        self.assertLessEqual(max(steps) - min(steps), 2, (msg, steps))
+        for top, name in labels:
+            for v in widgets.values():
+                if v is not widgets[name] and abs(v["rect"][1] - top) < 10 and \
+                        self.inside(v["rect"], panel) and v["class"] != "UIFakkLabel":
+                    self.assertGreater(v["rect"][0], widgets[name]["text"][2], (msg, name))
+        return screen
+
     def test_options_layout(self):
-        # each row in the panel: label on the left, control and value to its right, inside the
-        # panel; nothing overlaps; the bar keeps its entries
         for w, h, scales in self.LAYOUT_SCREENS:
             _, c = self.start(w, h, "+set", "cl_language", "es")
             for scale in scales:
-                # cl_renderer is latched: the pulldown shows the choice waiting for Apply
-                screen = self.widgets(c, "set ui_plusscale " + scale, "set cl_renderer vulkan",
-                                      "pushmenu plus_options")
-                c.send("popmenu 0")
-                msg = (w, h, scale)
-                self.assertEqual(screen["menu"], "plus_options", msg)
-                widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
-                panel = widgets["panel"]["rect"]
-                bar = [n for n, _ in self.assert_bar(screen, msg)]
-                self.assertEqual(bar, ["title", "apply", "back"], msg)
-                in_panel = [n for n, v in widgets.items() if n.endswith((" label", " value", " slider", " checkbox",
-                                                                          " list")) or n.startswith("language note")]
-                self.assertEqual(len(in_panel), 16, msg)
-                # the pulldowns show the chosen item, and all they draw is inside them (clickable)
-                pulldowns = screen["pulldowns"]
-                self.assertEqual([p["value"] for p in pulldowns], ["Vulkan", "Spanish"], msg)
-                for p in pulldowns:
-                    self.assertLessEqual(p["width"], p["rect"][2] - p["rect"][0] + 1, (msg, p))
-                texts = []
-                for name in in_panel:
-                    v = widgets[name]
-                    self.assertTrue(self.inside(v["rect"], panel), (msg, name, v["rect"], panel))
-                    if "text" in v:
-                        self.assertTrue(self.inside(v["text"], panel), (msg, name, v["text"], panel))
-                        self.assertTrue(self.inside(v["text"], v["rect"]), (msg, name))
-                        texts.append(name)
-                # no text over another widget's text or control
-                for name in texts:
-                    for other in in_panel:
-                        if other != name:
-                            self.assertFalse(self.overlap(widgets[name]["text"], widgets[other]["rect"]),
-                                             (msg, name, other))
-                # rows evenly spaced, controls to the right of their label
-                labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
-                steps = {round(b[0] - a[0]) for a, b in zip(labels, labels[1:])}
-                self.assertLessEqual(max(steps) - min(steps), 2, (msg, steps))
-                for top, name in labels:
-                    for v in widgets.values():
-                        if v is not widgets[name] and abs(v["rect"][1] - top) < 10 and \
-                                self.inside(v["rect"], panel) and v["class"] != "UIFakkLabel":
-                            self.assertGreater(v["rect"][0], widgets[name]["text"][2], (msg, name))
+                for menu, rows in self.OPTION_TABS:
+                    # cl_renderer is latched: the pulldown shows the choice waiting for Apply
+                    screen = self.widgets(c, "set ui_plusscale " + scale, "set cl_renderer vulkan",
+                                          "pushmenu " + menu)
+                    c.send("popmenu 0")
+                    self.assert_options_tab(screen, menu, rows, (w, h, scale, menu))
+                    if menu == "plus_options":
+                        self.assertEqual([p["value"] for p in screen["pulldowns"]], ["Vulkan", "Spanish"])
             self.assertEqual(c.quit(), 0)
+
+    def pulldown_values(self, c, menu, *commands):
+        screen = self.widgets(c, *commands, "pushmenu " + menu)
+        c.send("popmenu 0")
+        return [p["value"] for p in sorted(screen["pulldowns"], key=lambda p: p["rect"][1])]
+
+    def test_video_pulldowns_show_values(self):
+        # resolution, display mode, max FPS, texture quality, texture filter, anisotropy
+        _, c = self.start(1280, 720)
+        v = self.pulldown_values(c, "plus_options_video", "set r_mode -1;set r_customwidth 2560;set r_customheight 1080",
+                                 "set r_fullscreen 0;set r_noborder 1", "set com_maxfps 144",
+                                 "set r_ext_texture_filter_anisotropic 1;set r_ext_max_anisotropy 8")
+        self.assertEqual((v[0], v[1], v[2], v[5]), ("2560x1080", "Borderless", "144", "8x"))
+        v = self.pulldown_values(c, "plus_options_video", "set r_mode -2", "set r_fullscreen 1;set r_noborder 0",
+                                 "set r_ext_texture_filter_anisotropic 0")
+        self.assertEqual((v[0], v[1], v[5]), ("Desktop", "Fullscreen", "Off"))
+        self.assertEqual(c.quit(), 0)
+
+    def test_detail_presets_show_values(self):
+        # model detail, terrain, effects, curves, shadows: presets that set several cvars
+        _, c = self.start(1280, 720)
+        v = self.pulldown_values(c, "plus_options_detail", "set r_lodscale 0.55;set r_lodcap 0.5;set r_lodviewmodelcap 0.55",
+                                 "set cg_effectdetail 0.7;set vss_maxcount 20")
+        self.assertEqual((v[0], v[2]), ("High", "Medium"))
+        self.assertEqual(c.quit(), 0)
+
+    def test_controls_layout(self):
+        # the key list in the panel above four rows, its rows and scroll bar inside it; a Defaults
+        # entry in the bar runs the original defaults
+        self.assertEqual(self.urc_command("plus_options_controls", "defaults"), "ui_resetcvars;exec default.cfg")
+        for w, h, scales in self.LAYOUT_SCREENS:
+            _, c = self.start(w, h)
+            for scale in scales:
+                msg = (w, h, scale)
+                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_options_controls")
+                c.send("popmenu 0")
+                self.assert_options_tab(screen, "plus_options_controls", 4, msg,
+                                        bar=self.OPTIONS_BAR[:-1] + ["defaults", "back"])
+                names = list(screen["widgets"])
+                i = names.index("bindlist")
+                lst = screen["widgets"]["bindlist"]
+                self.assertTrue(self.inside(lst["rect"], screen["widgets"]["panel"]["rect"]), msg)
+                children = []
+                for name in names[i + 1:]:
+                    v = screen["widgets"][name]
+                    if v["depth"] <= lst["depth"]:
+                        break
+                    children.append((name, v))
+                self.assertTrue(children, msg)
+                for name, v in children:
+                    if v["shown"] and v["depth"] == lst["depth"] + 1:
+                        self.assertTrue(self.inside(v["rect"], lst["rect"], slack=2), (msg, name, v["rect"], lst["rect"]))
+                scroll = [v["rect"] for _, v in children if v["class"] == "UIVertScroll"]
+                self.assertEqual(len(scroll), 1, msg)
+                self.assertAlmostEqual(scroll[0][2], lst["rect"][2], delta=3, msg=(msg, scroll, lst["rect"]))
+                # the rows are below the list
+                labels = [v for n, v in screen["widgets"].items() if n.endswith(" label") and v["depth"] == 1]
+                self.assertTrue(all(v["rect"][1] >= lst["rect"][3] for v in labels), msg)
+            self.assertEqual(c.quit(), 0)
+
+    def top_menu(self, c):
+        return self.widgets(c)["menu"]
+
+    def test_options_entry_opens_video(self):
+        _, c = self.start(1280, 720)
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        self.assertEqual(self.top_menu(c), "plus_options_video")
+        self.assertEqual(c.quit(), 0)
+
+    def test_tabs_do_not_stack(self):
+        # after visiting several tabs, Back returns to the main menu in one step
+        _, c = self.start(1280, 720)
+        c.send("pushmenu plus_options_video")
+        for urc, tab in (("plus_options_video", "tab_plus"), ("plus_options", "tab_video"),
+                         ("plus_options_video", "tab_plus")):
+            c.send(self.urc_command(urc, tab))
+            time.sleep(1.5)
+        c.send(self.urc_command("plus_options", "back"))
+        time.sleep(2)
+        self.assertEqual(self.top_menu(c), "main")
+        self.assertEqual(c.quit(), 0)
 
     def test_browser_layout(self):
         # the scroll bar at the list's right edge, a header about as high as a row, every column
@@ -1331,6 +1466,28 @@ end.
             self.assertEqual(c.quit(), 0)
             self.assertIn(f"Columns: {columns}", found, (w, h))
 
+    def test_pulldown_matches_every_set(self):
+        # an item matches when every set in it matches (quotes and number formats aside); an item
+        # without any set never matches, so the bare value shows
+        cases = [("set r_mode -2", "Desktop", None),
+                 ("set r_mode -1;set r_customwidth 1920;set r_customheight 1080", "1920x1080", None),
+                 ("set r_mode -1;set r_customwidth 2560;set r_customheight 1440", "2560x1440", None),
+                 ("set r_mode -1;set r_customwidth 1000;set r_customheight 1000", "Quoted", None),
+                 ("set r_mode 5", "5", None),
+                 ("set cg_effectdetail 1;set vss_maxcount 10", None, "Max"),
+                 ("set cg_effectdetail 0.5;set vss_maxcount 23", None, "0.5")]
+        _, c = self.start(1280, 720)
+        for cvars, res, fx in cases:
+            screen = self.widgets(c, cvars, "pushmenu plus_pulldown_test")
+            c.send("popmenu 0")
+            values = [p["value"] for p in screen["pulldowns"]]
+            self.assertEqual(len(values), 2, (cvars, screen.get("menu")))
+            if res:
+                self.assertEqual(values[0], res, cvars)
+            if fx:
+                self.assertEqual(values[1], fx, cvars)
+        self.assertEqual(c.quit(), 0)
+
     def test_plus_options_opens(self):
         # the pulldowns show their item from linkcvar: "reset" matches the default, an unknown value
         # is shown as is
@@ -1358,10 +1515,73 @@ end.
             urc = z.read("ui/plus_options.urc").decode()
         apply_cmd = re.search(r'name "apply".*?stuffcommand "([^"]*)"', urc, re.S).group(1)
         _, c = self.start(1280, 720)
-        c.send("set cl_renderer opengl1")
+        c.send("set r_customwidth 1000")                # latched: Apply restarts only for pending changes
         mark = len(c.log())
         c.send(apply_cmd)
         c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
+        self.assertEqual(c.quit(), 0)
+
+    def assert_no_restart(self, c, command, seconds=5):
+        mark = len(c.log())
+        c.send(command)
+        time.sleep(seconds)
+        self.assertNotIn("Initializing Renderer", c.log()[mark:], command)
+
+    def test_apply_latched_restarts_only_when_pending(self):
+        _, c = self.start(1280, 720)
+        self.assert_no_restart(c, "ui_applylatched")
+        c.send("set r_customwidth 1000")                       # latched
+        mark = len(c.log())
+        c.send("ui_applylatched")
+        c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
+        self.assertEqual(c.quit(), 0)
+
+    def test_discard_latched_keeps_immediate_settings(self):
+        _, c = self.start(1280, 720)
+        c.send("set r_customwidth 1000")
+        c.send("set s_volume 0.3")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("r_customwidth")
+        c.send("s_volume")
+        out = c.wait_for(r'"s_volume" is:"[^"]*"', start=mark, timeout=20)[mark:]
+        self.assertNotIn("latched", out)
+        self.assertIn('"s_volume" is:"0.3', out)
+        self.assert_no_restart(c, "ui_applylatched")
+        self.assertEqual(c.quit(), 0)
+
+    def test_sound_quality_applies_and_back_restores(self):
+        # s_khz is CVAR_SOUND_LATCH (never latched by the cvar code): Apply restarts sound when it
+        # changed since the options opened, Back puts the old value back
+        _, c = self.start(1280, 720)
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        c.send("set s_khz 22")
+        mark = len(c.log())
+        c.send("ui_applylatched")
+        c.wait_for(r"Sound Shutdown", start=mark, timeout=30)
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        c.send("set s_khz 11")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("s_khz")
+        self.assertIn('"s_khz" is:"22', c.wait_for(r'"s_khz" is:"[^"]*"', start=mark, timeout=20)[mark:])
+        self.assertEqual(c.quit(), 0)
+
+    def test_latches_from_before_the_options_are_left_alone(self):
+        # a server cvar latched before the options opened (g_gametype for the next map) neither makes
+        # Apply restart video nor is dropped by Back
+        _, c = self.start(1280, 720)
+        c.send("set g_gametype 2")
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        self.assert_no_restart(c, "ui_applylatched")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("g_gametype")
+        self.assertIn('latched: "2"', c.wait_for(r'"g_gametype" is:[^\n]*\n(latched[^\n]*\n)?', start=mark,
+                                                 timeout=20)[mark:] + c.log()[mark:])
         self.assertEqual(c.quit(), 0)
 
     def test_plus_scale_is_clamped(self):

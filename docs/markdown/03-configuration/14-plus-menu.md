@@ -34,10 +34,26 @@ Start the game with `+set fs_pluspath ""` (or remove `plus/zzz-plus.pk3`). The P
   new game.
 - Server browser: Internet, LAN, Favourites and Recent tabs, a refresh button and a favourite
   button.
-- Plus options: renderer (press Apply to restart the video), HUD scale, menu aspect, crosshair
-  size and scale, language and menu scale. A language change needs a restart of the game, and the
-  Spanish choice needs the `lang/es/` files of [the translations](07-plus-translations.md), which
-  the fork does not ship.
+- Options (the main menu's Options and Plus entries), six tabs in the left bar:
+  - Video: resolution (Desktop, or 1280x720 up to 3840x2160, 21:9 2560x1080 and 3440x1440, 4:3
+    1024x768, 5:4 1280x1024), fullscreen, window or borderless window, vsync, maximum FPS,
+    brightness, texture quality, texture filter and anisotropic filtering.
+  - Detail: the original model, terrain, effect and curve presets, shadows, lighting, smoke and
+    decals.
+  - Audio: volume, music, ambience, quality and speakers.
+  - Controls: the game's key list, mouse sensitivity, invert mouse, mouse filter, always run, and
+    Defaults (the original defaults).
+  - Game: field of view, weapon model, weather, subtitles, console, weapons bar, crosshair.
+  - Plus: renderer, HUD scale, menu aspect, crosshair size and scale, language and menu scale. A
+    language change needs a restart of the game, and the Spanish choice needs the `lang/es/` files
+    of [the translations](07-plus-translations.md), which the fork does not ship.
+
+  Settings that need a restart (resolution, display mode, textures, renderer, sound quality,
+  terrain detail) take effect with Apply, from any tab; Back (or Esc) returns to the main menu and
+  drops them if Apply was not pressed. Other settings (volumes, brightness, sensitivity...) apply at
+  once. A change waiting for a restart from before the options opened (a server setting for the
+  next map, for example) is left alone. Antialiasing is not offered:
+  the Vulkan renderer does not support it.
 
 ## Pure servers
 
@@ -78,10 +94,25 @@ scale) and its columns end at the scroll bar. Text longer than its column is cut
 the column's edge.
 
 A `PulldownMenuContainer` with `linkcvar <cvar>` shows, before its arrow and in its own `font`
-and `fgcolor`, the title of the item whose command starts with `set <cvar> <value>` (or `seta`)
-for the cvar's value, or with `reset <cvar>` while the cvar is at its default. A latched cvar
-shows the value waiting for the restart. With no matching item it shows the value itself. Make
+and `fgcolor`, the title of the first item whose command has at least one `set <cvar> <value>`
+(or `seta`) and in which every such `set` matches that cvar's value (so an item may set several
+cvars, e.g. `set r_mode -1; set r_customwidth 1920; set r_customheight 1080`). Quotes around a
+value are ignored and numbers compare as numbers (`"1.0"` matches `1`). A `reset <cvar>` in the
+command matches while that cvar is at its default; other commands are ignored, so an item with no
+`set` never matches. A latched cvar counts with the value waiting for the restart. With no
+matching item the pulldown shows the linked cvar's value itself. Make
 the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
+
+Three console commands for option screens. `ui_marklatched` (run when the Plus options open)
+records which cvars already wait for a restart and the values of the sound and terrain cvars
+(their `CVAR_SOUND_LATCH`/`CVAR_TERRAIN_LATCH` flags never latch: those cvars change at once and
+only take effect after `snd_restart`/`ter_restart`). `ui_applylatched` then restarts what the
+changes since the mark need, whichever menu made them: `vid_restart` for a cvar newly waiting for
+a restart, else `snd_restart` for a changed sound cvar and `ter_restart` (in a game) for a changed
+terrain cvar, and nothing when nothing changed (`ui_checkrestart` only looks at the current menu's
+widgets). `ui_discardlatched` drops the changes since the mark that need a restart and puts the
+sound and terrain cvars back. Esc on a `plus_options*` menu does what `ui_discardlatched;popmenu 0`
+does.
 
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a

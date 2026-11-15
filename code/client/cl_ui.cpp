@@ -3015,6 +3015,8 @@ void UI_PushReturnMenu_f(void)
 UI_MenuEscape
 ====================
 */
+void UI_DiscardLatched_f(void); // Added in OpenMOHAA Plus: see below
+
 void UI_MenuEscape(const char *name)
 {
     if (server_loading) {
@@ -3042,7 +3044,13 @@ void UI_MenuEscape(const char *name)
         return;
     }
 
-    if (menuManager.CurrentMenu()) {
+    if (menuManager.CurrentMenu() && !menuManager.CurrentMenu()->m_name.icmpn("plus_options", 12)) {
+        // Added in OpenMOHAA Plus: ESC on a Plus options tab does what its Back button does (drop the
+        //  unapplied changes that need a restart, keep the others) instead of restoring only this
+        //  tab's cvars
+        UI_DiscardLatched_f();
+        menuManager.PopMenu(qfalse);
+    } else if (menuManager.CurrentMenu()) {
         menuManager.PopMenu(qtrue);
     } else if (!Q_stricmp(name, "main") && clc.state > CA_PRIMED && cg_gametype->integer > 0) {
         // multiplayer
@@ -4237,7 +4245,8 @@ void UI_ClearState(void)
 UI_CheckRestart
 ====================
 */
-void UI_CheckRestart(void)
+// Changed in OpenMOHAA Plus: the console part of UI_CheckRestart, shared with UI_ApplyLatched_f
+static void UI_UpdateConsoles(void)
 {
     if (ui_console->integer && !fakk_console) {
         fakk_console = getNewConsole();
@@ -4295,8 +4304,126 @@ void UI_CheckRestart(void)
         dmbox->setAlwaysOnBottom(true);
         dmbox->setBorderStyle(border_outline);
     }
+}
 
+void UI_CheckRestart(void)
+{
+    UI_UpdateConsoles();
     menuManager.CheckRestart();
+}
+
+/*
+====================
+Options snapshot
+
+Added in OpenMOHAA Plus: what the Plus option tabs may apply or drop. ui_marklatched (run when the
+options open) records the cvars already waiting for a restart, which Apply and Back leave alone (a
+server cvar latched for the next map), and the values of the sound and terrain cvars, whose
+CVAR_SOUND_LATCH/CVAR_TERRAIN_LATCH the cvar code never latches: they change at once and only take
+effect after snd_restart or ter_restart.
+====================
+*/
+static Container<str> ui_markedLatched;
+static Container<str> ui_markedRestartNames;
+static Container<str> ui_markedRestartValues;
+
+static bool UI_WasLatchedAtMark(const cvar_t *cvar)
+{
+    for (int i = 1; i <= ui_markedLatched.NumObjects(); i++) {
+        if (!str::icmp(ui_markedLatched.ObjectAt(i), cvar->name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// whether a sound (or terrain) cvar changed since the mark
+static bool UI_RestartCvarChanged(int flag)
+{
+    for (int i = 1; i <= ui_markedRestartNames.NumObjects(); i++) {
+        const cvar_t *cvar = Cvar_FindVar(ui_markedRestartNames.ObjectAt(i));
+        if (cvar && (cvar->flags & flag) && str::cmp(cvar->string, ui_markedRestartValues.ObjectAt(i))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void UI_MarkLatched_f(void)
+{
+    ui_markedLatched.FreeObjectList();
+    ui_markedRestartNames.FreeObjectList();
+    ui_markedRestartValues.FreeObjectList();
+
+    for (cvar_t *cvar = Cvar_Next(NULL); cvar; cvar = Cvar_Next(cvar)) {
+        if (cvar->latchedString) {
+            ui_markedLatched.AddObject(cvar->name);
+        }
+        if (cvar->flags & (CVAR_SOUND_LATCH | CVAR_TERRAIN_LATCH)) {
+            ui_markedRestartNames.AddObject(cvar->name);
+            ui_markedRestartValues.AddObject(cvar->string);
+        }
+    }
+}
+
+/*
+====================
+UI_ApplyLatched_f
+
+Added in OpenMOHAA Plus: like ui_checkrestart, but for every change since ui_marklatched,
+whichever menu made it (ui_checkrestart only checks the current menu's widgets): vid_restart for a
+cvar newly waiting for a restart, else snd_restart for a changed sound cvar and ter_restart (in a
+game) for a changed terrain cvar; nothing when nothing changed
+====================
+*/
+void UI_ApplyLatched_f(void)
+{
+    bool video = false;
+
+    UI_UpdateConsoles();
+
+    for (cvar_t *cvar = Cvar_Next(NULL); cvar; cvar = Cvar_Next(cvar)) {
+        if (cvar->latchedString && (cvar->flags & CVAR_LATCH) && !UI_WasLatchedAtMark(cvar)) {
+            video = true;
+        }
+    }
+
+    if (video) {
+        Cbuf_AddText("vid_restart\n");
+    } else {
+        if (UI_RestartCvarChanged(CVAR_SOUND_LATCH)) {
+            Cbuf_AddText("snd_restart\n");
+        }
+        if (UI_RestartCvarChanged(CVAR_TERRAIN_LATCH) && clc.state == CA_ACTIVE) {
+            Cbuf_AddText("ter_restart\n");
+        }
+    }
+
+    UI_MarkLatched_f(); // applied: a second Apply has nothing left to do
+}
+
+/*
+====================
+UI_DiscardLatched_f
+
+Added in OpenMOHAA Plus: drops the changes made since ui_marklatched that need a restart (a menu's
+Back without Apply): values newly waiting for a restart, and sound and terrain cvars back to their
+marked values
+====================
+*/
+void UI_DiscardLatched_f(void)
+{
+    for (cvar_t *cvar = Cvar_Next(NULL); cvar; cvar = Cvar_Next(cvar)) {
+        if (cvar->latchedString && !UI_WasLatchedAtMark(cvar)) {
+            Cvar_Set(cvar->name, cvar->string); // the current value: clears the latched one
+        }
+    }
+    for (int i = 1; i <= ui_markedRestartNames.NumObjects(); i++) {
+        const cvar_t *cvar = Cvar_FindVar(ui_markedRestartNames.ObjectAt(i));
+        if (cvar && str::cmp(cvar->string, ui_markedRestartValues.ObjectAt(i))) {
+            Cvar_Set(cvar->name, ui_markedRestartValues.ObjectAt(i));
+        }
+    }
 }
 
 /*
@@ -5182,6 +5309,9 @@ void CL_ShutdownUI(void)
     Cmd_RemoveCommand("ui_hud");
     Cmd_RemoveCommand("ui_resetcvars");
     Cmd_RemoveCommand("ui_checkrestart");
+    Cmd_RemoveCommand("ui_applylatched");   // Added in OpenMOHAA Plus
+    Cmd_RemoveCommand("ui_discardlatched"); // Added in OpenMOHAA Plus
+    Cmd_RemoveCommand("ui_marklatched");    // Added in OpenMOHAA Plus
     Cmd_RemoveCommand("ui_addhud");
     Cmd_RemoveCommand("ui_removehud");
     Cmd_RemoveCommand("centerprint");
@@ -5396,6 +5526,9 @@ void CL_InitializeUI(void)
     Cmd_AddCommand("ui_hud", UI_Hud_f);
     Cmd_AddCommand("ui_resetcvars", UI_ResetCvars);
     Cmd_AddCommand("ui_checkrestart", UI_CheckRestart);
+    Cmd_AddCommand("ui_applylatched", UI_ApplyLatched_f);     // Added in OpenMOHAA Plus
+    Cmd_AddCommand("ui_discardlatched", UI_DiscardLatched_f); // Added in OpenMOHAA Plus
+    Cmd_AddCommand("ui_marklatched", UI_MarkLatched_f);       // Added in OpenMOHAA Plus
     Cmd_AddCommand("centerprint", UI_CenterPrint_f);
     Cmd_AddCommand("locationprint", UI_LocationPrint_f);
     Cmd_AddCommand("ui_addhud", UI_AddHud_f);

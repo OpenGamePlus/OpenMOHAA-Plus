@@ -57,6 +57,7 @@ UIFakkBindList::UIFakkBindList()
     m_activeitem   = 2;
     m_presskey_wid = NULL;
     m_presskey_mat = uWinMan.RegisterShader("textures/menu/presskey");
+    m_layoutScale[0] = m_layoutScale[1] = 0; // Added in OpenMOHAA Plus
 }
 
 UIFakkBindList::~UIFakkBindList()
@@ -356,6 +357,22 @@ void UIFakkBindList::RepositionBindWidgets(void)
     int       i;
     UIWidget *pWidget;
 
+    // Added in OpenMOHAA Plus: the scale this layout was made for (see Draw)
+    m_layoutScale[0] = m_vVirtualScale[0];
+    m_layoutScale[1] = m_vVirtualScale[1];
+
+    // Added in OpenMOHAA Plus: a scaled list narrower than the columns of its bind file (the Plus
+    //  Controls tab on 5:4 at ui_plusscale 1.1) narrows its columns to fit beside the scroll bar
+    float scaleX = m_vVirtualScale[0];
+    if (m_scaleCvar) {
+        const float columns = m_bind->commandwidth + m_bind->primarykeywidth + m_bind->alternatekeywidth
+                            + m_bind->fillwidth * 3;
+        const float room    = getSize().width - m_scroll->getSize().width;
+        if (columns * scaleX > room && columns > 0) {
+            scaleX = room / columns;
+        }
+    }
+
     Event evVirtualRes(EV_Layout_VirtualRes);
     evVirtualRes.AddInteger(1);
 
@@ -369,7 +386,7 @@ void UIFakkBindList::RepositionBindWidgets(void)
     }
 
     pWidget->setFrame(
-        UIRect2D(0, 0, m_bind->commandwidth * m_vVirtualScale[0], m_bind->commandheight * m_vVirtualScale[1])
+        UIRect2D(0, 0, m_bind->commandwidth * scaleX, m_bind->commandheight * m_vVirtualScale[1])
     );
 
     //
@@ -382,9 +399,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
     }
 
     pWidget->setFrame(UIRect2D(
-        (m_bind->commandwidth + m_bind->fillwidth) * m_vVirtualScale[0],
+        (m_bind->commandwidth + m_bind->fillwidth) * scaleX,
         0,
-        m_bind->primarykeywidth * m_vVirtualScale[0],
+        m_bind->primarykeywidth * scaleX,
         m_bind->commandheight * m_vVirtualScale[1]
     ));
 
@@ -397,9 +414,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
         pWidget->Realign();
     }
     pWidget->setFrame(UIRect2D(
-        (m_bind->fillwidth * 2 + m_bind->commandwidth + m_bind->primarykeywidth) * m_vVirtualScale[0],
+        (m_bind->fillwidth * 2 + m_bind->commandwidth + m_bind->primarykeywidth) * scaleX,
         0,
-        m_bind->alternatekeywidth * m_vVirtualScale[0],
+        m_bind->alternatekeywidth * scaleX,
         m_bind->commandheight * m_vVirtualScale[1]
     ));
 
@@ -414,7 +431,7 @@ void UIFakkBindList::RepositionBindWidgets(void)
         }
 
         pWidget->setFrame(UIRect2D(
-            m_bind->commandwidth * m_vVirtualScale[0], 0, m_bind->fillwidth * m_vVirtualScale[0], m_frame.size.height
+            m_bind->commandwidth * scaleX, 0, m_bind->fillwidth * scaleX, m_frame.size.height
         ));
 
         //
@@ -427,9 +444,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
         }
 
         pWidget->setFrame(UIRect2D(
-            (m_bind->fillwidth + m_bind->commandwidth + m_bind->primarykeywidth) * m_vVirtualScale[0],
+            (m_bind->fillwidth + m_bind->commandwidth + m_bind->primarykeywidth) * scaleX,
             0,
-            m_bind->fillwidth * m_vVirtualScale[0],
+            m_bind->fillwidth * scaleX,
             m_frame.size.height
         ));
 
@@ -444,9 +461,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
 
         pWidget->setFrame(UIRect2D(
             (m_bind->fillwidth * 2 + m_bind->alternatekeywidth + m_bind->commandwidth + m_bind->primarykeywidth)
-                * m_vVirtualScale[0],
+                * scaleX,
             0,
-            m_bind->fillwidth * m_vVirtualScale[0],
+            m_bind->fillwidth * scaleX,
             m_frame.size.height
         ));
     }
@@ -464,7 +481,7 @@ void UIFakkBindList::RepositionBindWidgets(void)
         pWidget->setFrame(UIRect2D(
             0,
             (m_bind->commandheight * i) * m_vVirtualScale[1],
-            m_bind->commandwidth * m_vVirtualScale[0],
+            m_bind->commandwidth * scaleX,
             m_bind->commandheight * m_vVirtualScale[1]
         ));
 
@@ -478,9 +495,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
         }
 
         pWidget->setFrame(UIRect2D(
-            (m_bind->commandwidth + m_bind->fillwidth) * m_vVirtualScale[0],
+            (m_bind->commandwidth + m_bind->fillwidth) * scaleX,
             (m_bind->commandheight * i) * m_vVirtualScale[1],
-            m_bind->primarykeywidth * m_vVirtualScale[0],
+            m_bind->primarykeywidth * scaleX,
             m_bind->primarykeyheight * m_vVirtualScale[1]
         ));
 
@@ -494,9 +511,9 @@ void UIFakkBindList::RepositionBindWidgets(void)
         }
 
         pWidget->setFrame(UIRect2D(
-            (m_bind->fillwidth * 2 + m_bind->commandwidth + m_bind->primarykeywidth) * m_vVirtualScale[0],
+            (m_bind->fillwidth * 2 + m_bind->commandwidth + m_bind->primarykeywidth) * scaleX,
             (m_bind->commandheight * i) * m_vVirtualScale[1],
-            m_bind->alternatekeywidth * m_vVirtualScale[0],
+            m_bind->alternatekeywidth * scaleX,
             m_bind->alternatekeyheight * m_vVirtualScale[1]
         ));
     }
@@ -666,6 +683,15 @@ void UIFakkBindList::Draw(void)
 
     if (!m_bind) {
         return;
+    }
+
+    // Added in OpenMOHAA Plus: a scaled list ("scalecvar", the Plus Controls tab) gets its new scale
+    //  from AlignPosition when ui_plusscale changes, without Realign, so its rows and scroll bar
+    //  kept the old size; lay them out again when the scale moved
+    if (m_scaleCvar && !VectorCompare2D(m_layoutScale, m_vVirtualScale)) {
+        m_scroll->setPageHeight((getSize().height / m_vVirtualScale[1] - m_bind->commandheight) / m_bind->commandheight);
+        m_scroll->InitFrameAlignRight(this, 0, 0);
+        RepositionBindWidgets();
     }
 
     topRow = m_scroll->getTopItem();
