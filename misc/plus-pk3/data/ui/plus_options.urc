@@ -5,7 +5,8 @@
 // units). Widgets are the stock pulldown, slider and checkbox bound to cvars; the renderer change
 // takes effect with Apply (vid_restart). Everything is placed with "anchor" (from the screen's
 // top-left corner): a widget without it is placed in the 2048-unit frame, off the screen. Rows
-// in the panel are 32 units apart: label at 232, control and value label from 356 to 504, inside
+// in the panel are 32 units apart: label at 232, control from 356 to 504 (a pulldown, which
+// shows the chosen item before its arrow with "linkcvar", to 516), inside
 // the panel on the narrowest screen (5:4 at ui_plusscale 1.1, right edge at 525).
 
 menu "plus_options" 2048 480 NONE 0
@@ -136,31 +137,18 @@ fgcolor 0.93 0.89 0.80 1
 }
 
 resource
-Label
-{
-name "cl_renderer value"
-rect 0 0 64 24
-bgcolor 0 0 0 0
-borderstyle "NONE"
-scalecvar ui_plusscale
-anchor 356 112 -1 -1
-textalign left
-linkcvar "cl_renderer"
-font facfont-20
-fgcolor 0.94 0.75 0.38 1
-}
-
-resource
 PulldownMenuContainer
 {
 title "Choose..."
 name "cl_renderer list"
-rect 0 0 80 24
-fgcolor 1 1 1 1
+rect 0 0 160 24
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 424 112 -1 -1
+anchor 356 112 -1 -1
+linkcvar "cl_renderer"
+font facfont-20
 menushader "MENU" "textures/menu/pulldownarrow"
 selmenushader "MENU" "textures/menu/pulldownarrow_sel"
 addpopup "MENU" "OpenGL" command "set cl_renderer opengl1"
@@ -309,31 +297,18 @@ fgcolor 0.93 0.89 0.80 1
 }
 
 resource
-Label
-{
-name "cl_language value"
-rect 0 0 64 24
-bgcolor 0 0 0 0
-borderstyle "NONE"
-scalecvar ui_plusscale
-anchor 356 272 -1 -1
-textalign left
-linkcvar "cl_language"
-font facfont-20
-fgcolor 0.94 0.75 0.38 1
-}
-
-resource
 PulldownMenuContainer
 {
 title "Choose..."
 name "cl_language list"
-rect 0 0 80 24
-fgcolor 1 1 1 1
+rect 0 0 160 24
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 424 272 -1 -1
+anchor 356 272 -1 -1
+linkcvar "cl_language"
+font facfont-20
 menushader "MENU" "textures/menu/pulldownarrow"
 selmenushader "MENU" "textures/menu/pulldownarrow_sel"
 addpopup "MENU" "Game default" command "reset cl_language"

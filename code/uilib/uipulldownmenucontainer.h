@@ -53,4 +53,7 @@ protected:
 
 public:
     void AddPopup(Event *ev);
+    str  getValueTitle(void) const;           // Added in OpenMOHAA Plus
+    void Draw(void) override;                 // Added in OpenMOHAA Plus
+    void PrintGeometry(int depth) override;   // Added in OpenMOHAA Plus: ui_printwidgets
 };

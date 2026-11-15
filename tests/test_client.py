@@ -1034,7 +1034,7 @@ end.
         mark = len(c.log())
         c.send("ui_printwidgets")
         out = c.wait_for(r"end of widgets", start=mark, timeout=20)[mark:]
-        result = {"widgets": {}, "columns": []}
+        result = {"widgets": {}, "columns": [], "pulldowns": []}
         for line in out.splitlines():
             m = self.WIDGET_RE.match(line)
             if line.startswith("menu "):
@@ -1054,6 +1054,9 @@ end.
             elif line.startswith("list "):
                 parts = line.split()
                 result["list"] = {"header": int(parts[3]), "row": int(parts[5])}
+            elif line.startswith("pulldown value "):
+                m2 = re.match(r'pulldown value "([^"]*)" width (\S+)', line)
+                result["pulldowns"].append({"value": m2.group(1), "width": float(m2.group(2)), "rect": item["rect"]})
             elif line.startswith("items scale "):
                 result["items"] = float(line.split()[3])
             elif line.startswith("column "):
@@ -1173,7 +1176,9 @@ end.
         for w, h, scales in self.LAYOUT_SCREENS:
             _, c = self.start(w, h, "+set", "cl_language", "es")
             for scale in scales:
-                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_options")
+                # cl_renderer is latched: the pulldown shows the choice waiting for Apply
+                screen = self.widgets(c, "set ui_plusscale " + scale, "set cl_renderer vulkan",
+                                      "pushmenu plus_options")
                 c.send("popmenu 0")
                 msg = (w, h, scale)
                 self.assertEqual(screen["menu"], "plus_options", msg)
@@ -1183,7 +1188,12 @@ end.
                 self.assertEqual(bar, ["title", "apply", "back"], msg)
                 in_panel = [n for n, v in widgets.items() if n.endswith((" label", " value", " slider", " checkbox",
                                                                           " list")) or n.startswith("language note")]
-                self.assertEqual(len(in_panel), 18, msg)
+                self.assertEqual(len(in_panel), 16, msg)
+                # the pulldowns show the chosen item, and all they draw is inside them (clickable)
+                pulldowns = screen["pulldowns"]
+                self.assertEqual([p["value"] for p in pulldowns], ["Vulkan", "Spanish"], msg)
+                for p in pulldowns:
+                    self.assertLessEqual(p["width"], p["rect"][2] - p["rect"][0] + 1, (msg, p))
                 texts = []
                 for name in in_panel:
                     v = widgets[name]
@@ -1292,15 +1302,21 @@ end.
             self.assertIn(f"Columns: {columns}", found, (w, h))
 
     def test_plus_options_opens(self):
-        # the pulldowns cannot show their cvar, so each has a label bound to it (pixel text is not
-        # checked; only that the bindings are in the .urc and the screen opens with a value set)
+        # the pulldowns show their item from linkcvar: "reset" matches the default, an unknown value
+        # is shown as is
         with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
             urc = z.read("ui/plus_options.urc").decode()
         for cvar in ("cl_renderer", "cl_language"):
-            self.assertRegex(urc, r'name "%s value"[^}]*linkcvar "%s"' % (cvar, cvar))
-        _, c = self.start(1280, 720, "+set", "cl_language", "es")
-        c.send("pushmenu plus_options")
-        time.sleep(2)
+            self.assertRegex(urc, r'name "%s list"[^}]*linkcvar "%s"' % (cvar, cvar))
+        _, c = self.start(1280, 720)
+        for language, expected in (("", "Game default"), ("xx", "xx")):
+            screen = self.widgets(c, "reset cl_language" if not language else "set cl_language " + language,
+                                  "pushmenu plus_options")
+            c.send("popmenu 0")
+            self.assertEqual(len(screen["pulldowns"]), 2, (screen.get("menu"), screen["pulldowns"]))
+            pulldown = screen["pulldowns"][1]
+            self.assertEqual(pulldown["value"], expected)
+            self.assertLessEqual(pulldown["width"], pulldown["rect"][2] - pulldown["rect"][0] + 1, pulldown)
         log = c.log()
         self.assertEqual(c.quit(), 0)
         for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
