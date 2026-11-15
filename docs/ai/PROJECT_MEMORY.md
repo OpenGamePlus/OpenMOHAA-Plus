@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Docs audit
+- Structure, ADRs and memory were sound; the drift was in what recent work never wrote down. New `docs/dev/architecture/ui-menus.md` gathers the UI code map, the opt-in rule and the pitfalls that were only in memory stages.
+- Also added: doc-sync rows (menus, pk3 art, banner), where specs and plans live, and the MSVC strictness note in `compiling.md`. A fresh review caught three overstatements (`cover` flag, white textures, ART-LICENSE scope), fixed before merge.
+- The checker now covers the fork's `docs/markdown/**/NN-plus-*.md` pages (fork files, never checked) and the committed specs, the latter for personal data only: a discarded spec names files that were never written, which is history, not a broken path. The workflow also triggers on those folders and the READMEs.
+
 ## 2026-11-15 — New banner and visual identity
 - The maintainer supplied a new banner (medal with laurel, Playfair Display / Oswald / Rajdhani); it is the repo's identity, palette in PROJECT_CONTEXT.md. Its fonts were only named: GitHub shows the SVG as an image, which cannot load fonts, and with the fallback the subtitle ran past the right edge. The text was outlined (harfbuzz shaping, fontTools outlines, OFL fonts from google/fonts), checked against a render with the fonts installed: identical.
 - Editing the banner's text means outlining again; the outlined file has no `<text>` left (title and description stay as `<title>`/`<desc>`). The "MOHAA" badge took the ribbon olive `6e7f3c`.

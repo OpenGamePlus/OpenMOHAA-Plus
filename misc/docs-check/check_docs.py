@@ -2,13 +2,14 @@
 # Copyright (C) 2026 the OpenMOHAA Plus contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Check the OpenMOHAA Plus technical docs (AGENTS.md, LAYOUT.md, README.md, README.es.md,
-docs/dev, docs/ai).
+docs/dev, docs/ai) and the fork's user pages (docs/markdown/**/NN-plus-*.md).
 
 Flags broken relative links, repository paths in backticks that git would not commit
 (tracked or untracked-but-not-ignored; plain filesystem check outside a git repo),
 personal data (home/mount/drive paths, non-documentation IPs, emails, tokens) and
 PROJECT_MEMORY stages that are malformed or have more than 3 bullets.
-Upstream user docs (docs/markdown) and local plans are not checked.
+Design specs (docs/superpowers/specs) only get the personal-data check: they may name files that
+were planned but never written. Other upstream user docs and local plans are not checked.
 
 Usage: python3 misc/docs-check/check_docs.py [--root DIR] [--quiet]
 """
@@ -24,6 +25,9 @@ from dataclasses import dataclass
 CHECKED_FILES = ["AGENTS.md", "LAYOUT.md", "README.md", "README.es.md", "tests/README.md"]
 CHECKED_DIRS = ["docs/dev", "docs/ai"]
 EXCLUDED_DIRS = {"plans"}
+FORK_PAGES_DIR = "docs/markdown"
+FORK_PAGE_RE = re.compile(r"^\d+-plus-.*\.md$")
+SPECS_DIR = "docs/superpowers/specs"
 EXCLUDED_SUFFIX = ".local.md"
 MEMORY_FILE = "docs/ai/PROJECT_MEMORY.md"
 MAX_STAGE_BULLETS = 3
@@ -72,15 +76,21 @@ class Problem:
         return f"{self.path}:{self.line}: {self.kind}: {self.message}"
 
 
+def walk_md(root, d, keep=lambda name: True):
+    files = []
+    for dirpath, dirnames, filenames in os.walk(os.path.join(root, d)):
+        dirnames[:] = sorted(n for n in dirnames if n not in EXCLUDED_DIRS)
+        for name in sorted(filenames):
+            if name.endswith(".md") and not name.endswith(EXCLUDED_SUFFIX) and keep(name):
+                files.append(os.path.relpath(os.path.join(dirpath, name), root).replace(os.sep, "/"))
+    return files
+
+
 def doc_files(root):
     files = [f for f in CHECKED_FILES if os.path.isfile(os.path.join(root, f))]
     for d in CHECKED_DIRS:
-        for dirpath, dirnames, filenames in os.walk(os.path.join(root, d)):
-            dirnames[:] = sorted(n for n in dirnames if n not in EXCLUDED_DIRS)
-            for name in sorted(filenames):
-                if name.endswith(".md") and not name.endswith(EXCLUDED_SUFFIX):
-                    files.append(os.path.relpath(os.path.join(dirpath, name), root))
-    return [f.replace(os.sep, "/") for f in files]
+        files += walk_md(root, d)
+    return files + walk_md(root, FORK_PAGES_DIR, FORK_PAGE_RE.match)
 
 
 def check_links(root, rel, lineno, line):
@@ -176,6 +186,10 @@ def check_repo(root):
     problems, known = [], repo_paths(root)
     for rel in doc_files(root):
         problems.extend(check_file(root, rel, known))
+    for rel in walk_md(root, SPECS_DIR):
+        with open(os.path.join(root, rel), encoding="utf-8") as f:
+            for lineno, line in enumerate(f.read().splitlines(), 1):
+                problems.extend(check_personal(rel, lineno, line))
     return problems
 
 

@@ -21,6 +21,14 @@ cmake --install .cmake          # binaries and modules go to <PREFIX>/lib/openmo
 - Scratch builds (agents, experiments) go to a separate directory: export with
   `git archive <ref> | tar -x -C <dir>` and configure there, so `.cmake/` stays the reference build.
 
+## Windows (MSVC)
+
+Same CMake project with the Visual Studio generator (`-G "Visual Studio 16 2019" -A x64`).
+MSVC rejects code that GCC and Clang accept, for example a `?:` whose branches are two
+`const vec2_t&` array references (C2440; use an `if`). Build a C++ change on Windows, or let the
+Windows CI build it, before merging; for a local test build, `git archive` the tree into a
+separate source folder there.
+
 ## Game data
 
 The engine needs the original game files (pk3) but never ships them. Run from the install dir:

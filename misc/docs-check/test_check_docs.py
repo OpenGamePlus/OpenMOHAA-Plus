@@ -147,6 +147,19 @@ class ScopeTests(RepoTestCase):
         self.write("docs/dev/notes.local.md", "[x](nope.md)\n")
         self.assertEqual(self.problems(), [])
 
+    def test_fork_pages_in_upstream_docs_are_checked(self):
+        self.write("docs/markdown/04-coding/02-scripting/03-plus-events.md", "[x](nope.md)\n")
+        self.assertEqual(self.kinds(), ["broken-link"])
+        self.write("docs/markdown/03-configuration/04-plus-admin.md", "[x](nope.md) `code/nope.c`\n")
+        self.assertEqual(self.kinds(), ["broken-link", "missing-path"])
+
+    def test_specs_get_only_the_personal_data_check(self):
+        # specs are design records: they may name files that were planned but never written
+        self.write("docs/superpowers/specs/2026-01-01-x-design.md", "[x](nope.md) `code/nope.c`\n")
+        self.assertEqual(self.problems(), [])
+        self.write("docs/superpowers/specs/2026-01-01-x-design.md", "see /home/alice\n")
+        self.assertEqual(self.kinds(), ["personal-data"])
+
     def test_main_returns_nonzero_on_problems(self):
         self.write("AGENTS.md", "[x](nope.md)\n")
         self.assertEqual(check_docs.main(["--root", self.root, "--quiet"]), 1)

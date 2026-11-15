@@ -11,6 +11,7 @@ duplicated here.
 | Game module, events, script VM, savegames | [architecture/game-and-script.md](architecture/game-and-script.md) |
 | Client audio and platform notes | [architecture/client-audio.md](architecture/client-audio.md) |
 | Vulkan renderer | [architecture/renderer-vulkan.md](architecture/renderer-vulkan.md) |
+| UI library and the Plus menu | [architecture/ui-menus.md](architecture/ui-menus.md) |
 | Decisions | [architecture/adr/README.md](architecture/adr/README.md) |
 | Building | [development/compiling.md](development/compiling.md) |
 | Testing (headless recipes) | [development/testing.md](development/testing.md) |
@@ -18,4 +19,5 @@ duplicated here.
 | Risks, gaps, rejected issues | [roadmap/debt.md](roadmap/debt.md) |
 | Feature ideas (gametype scripting API, competition mode, libmoh, Vulkan...) | [roadmap/ideas.md](roadmap/ideas.md) |
 | Terms | [glossary.md](glossary.md) |
+| Design specs (committed; plans stay local, gitignored) | `docs/superpowers/specs` |
 | AI memory layer | [../ai/README_AI.md](../ai/README_AI.md) |
