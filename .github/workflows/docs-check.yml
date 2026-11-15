@@ -5,6 +5,10 @@ on:
     paths:
       - 'AGENTS.md'
       - 'LAYOUT.md'
+      - 'README.md'
+      - 'README.es.md'
+      - 'docs/markdown/**'
+      - 'docs/superpowers/specs/**'
       - 'docs/dev/**'
       - 'docs/ai/**'
       - 'misc/docs-check/**'
@@ -20,6 +24,10 @@ on:
     paths:
       - 'AGENTS.md'
       - 'LAYOUT.md'
+      - 'README.md'
+      - 'README.es.md'
+      - 'docs/markdown/**'
+      - 'docs/superpowers/specs/**'
       - 'docs/dev/**'
       - 'docs/ai/**'
       - 'misc/docs-check/**'
