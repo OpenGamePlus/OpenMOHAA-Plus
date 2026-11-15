@@ -93,6 +93,10 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | `Item::SetDMMaxAmount` sets the amount | Kept | Reimplemented from the original game; changing it alters DM ammo amounts, and the original `gamex86.dll` was not compared |
 | `G_SetTime` compares `level.svsStartTime != svsTime` | Kept | Only rewrites `CS_LEVEL_START_TIME` more often than needed; no visible symptom, and it sits on the #916 stopwatch path |
 | Windows `.msi` installers | Not shipping the plus pk3 | The `.msi` (`deploy_installer_windows`) does not carry `plus/zzz-plus.pk3` yet; users copy it from the release by hand (the `.zip` does carry it) |
+| Plus menu: macOS | `plus/` folder next to the app unchecked | `fs_pluspath` defaults to the binary folder; the macOS bundle path was not tried on a real Mac |
+| Plus menu: pulldowns | Cannot show the current value | The options pulldowns do not display the selected value; labels beside them show it |
+| Plus menu: entries | Hover and click of entries not tested | Tests open the screens and drive cvars/commands; no pointer events were simulated |
+| Plus menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
 
 ## Not attempted (needs data or hardware not available)
 
