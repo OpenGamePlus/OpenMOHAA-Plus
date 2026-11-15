@@ -5,7 +5,7 @@
 ![Estado: en desarrollo](https://img.shields.io/badge/estado-en%20desarrollo-orange)
 ![Licencia: AGPL-3.0](https://img.shields.io/badge/licencia-AGPL--3.0-blue)
 ![Plataformas: Linux | Windows | macOS](https://img.shields.io/badge/plataforma-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
-![MOHAA | Spearhead | Breakthrough](https://img.shields.io/badge/MOHAA-AA%20%7C%20Spearhead%20%7C%20Breakthrough-6b7a3a)
+![MOHAA | Spearhead | Breakthrough](https://img.shields.io/badge/MOHAA-AA%20%7C%20Spearhead%20%7C%20Breakthrough-6e7f3c)
 [![Fork de openmoh/openmohaa](https://img.shields.io/badge/fork%20de-openmoh%2Fopenmohaa-555)](https://github.com/openmoh/openmohaa)
 [![Builds](https://github.com/OpenGamePlus/OpenMOHAA-Plus/actions/workflows/branches-build.yml/badge.svg?branch=main)](https://github.com/OpenGamePlus/OpenMOHAA-Plus/actions/workflows/branches-build.yml)
 [![Último commit](https://img.shields.io/github/last-commit/OpenGamePlus/OpenMOHAA-Plus/main)](https://github.com/OpenGamePlus/OpenMOHAA-Plus/commits/main)
