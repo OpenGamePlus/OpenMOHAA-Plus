@@ -1109,6 +1109,37 @@ end.
             self.assertEqual(c.quit(), 0)
             self.assertIn(f"Columns: {columns}", found, (w, h))
 
+    def test_plus_options_opens(self):
+        _, c = self.start(1280, 720)
+        c.send("pushmenu plus_options")
+        time.sleep(2)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
+
+    def test_renderer_apply_restarts(self):
+        # run the Apply button's command string as the .urc holds it
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            urc = z.read("ui/plus_options.urc").decode()
+        apply_cmd = re.search(r'name "apply".*?stuffcommand "([^"]*)"', urc, re.S).group(1)
+        _, c = self.start(1280, 720)
+        c.send("set cl_renderer opengl1")
+        mark = len(c.log())
+        c.send(apply_cmd)
+        c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
+        self.assertEqual(c.quit(), 0)
+
+    def test_plus_scale_is_clamped(self):
+        _, c = self.start(1280, 720)
+        for value, expected in (("3", "1.1"), ("0.1", "0.85")):
+            c.send("set ui_plusscale " + value)
+            mark = len(c.log())
+            c.send("ui_plusscale")
+            found = c.wait_for(r'"ui_plusscale" is:"[^"]*"', start=mark, timeout=20)[mark:]
+            self.assertIn('is:"%s' % expected, found)
+        self.assertEqual(c.quit(), 0)
+
     def test_no_ui_errors(self):
         _, c = self.start(1280, 720)
         log = c.log()

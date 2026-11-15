@@ -3911,7 +3911,8 @@ void UI_ResolutionChange(void)
     // Added in OpenMOHAA Plus: 1 keeps menus 4:3 with side bars on wide screens (upstream #583), 0 stretches
     Cvar_Get("ui_menuaspect", "1", CVAR_ARCHIVE | CVAR_LATCH);
     // Added in OpenMOHAA Plus: size of the Plus menus ("scalecvar ui_plusscale"), 1 = 480 virtual units high
-    Cvar_Get("ui_plusscale", "1", CVAR_ARCHIVE);
+    //  Clamped to 0.85..1.1: larger runs the bar past the screen bottom, smaller leaves the menu short of the edges at 32:9
+    Cvar_CheckRange(Cvar_Get("ui_plusscale", "1", CVAR_ARCHIVE), 0.85f, 1.1f, qfalse);
     float hudScale = ui_hudscale->value < 0.5f ? 0.5f : (ui_hudscale->value > 4.0f ? 4.0f : ui_hudscale->value);
 
     // Added in OPM

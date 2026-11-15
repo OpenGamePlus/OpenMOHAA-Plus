@@ -1,0 +1,313 @@
+// Copyright (C) 2026 the OpenMOHAA Plus contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// OpenMOHAA Plus options. Same frame, background and bar as main.urc (see there for the
+// units). Widgets are the stock pulldown, slider and
+// checkbox bound to cvars; the renderer change takes effect with Apply (vid_restart).
+
+menu "plus_options" 2048 480 NONE 0
+bgcolor 0 0 0 0
+borderstyle NONE
+bgfill 0 0 0 1
+fullscreen 1
+virtualres 1
+scalecvar ui_plusscale
+
+
+resource
+Label
+{
+name "background left"
+rect 0 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+cover 1152 480
+shader "textures/menu_plus/bg_l"
+}
+
+resource
+Label
+{
+name "background right"
+rect 576 0 576 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+cover 1152 480
+shader "textures/menu_plus/bg_r"
+}
+
+resource
+Label
+{
+name "bar"
+rect 0 0 300 480
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+stretch vertical
+shader "textures/menu_plus/bar"
+}
+
+resource
+Button
+{
+name "apply"
+rect 0 100 200 28
+title "Apply renderer"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "vid_restart"
+}
+
+resource
+Button
+{
+name "back"
+rect 0 0 200 28
+title "Back"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 0 -1 -1 40
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/back.wav"
+stuffcommand "popmenu 0"
+}
+
+// dark content panel, 20 units from the right edge
+resource
+Label
+{
+name "panel"
+rect 0 0 64 64
+bgcolor 0.02 0.04 0.02 0.8
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 220 100 20 40
+}
+
+resource
+Label
+{
+name "Renderer label"
+rect 240 116 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Renderer"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+PulldownMenuContainer
+{
+title "OpenGL"
+name "cl_renderer list"
+rect 440 116 170 24
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+menushader "MENU" "textures/menu/pulldownarrow"
+selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+addpopup "MENU" "OpenGL" command "set cl_renderer opengl1"
+addpopup "MENU" "Vulkan" command "set cl_renderer vulkan"
+}
+
+resource
+Label
+{
+name "HUD scale label"
+rect 240 156 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "HUD scale"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+Slider
+{
+name "ui_hudscale slider"
+rect 440 160 170 16
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu/slider"
+linkcvar "ui_hudscale"
+slidertype float
+setrange 0.5 4
+stepsize 0.1
+}
+
+resource
+Label
+{
+name "Menus keep 4:3 (0 stretches) label"
+rect 240 196 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Menus keep 4:3 (0 stretches)"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+CheckBox
+{
+name "ui_menuaspect checkbox"
+rect 440 196 32 32
+fgcolor 1 1 1 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+linkcvar "ui_menuaspect"
+checked_shader "textures/menu/checkbox_checked"
+unchecked_shader "textures/menu/checkbox_unchecked"
+}
+
+resource
+Label
+{
+name "Crosshair size label"
+rect 240 236 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Crosshair size"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+Slider
+{
+name "cg_crosshair_size slider"
+rect 440 240 170 16
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu/slider"
+linkcvar "cg_crosshair_size"
+slidertype float
+setrange 0 4
+stepsize 0.1
+}
+
+resource
+Label
+{
+name "Crosshair scale label"
+rect 240 276 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Crosshair scale"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+Slider
+{
+name "cg_crosshair_scale slider"
+rect 440 280 170 16
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu/slider"
+linkcvar "cg_crosshair_scale"
+slidertype float
+setrange 0.1 4
+stepsize 0.1
+}
+
+resource
+Label
+{
+name "Language label"
+rect 240 316 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Language"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+PulldownMenuContainer
+{
+title "Game default"
+name "cl_language list"
+rect 440 316 170 24
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+menushader "MENU" "textures/menu/pulldownarrow"
+selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+addpopup "MENU" "Game default" command "reset cl_language"
+addpopup "MENU" "English" command "set cl_language en"
+addpopup "MENU" "Espanol" command "set cl_language es"
+addpopup "MENU" "Francais" command "set cl_language fr"
+addpopup "MENU" "Deutsch" command "set cl_language de"
+}
+
+resource
+Label
+{
+name "Plus menu size label"
+rect 240 356 190 24
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+title "Plus menu size"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+Slider
+{
+name "ui_plusscale slider"
+rect 440 360 170 16
+fgcolor 1 1 1 1
+bgcolor 0.5 0.5 0.5 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+shader "textures/menu/slider"
+linkcvar "ui_plusscale"
+slidertype float
+setrange 0.85 1.1
+stepsize 0.05
+}
+end.
