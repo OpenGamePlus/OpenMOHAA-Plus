@@ -957,6 +957,42 @@ class PlusMenu(GameTestCase):
     LAYOUT_SCREENS = ((1280, 1024, ("0.85", "1.1")), (1920, 1080, ("1",)), (2560, 1080, ("1",)))
 
     # a test menu with a green panel anchored like the Plus content panel
+    # two pulldowns whose items set several cvars (Plus options' resolution and effect presets)
+    PULLDOWN_URC = """menu "plus_pulldown_test" 640 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+PulldownMenuContainer
+{
+name "res list"
+rect 0 0 200 24
+scalecvar ui_plusscale
+anchor 100 100 -1 -1
+linkcvar "r_mode"
+menushader "MENU" "textures/menu/pulldownarrow"
+addpopup "MENU" "Desktop" command "set r_mode -2"
+addpopup "MENU" "1920x1080" command "set r_mode -1; set r_customwidth 1920; set r_customheight 1080"
+addpopup "MENU" "2560x1440" command "set r_mode -1;set r_customwidth 2560;set r_customheight 1440"
+addpopup "MENU" "Quoted" command "set r_mode -1; set r_customwidth \\"1000\\"; set r_customheight 1000.0"
+addpopup "MENU" "Bare" command "r_mode 5"
+}
+resource
+PulldownMenuContainer
+{
+name "fx list"
+rect 0 0 200 24
+scalecvar ui_plusscale
+anchor 100 140 -1 -1
+linkcvar "cg_effectdetail"
+menushader "MENU" "textures/menu/pulldownarrow"
+addpopup "MENU" "Low" command "set cg_effectdetail \\"0.5\\";set vss_maxcount 22"
+addpopup "MENU" "Max" command "set cg_effectdetail \\"1.0\\";set vss_maxcount 10"
+}
+end.
+"""
+
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -991,6 +1027,7 @@ end.
             z.writestr("textures/menu_plus/bg_l.tga", left)
             z.writestr("textures/menu_plus/bg_r.tga", right)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
+            z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
 
     @classmethod
     def tearDownClass(cls):
@@ -1330,6 +1367,28 @@ end.
             found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
             self.assertEqual(c.quit(), 0)
             self.assertIn(f"Columns: {columns}", found, (w, h))
+
+    def test_pulldown_matches_every_set(self):
+        # an item matches when every set in it matches (quotes and number formats aside); an item
+        # without any set never matches, so the bare value shows
+        cases = [("set r_mode -2", "Desktop", None),
+                 ("set r_mode -1;set r_customwidth 1920;set r_customheight 1080", "1920x1080", None),
+                 ("set r_mode -1;set r_customwidth 2560;set r_customheight 1440", "2560x1440", None),
+                 ("set r_mode -1;set r_customwidth 1000;set r_customheight 1000", "Quoted", None),
+                 ("set r_mode 5", "5", None),
+                 ("set cg_effectdetail 1;set vss_maxcount 10", None, "Max"),
+                 ("set cg_effectdetail 0.5;set vss_maxcount 23", None, "0.5")]
+        _, c = self.start(1280, 720)
+        for cvars, res, fx in cases:
+            screen = self.widgets(c, cvars, "pushmenu plus_pulldown_test")
+            c.send("popmenu 0")
+            values = [p["value"] for p in screen["pulldowns"]]
+            self.assertEqual(len(values), 2, (cvars, screen.get("menu")))
+            if res:
+                self.assertEqual(values[0], res, cvars)
+            if fx:
+                self.assertEqual(values[1], fx, cvars)
+        self.assertEqual(c.quit(), 0)
 
     def test_plus_options_opens(self):
         # the pulldowns show their item from linkcvar: "reset" matches the default, an unknown value

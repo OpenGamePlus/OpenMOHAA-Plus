@@ -78,9 +78,13 @@ scale) and its columns end at the scroll bar. Text longer than its column is cut
 the column's edge.
 
 A `PulldownMenuContainer` with `linkcvar <cvar>` shows, before its arrow and in its own `font`
-and `fgcolor`, the title of the item whose command starts with `set <cvar> <value>` (or `seta`)
-for the cvar's value, or with `reset <cvar>` while the cvar is at its default. A latched cvar
-shows the value waiting for the restart. With no matching item it shows the value itself. Make
+and `fgcolor`, the title of the first item whose command has at least one `set <cvar> <value>`
+(or `seta`) and in which every such `set` matches that cvar's value (so an item may set several
+cvars, e.g. `set r_mode -1; set r_customwidth 1920; set r_customheight 1080`). Quotes around a
+value are ignored and numbers compare as numbers (`"1.0"` matches `1`). A `reset <cvar>` in the
+command matches while that cvar is at its default; other commands are ignored, so an item with no
+`set` never matches. A latched cvar counts with the value waiting for the restart. With no
+matching item the pulldown shows the linked cvar's value itself. Make
 the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
 
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,

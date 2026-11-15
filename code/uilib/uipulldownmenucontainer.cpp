@@ -299,50 +299,92 @@ void UIPulldownMenuContainer::AddPopup(Event *ev)
     m_menu->AddUIPopupDescribe(menu, uipd);
 }
 
-// Added in OpenMOHAA Plus: with a "linkcvar", the title of the popup that sets the cvar to its
-//  current (or latched) value: "set|seta <cvar> <value>", or "reset <cvar>" while the cvar is at its default,
-//  as the first command of the item; the bare value if no item matches; empty without linkcvar
+// Added in OpenMOHAA Plus: a cvar's latched value if a restart is pending (cl_renderer), else its value
+static str PulldownCvarValue(const char *name)
+{
+    const cvar_t *cvar = uii.Cvar_Find(name);
+
+    if (cvar && cvar->latchedString) {
+        return cvar->latchedString;
+    }
+    return uii.Cvar_GetString(name, "");
+}
+
+// Added in OpenMOHAA Plus: values compare as numbers when both are numbers ("1.0" and "1"), else
+//  case-insensitively; one pair of surrounding quotes is ignored
+static bool PulldownValuesEqual(const char *a, const char *b)
+{
+    char        unquoted[MAX_STRING_CHARS];
+    size_t      len = strlen(a);
+    char       *enda, *endb;
+    double      na, nb;
+
+    if (len >= 2 && a[0] == '"' && a[len - 1] == '"') {
+        Q_strncpyz(unquoted, a + 1, len - 1 < sizeof(unquoted) ? len - 1 : sizeof(unquoted));
+        a = unquoted;
+    }
+
+    na = strtod(a, &enda);
+    nb = strtod(b, &endb);
+    if (*a && *b && !*enda && !*endb) {
+        return na == nb;
+    }
+    return !Q_stricmp(a, b);
+}
+
+// Added in OpenMOHAA Plus: with a "linkcvar", the title of the first item whose command has at
+//  least one "set|seta <cvar> <value>" and whose every such command matches that cvar's current
+//  (or latched) value; a "reset <cvar>" command matches while that cvar is at its default; other
+//  commands are ignored. The bare value of the linked cvar if no item matches; empty without
+//  linkcvar
 str UIPulldownMenuContainer::getValueTitle(void) const
 {
     if (!m_cvarname.length()) {
         return "";
     }
 
-    const cvar_t *cvar = uii.Cvar_Find(m_cvarname.c_str());
-    // a latched cvar (cl_renderer) shows the choice waiting for the restart
-    const str value = (cvar && cvar->latchedString) ? cvar->latchedString : uii.Cvar_GetString(m_cvarname.c_str(), "");
-    const str     set   = str("set ") + m_cvarname + " " + value;
-    const str     seta  = str("seta ") + m_cvarname + " " + value;
-    const str     reset = str("reset ") + m_cvarname;
-
     for (int i = 1; i <= m_popups.NumObjects(); i++) {
         const uipopup_describe *uipd = m_popups.ObjectAt(i);
+        char                    commands[MAX_STRING_CHARS];
+        char                   *segment, *next;
+        bool                    any = false, all = true;
+
         if (uipd->type != UIP_CMD && uipd->type != UIP_CVAR) {
             continue;
         }
 
-        char  command[MAX_STRING_CHARS];
-        char *end;
+        Q_strncpyz(commands, (const char *)uipd->data, sizeof(commands));
+        for (segment = commands; segment && all; segment = next) {
+            char keyword[64], name[MAX_STRING_CHARS], value[MAX_STRING_CHARS];
+            int  fields;
 
-        Q_strncpyz(command, (const char *)uipd->data, sizeof(command));
-        end = strchr(command, ';');
-        if (!end) {
-            end = command + strlen(command);
-        }
-        while (end > command && end[-1] == ' ') {
-            end--;
-        }
-        *end = 0;
+            next = strchr(segment, ';');
+            if (next) {
+                *next++ = 0;
+            }
 
-        if (!Q_stricmp(command, set) || !Q_stricmp(command, seta)) {
-            return uipd->title;
+            value[0] = 0;
+            fields   = sscanf(segment, " %63s %1023s %1023[^\n]", keyword, name, value);
+            if (fields >= 2 && !Q_stricmp(keyword, "reset")) {
+                const cvar_t *cvar = uii.Cvar_Find(name);
+                any                = true;
+                all                = cvar && !strcmp(PulldownCvarValue(name).c_str(), cvar->resetString);
+            } else if (fields >= 2 && (!Q_stricmp(keyword, "set") || !Q_stricmp(keyword, "seta"))) {
+                char  *trim = value + strlen(value);
+                while (trim > value && trim[-1] == ' ') {
+                    *--trim = 0;
+                }
+                any = true;
+                all = PulldownValuesEqual(value, PulldownCvarValue(name).c_str());
+            }
         }
-        if (!Q_stricmp(command, reset) && cvar && !strcmp(value.c_str(), cvar->resetString)) {
+
+        if (any && all) {
             return uipd->title;
         }
     }
 
-    return value;
+    return PulldownCvarValue(m_cvarname.c_str());
 }
 
 // Added in OpenMOHAA Plus: the pulldown shows the current value (see getValueTitle) in this
