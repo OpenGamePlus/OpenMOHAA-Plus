@@ -49,10 +49,11 @@ out
 /code/parser/generated
 
 # OpenMOHAA Plus local files: agent instructions (shared rules live in AGENTS.md),
-# the dev build dir (contains absolute local paths), local doc plans
+# the dev build dir (contains absolute local paths), local doc plans, agent scratch (mockups)
 /CLAUDE.md
 /.cmake/
 docs/**/plans/
+/.superpowers/
 *.local.md
 
 # Python bytecode (tests and misc tools)
