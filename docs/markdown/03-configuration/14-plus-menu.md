@@ -71,9 +71,12 @@ puts the widget at the screen edge whatever the `rect` says.
 The server list widget also takes the events `togglefavorite` (favourite on or off for the
 selected server) and `selectitem <n>`. Its `printlist` command prints a `Columns: N` line first;
 the "Version" column appears when the list is wider than 800 virtual units. An anchored list has
-its header in the row font and its columns end at the scroll bar.
+its header in the row font, draws its rows at the menu's scale (the original list keeps the HUD
+scale) and its columns end at the scroll bar. Text longer than its column is cut at the column's
+edge.
 
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
-server list also the header and row heights and each column's position, width and title width.
+server list also the header and row heights, the scale its rows are drawn at (`items scale`) and
+each column's position, width and title width.
 The tests use it to check the layout.

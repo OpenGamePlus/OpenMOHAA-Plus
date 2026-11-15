@@ -84,4 +84,6 @@ public:
 
     void Draw(void) override;
     void SortByColumn(int column) override;
+    const vec2_t& getItemScale() const;   // Added in OpenMOHAA Plus
+    void          PrintGeometry(int depth) override; // Added in OpenMOHAA Plus: ui_printwidgets
 };
