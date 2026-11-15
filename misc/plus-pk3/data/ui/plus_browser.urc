@@ -58,11 +58,12 @@ resource
 Label
 {
 name "title"
-rect 0 30 200 32
+rect 0 0 170 32
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 30 -1 -1
+textalign left
 title "Multiplayer"
 font facfont-20
 fgcolor 0.94 0.75 0.38 1
@@ -72,14 +73,15 @@ resource
 Button
 {
 name "internet"
-rect 0 100 200 28
+rect 0 0 170 26
 title "Internet"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 90 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
@@ -89,14 +91,15 @@ resource
 Button
 {
 name "favourites"
-rect 0 128 200 28
+rect 0 0 170 26
 title "Favourites"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 116 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "set dm_browser_show 1;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
@@ -106,14 +109,15 @@ resource
 Button
 {
 name "recent"
-rect 0 156 200 28
+rect 0 0 170 26
 title "Recent"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 142 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "set dm_browser_show 3;set plus_browser_refresh widgetcommand netgamelist refreshserverlist;vstr plus_browser_refresh"
@@ -123,14 +127,15 @@ resource
 Button
 {
 name "lan"
-rect 0 184 200 28
+rect 0 0 170 26
 title "LAN"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 168 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "set dm_browser_show 0;set plus_browser_refresh widgetcommand netgamelist refreshlanserverlist;vstr plus_browser_refresh"
@@ -140,14 +145,15 @@ resource
 Button
 {
 name "refresh"
-rect 0 232 200 28
+rect 0 0 170 26
 title "Refresh"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 206 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "vstr plus_browser_refresh"
@@ -157,14 +163,15 @@ resource
 Button
 {
 name "join"
-rect 0 260 200 28
+rect 0 0 170 26
 title "Join"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 232 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "widgetcommand netgamelist connect"
@@ -174,14 +181,15 @@ resource
 Button
 {
 name "favourite"
-rect 0 288 200 28
+rect 0 0 170 26
 title "Favourite"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 258 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "widgetcommand netgamelist togglefavorite"
@@ -191,14 +199,15 @@ resource
 Button
 {
 name "createserver"
-rect 0 336 200 28
+rect 0 0 170 26
 title "Create server"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 296 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "pushmenu multiplayerstart"
@@ -208,14 +217,15 @@ resource
 Button
 {
 name "playersetup"
-rect 0 364 200 28
+rect 0 0 170 26
 title "Player setup"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 322 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "ui_getplayermodel;pushmenu mpoptions"
@@ -225,14 +235,15 @@ resource
 Button
 {
 name "back"
-rect 0 0 200 28
+rect 0 0 170 26
 title "Back"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 0 -1 -1 40
+anchor 30 -1 -1 40
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/back.wav"
 stuffcommand "popmenu 0"

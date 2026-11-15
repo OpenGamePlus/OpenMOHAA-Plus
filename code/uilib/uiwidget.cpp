@@ -810,6 +810,13 @@ void UIWidget::PropogateCoordinateSystem(void)
         m_clippedorigin = m_origin;
         m_screenframe   = m_frame;
         m_clippedframe  = m_frame;
+
+        // Fixed in OpenMOHAA Plus: the children of an anchored widget (the scroll bar of the Plus
+        //  browser's list) are placed in it, not from the screen origin
+        if (m_flags & WF_ANCHORED) {
+            m_screenorigin.x = m_frame.pos.x - m_origin.x;
+            m_screenorigin.y = m_frame.pos.y - m_origin.y;
+        }
     } else {
         m_screenframe.pos.x = m_frame.pos.x + m_parent->m_screenorigin.x;
         m_screenframe.pos.y = m_frame.pos.y + m_parent->m_screenorigin.y;
@@ -2772,4 +2779,53 @@ void UIWidgetContainer::SetLastActiveWidgetOrderNum(void)
     }
 
     SetActiveWidgetOrderNum(m_currentwidnum);
+}
+
+// Added in OpenMOHAA Plus: "ui_printwidgets" prints the screen geometry of a menu, in pixels, for
+//  the tests. One line per widget: depth, name, class, shown, rect "x y w h", and for a widget with text
+//  (a label bound to a cvar shows its value) the rect the text is drawn in.
+void UIWidget::PrintGeometry(int depth)
+{
+    str         text = Sys_LV_CL_ConvertString(m_title);
+    const char *ctext;
+
+    if (!m_title.length() && m_cvarname.length() && isSubclassOf(UILabel)) {
+        text = uii.Cvar_GetString(m_cvarname.c_str(), "");
+    }
+    ctext = text.c_str();
+
+    uii.Sys_Printf(
+        "widget %d \"%s\" %s shown %d rect %.0f %.0f %.0f %.0f",
+        depth,
+        m_name.c_str(),
+        getClassname(),
+        IsVisible() && isEnabled() ? 1 : 0, // a disabled widget is not drawn
+        m_screenframe.pos.x,
+        m_screenframe.pos.y,
+        m_screenframe.size.width,
+        m_screenframe.size.height
+    );
+
+    if (m_font && *ctext) {
+        const float w = m_font->getWidth(ctext, -1) * getVirtualScale()[0];
+        const float h = m_font->getHeight(ctext, -1, getVirtualScale());
+        float       x = m_screenframe.pos.x, y = m_screenframe.pos.y;
+
+        if (m_iFontAlignmentHorizontal == FONT_JUSTHORZ_CENTER) {
+            x += (m_screenframe.size.width - w) * 0.5f;
+        } else if (m_iFontAlignmentHorizontal == FONT_JUSTHORZ_RIGHT) {
+            x += m_screenframe.size.width - w;
+        }
+        if (m_iFontAlignmentVertical == FONT_JUSTVERT_CENTER) {
+            y += (m_screenframe.size.height - h) * 0.5f;
+        } else if (m_iFontAlignmentVertical == FONT_JUSTVERT_BOTTOM) {
+            y += m_screenframe.size.height - h;
+        }
+        uii.Sys_Printf(" text %.0f %.0f %.0f %.0f \"%s\"", x, y, w, h, ctext);
+    }
+    uii.Sys_Printf("\n");
+
+    for (UIWidget *child = getFirstChild(); child; child = getNextChild(child)) {
+        child->PrintGeometry(depth + 1);
+    }
 }

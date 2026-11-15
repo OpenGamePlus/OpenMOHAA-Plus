@@ -351,6 +351,7 @@ public:
     class UIWidget    *FindWidget(str name);
     void               ResetMotion(motion_t type);
     virtual void       Realign(void);
+    virtual void       PrintGeometry(int depth); // Added in OpenMOHAA Plus: ui_printwidgets
     void               BringToFrontPropogated(void);
     class UIWidget    *IsThisOrChildActive(void);
     class UIPoint2D    MouseEventToClientPoint(Event *ev);

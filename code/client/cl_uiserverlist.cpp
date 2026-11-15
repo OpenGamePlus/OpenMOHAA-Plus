@@ -488,16 +488,29 @@ void UIFAKKServerList::UpdateUIElement(void)
 
     width = getClientFrame().size.width;
 
-    // Added in OpenMOHAA Plus: a list wider than 800 virtual units (1/480 of the screen height) also
-    // shows the game version
-    if (width / getVirtualScale()[0] > 800) {
-        AddColumn("Server Name", 0, width * 0.27f, false, false);
-        AddColumn("Map", 5, width * 0.12f, false, false);
-        AddColumn("Players", 3, width * 0.075f, true, true);
-        AddColumn("Gametype", 4, width * 0.15f, false, false);
-        AddColumn("Ping", 2, width * 0.045f, true, false);
-        AddColumn("IP", 1, width * 0.2f, false, false);
-        AddColumn("Version", 6, width * 0.14f, false, false);
+    if (m_flags & WF_ANCHORED) {
+        // Added in OpenMOHAA Plus: the Plus browser's list (anchored) has its header in the row font,
+        //  and its columns end at the scroll bar and are wide enough for their titles; a list wider
+        //  than 800 virtual units (1/480 of the screen height) also shows the game version
+        setHeaderFont(NULL);
+        width -= 16;
+        if (width / getVirtualScale()[0] > 800) {
+            AddColumn("Server Name", 0, width * 0.28f, false, false);
+            AddColumn("Map", 5, width * 0.12f, false, false);
+            AddColumn("Players", 3, width * 0.075f, true, true);
+            AddColumn("Gametype", 4, width * 0.15f, false, false);
+            AddColumn("Ping", 2, width * 0.045f, true, false);
+            AddColumn("IP", 1, width * 0.19f, false, false);
+            AddColumn("Version", 6, width * 0.14f, false, false);
+        } else {
+            // the titles still fit on the narrowest list (5:4, ui_plusscale 1.1)
+            AddColumn("Server Name", 0, width * 0.27f, false, false);
+            AddColumn("Map", 5, width * 0.13f, false, false);
+            AddColumn("Players", 3, width * 0.15f, true, true);
+            AddColumn("Gametype", 4, width * 0.2f, false, false);
+            AddColumn("Ping", 2, width * 0.09f, true, false);
+            AddColumn("IP", 1, width * 0.16f, false, false);
+        }
     } else {
         AddColumn("Server Name", 0, width * 0.31f, false, false);
         AddColumn("Map", 5, width * 0.135f, false, false);

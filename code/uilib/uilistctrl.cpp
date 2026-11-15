@@ -579,3 +579,30 @@ void UIListCtrl::setHeaderFont(const char *name)
         m_headerfont = NULL;
     }
 }
+
+// Added in OpenMOHAA Plus: "ui_printwidgets" also prints the header and row heights and, per
+//  column, its left edge and width and the width of its title, in pixels
+void UIListCtrl::PrintGeometry(int depth)
+{
+    UIFont *pFont = m_headerfont ? m_headerfont : m_font;
+    int     atleft = 0;
+
+    UIWidget::PrintGeometry(depth);
+
+    uii.Sys_Printf(
+        "list \"%s\" header %d row %d\n", m_name.c_str(), getHeaderHeight(), m_font->getHeight(getVirtualScale())
+    );
+    for (int i = 1; i <= m_columnlist.NumObjects(); i++) {
+        const columndef_t& column = m_columnlist.ObjectAt(i);
+        const char        *title  = Sys_LV_CL_ConvertString(column.title.c_str());
+
+        uii.Sys_Printf(
+            "column \"%s\" x %d width %d text %.0f\n",
+            column.title.c_str(),
+            atleft,
+            column.width,
+            (pFont->getWidth(title, -1) + s_columnpadding.width) * getVirtualScale()[0]
+        );
+        atleft += column.width;
+    }
+}

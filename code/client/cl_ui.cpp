@@ -2921,6 +2921,27 @@ void UI_ListMenus_f()
 
 /*
 ====================
+UI_PrintWidgets_f
+
+Added in OpenMOHAA Plus: prints the screen geometry of the current menu (see UIWidget::PrintGeometry)
+====================
+*/
+static void UI_PrintWidgets_f()
+{
+    Menu *currentMenu = menuManager.CurrentMenu();
+
+    if (!currentMenu) {
+        Com_Printf("No menu is up\n");
+        return;
+    }
+
+    Com_Printf("menu \"%s\" screen %d %d\n", currentMenu->m_name.c_str(), uid.vidWidth, uid.vidHeight);
+    currentMenu->GetContainerWidget()->PrintGeometry(0);
+    Com_Printf("end of widgets\n");
+}
+
+/*
+====================
 UI_BindActive
 ====================
 */
@@ -5139,6 +5160,7 @@ void CL_ShutdownUI(void)
     Cmd_RemoveCommand("showmenu");
     Cmd_RemoveCommand("widgetcommand");
     Cmd_RemoveCommand("listmenus");
+    Cmd_RemoveCommand("ui_printwidgets"); // Added in OpenMOHAA Plus
     Cmd_RemoveCommand("togglemenu");
     Cmd_RemoveCommand("loadmenu");
     Cmd_RemoveCommand("maplist");
@@ -5351,6 +5373,7 @@ void CL_InitializeUI(void)
     Cmd_AddCommand("widgetcommand", UI_WidgetCommand_f);
     Cmd_AddCommand("globalwidgetcommand", UI_GlobalWidgetCommand_f);
     Cmd_AddCommand("listmenus", UI_ListMenus_f);
+    Cmd_AddCommand("ui_printwidgets", UI_PrintWidgets_f); // Added in OpenMOHAA Plus
     Cmd_AddCommand("togglemenu", UI_ToggleMenu_f);
     Cmd_AddCommand("loadmenu", UI_LoadMenu_f);
     Cmd_AddCommand("maplist", UI_MapList_f);

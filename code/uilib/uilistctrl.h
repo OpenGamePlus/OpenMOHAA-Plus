@@ -111,4 +111,5 @@ public:
     void            SortByLastSortColumn(void);
     void            setCompareFunction(int (*func)(const UIListCtrlItem *i1, const UIListCtrlItem *i2, int columnname));
     void            setHeaderFont(const char *name);
+    void            PrintGeometry(int depth) override; // Added in OpenMOHAA Plus: ui_printwidgets
 };

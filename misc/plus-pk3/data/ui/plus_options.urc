@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // OpenMOHAA Plus options. Same frame, background and bar as main.urc (see there for the
-// units). Widgets are the stock pulldown, slider and
-// checkbox bound to cvars; the renderer change takes effect with Apply (vid_restart).
+// units). Widgets are the stock pulldown, slider and checkbox bound to cvars; the renderer change
+// takes effect with Apply (vid_restart). Everything is placed with "anchor" (from the screen's
+// top-left corner): a widget without it is placed in the 2048-unit frame, off the screen. Rows
+// in the panel are 32 units apart: label at 232, control and value label from 356 to 504, inside
+// the panel on the narrowest screen (5:4 at ui_plusscale 1.1, right edge at 525).
 
 menu "plus_options" 2048 480 NONE 0
 bgcolor 0 0 0 0
@@ -55,17 +58,33 @@ shader "textures/menu_plus/bar"
 }
 
 resource
+Label
+{
+name "title"
+rect 0 0 170 32
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 30 30 -1 -1
+textalign left
+title "Plus"
+font facfont-20
+fgcolor 0.94 0.75 0.38 1
+}
+
+resource
 Button
 {
 name "apply"
-rect 0 100 200 28
+rect 0 0 170 26
 title "Apply renderer"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 30 90 -1 -1
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
 stuffcommand "vid_restart"
@@ -75,14 +94,15 @@ resource
 Button
 {
 name "back"
-rect 0 0 200 28
+rect 0 0 170 26
 title "Back"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 0 -1 -1 40
+anchor 30 -1 -1 40
+textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/back.wav"
 stuffcommand "popmenu 0"
@@ -104,11 +124,12 @@ resource
 Label
 {
 name "Renderer label"
-rect 240 116 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 112 -1 -1
+textalign left
 title "Renderer"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -118,11 +139,12 @@ resource
 Label
 {
 name "cl_renderer value"
-rect 440 116 95 24
+rect 0 0 64 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 356 112 -1 -1
+textalign left
 linkcvar "cl_renderer"
 font facfont-20
 fgcolor 0.94 0.75 0.38 1
@@ -133,11 +155,12 @@ PulldownMenuContainer
 {
 title "Choose..."
 name "cl_renderer list"
-rect 540 116 100 24
+rect 0 0 80 24
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 424 112 -1 -1
 menushader "MENU" "textures/menu/pulldownarrow"
 selmenushader "MENU" "textures/menu/pulldownarrow_sel"
 addpopup "MENU" "OpenGL" command "set cl_renderer opengl1"
@@ -148,11 +171,12 @@ resource
 Label
 {
 name "HUD scale label"
-rect 240 156 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 144 -1 -1
+textalign left
 title "HUD scale"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -162,11 +186,12 @@ resource
 Slider
 {
 name "ui_hudscale slider"
-rect 440 160 170 16
+rect 0 0 148 16
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 356 148 -1 -1
 shader "textures/menu/slider"
 linkcvar "ui_hudscale"
 slidertype float
@@ -177,13 +202,14 @@ stepsize 0.1
 resource
 Label
 {
-name "Menus keep 4:3 (0 stretches) label"
-rect 240 196 190 24
+name "Menus keep 4:3 label"
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
-title "Menus keep 4:3 (0 stretches)"
+anchor 232 176 -1 -1
+textalign left
+title "Menus keep 4:3"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 }
@@ -192,11 +218,12 @@ resource
 CheckBox
 {
 name "ui_menuaspect checkbox"
-rect 440 196 32 32
+rect 0 0 24 24
 fgcolor 1 1 1 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 356 176 -1 -1
 linkcvar "ui_menuaspect"
 checked_shader "textures/menu/checkbox_checked"
 unchecked_shader "textures/menu/checkbox_unchecked"
@@ -206,11 +233,12 @@ resource
 Label
 {
 name "Crosshair size label"
-rect 240 236 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 208 -1 -1
+textalign left
 title "Crosshair size"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -220,11 +248,12 @@ resource
 Slider
 {
 name "cg_crosshair_size slider"
-rect 440 240 170 16
+rect 0 0 148 16
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 356 212 -1 -1
 shader "textures/menu/slider"
 linkcvar "cg_crosshair_size"
 slidertype float
@@ -236,11 +265,12 @@ resource
 Label
 {
 name "Crosshair scale label"
-rect 240 276 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 240 -1 -1
+textalign left
 title "Crosshair scale"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -250,11 +280,12 @@ resource
 Slider
 {
 name "cg_crosshair_scale slider"
-rect 440 280 170 16
+rect 0 0 148 16
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 356 244 -1 -1
 shader "textures/menu/slider"
 linkcvar "cg_crosshair_scale"
 slidertype float
@@ -266,11 +297,12 @@ resource
 Label
 {
 name "Language label"
-rect 240 316 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 272 -1 -1
+textalign left
 title "Language"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -280,11 +312,12 @@ resource
 Label
 {
 name "cl_language value"
-rect 440 316 95 24
+rect 0 0 64 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 356 272 -1 -1
+textalign left
 linkcvar "cl_language"
 font facfont-20
 fgcolor 0.94 0.75 0.38 1
@@ -295,11 +328,12 @@ PulldownMenuContainer
 {
 title "Choose..."
 name "cl_language list"
-rect 540 316 100 24
+rect 0 0 80 24
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 424 272 -1 -1
 menushader "MENU" "textures/menu/pulldownarrow"
 selmenushader "MENU" "textures/menu/pulldownarrow_sel"
 addpopup "MENU" "Game default" command "reset cl_language"
@@ -310,11 +344,12 @@ resource
 Label
 {
 name "Plus menu size label"
-rect 240 356 190 24
+rect 0 0 120 24
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
+anchor 232 304 -1 -1
+textalign left
 title "Plus menu size"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -324,27 +359,46 @@ resource
 Slider
 {
 name "ui_plusscale slider"
-rect 440 360 170 16
+rect 0 0 148 16
 fgcolor 1 1 1 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
+anchor 356 308 -1 -1
 shader "textures/menu/slider"
 linkcvar "ui_plusscale"
 slidertype float
 setrange 0.85 1.1
 stepsize 0.05
 }
+
+// two lines: one would not fit the narrowest panel
 resource
 Label
 {
 name "language note"
-rect 240 400 380 40
+rect 0 0 272 20
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-align left
-title "Language: restart the game after a change; needs lang/<code> files."
+anchor 232 344 -1 -1
+textalign left
+title "Language: needs lang/<code> files;"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+}
+
+resource
+Label
+{
+name "language note 2"
+rect 0 0 272 20
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+anchor 232 364 -1 -1
+textalign left
+title "restart the game after a change."
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
 }
