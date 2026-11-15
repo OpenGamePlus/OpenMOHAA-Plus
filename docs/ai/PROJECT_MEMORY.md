@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus menu layout fixed, geometry tests
+- Seen on the maintainer's 5:4 Windows screenshots: `align left` puts a widget at x=0 whatever its `rect`, and a widget with neither `align` nor `anchor` lands in the 2048-unit frame, off the screen (options labels piled in the bar, controls invisible). Every Plus widget now uses `anchor`; bar texts left-aligned, in-game entries grouped above Quit, "New game" kept only as an empty zero-size widget (the engine sends it events that would leak otherwise).
+- Browser: a widget with `WF_NOPARENTADJUST` gave its children the screen origin, so the list's scroll bar sat at `width - 16` from the screen's left edge; fixed for anchored widgets only. The anchored list takes its header in the row font and leaves room for the scroll bar; the original browser keeps its columns.
+- New `ui_printwidgets` console command (widget, text and list geometry in pixels); `PlusMenu.test_{main,options,browser}_layout` assert on it at 1280x1024 (ui_plusscale 0.85 and 1.1), 1920x1080 and 2560x1080.
+
 ## 2026-11-14 — Plus menu (adaptive main menu, browser, options)
 - Engine: `fs_pluspath` data folder loads `plus/*.pk3` above base and below `fs_game` (Allied Assault only), pure-exempt only for UI/fonts/menu art and never reported to servers (ADR 0007); `.urc` gained opt-in `anchor` and `cover`, the server list `togglefavorite`/`selectitem`. `misc/plus-pk3/build_pk3.py` builds `zzz-plus.pk3`; CI ships it in zips, AppImages and as an asset.
 - Mod paks must beat the fork folder on pure servers (fixed after the first cut); the background uses `cover` so 32:9 needs no dark sides; pulldowns cannot show their value, so labels do. Art is AI-generated (CC BY-SA 4.0). The HD remaster of the original menus (`feat/menu-hd`) was discarded for this menu and never merged.

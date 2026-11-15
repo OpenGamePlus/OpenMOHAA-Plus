@@ -951,9 +951,10 @@ class PlusMenu(GameTestCase):
 
     # virtual units are 1/480 of the screen height (ui_plusscale 1)
     BAR_FADE_END = 300                     # the bar gradient is transparent from here
-    # x0 y0 x1 y1 of the text area of the entries shown in a game only
-    IN_GAME_ENTRIES = {"backtogame": (60, 100, 140, 128), "savegame": (60, 344, 140, 372),
-                       "disconnect": (60, 372, 140, 400)}
+    # the main menu entries shown in a game only
+    IN_GAME_ENTRIES = ("backtogame", "savegame", "disconnect")
+    # screens of the maintainer's report (5:4) and two wide ones; the 5:4 one also at both scale ends
+    LAYOUT_SCREENS = ((1280, 1024, ("0.85", "1.1")), (1920, 1080, ("1",)), (2560, 1080, ("1",)))
 
     # a test menu with a green panel anchored like the Plus content panel
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
@@ -1021,6 +1022,52 @@ end.
         self.assertEqual(c.quit(), 0)
         return picture
 
+    WIDGET_RE = re.compile(r'widget (\d+) "([^"]*)" (\S+) shown (\d) rect (\S+) (\S+) (\S+) (\S+)'
+                           r'(?: text (\S+) (\S+) (\S+) (\S+) "(.*)")?$')
+
+    def widgets(self, c, *commands):
+        """Runs the commands, then ui_printwidgets: {"menu", "screen", "widgets": {name: {...}}, "list",
+        "columns"}; rects are (x0, y0, x1, y1) in pixels, "text" the rect the text is drawn in."""
+        for command in commands:
+            c.send(command)
+            time.sleep(2)
+        mark = len(c.log())
+        c.send("ui_printwidgets")
+        out = c.wait_for(r"end of widgets", start=mark, timeout=20)[mark:]
+        result = {"widgets": {}, "columns": []}
+        for line in out.splitlines():
+            m = self.WIDGET_RE.match(line)
+            if line.startswith("menu "):
+                parts = line.split()
+                result["menu"], result["screen"] = parts[1].strip('"'), (int(parts[3]), int(parts[4]))
+            elif m:
+                x, y, w, h = (float(v) for v in m.group(5, 6, 7, 8))
+                item = {"class": m.group(3), "shown": m.group(4) == "1", "rect": (x, y, x + w, y + h),
+                        "depth": int(m.group(1))}
+                if m.group(9):
+                    x, y, w, h = (float(v) for v in m.group(9, 10, 11, 12))
+                    item["text"], item["title"] = (x, y, x + w, y + h), m.group(13)
+                name = m.group(2)
+                while name in result["widgets"]:     # unnamed children (scroll bars) share names
+                    name += "'"
+                result["widgets"][name] = item
+            elif line.startswith("list "):
+                parts = line.split()
+                result["list"] = {"header": int(parts[3]), "row": int(parts[5])}
+            elif line.startswith("column "):
+                m2 = re.match(r'column "([^"]*)" x (\S+) width (\S+) text (\S+)', line)
+                result["columns"].append({"title": m2.group(1), "x": float(m2.group(2)),
+                                          "width": float(m2.group(3)), "text": float(m2.group(4))})
+        return result
+
+    @staticmethod
+    def overlap(a, b):
+        return a[0] < b[2] - 1 and b[0] < a[2] - 1 and a[1] < b[3] - 1 and b[1] < a[3] - 1
+
+    @staticmethod
+    def inside(a, b, slack=1):
+        return a[0] >= b[0] - slack and a[1] >= b[1] - slack and a[2] <= b[2] + slack and a[3] <= b[3] + slack
+
     @staticmethod
     def is_blue(p):
         return p[2] > 200 and p[0] < 60 and p[1] < 60
@@ -1063,25 +1110,126 @@ end.
         self.assertAlmostEqual(a, b, delta=0.02 * a)
         self.assertAlmostEqual(a, self.BAR_FADE_END / 480, delta=0.02 * a)
 
-    def test_back_to_game_only_in_game(self):
-        # one game: in a level Back to game, Save game and Disconnect show; after "disconnect" (no game)
-        # they are hidden. The start-up screen would do too, but the console covers the top half of it.
-        w, h = 1280, 720
-        home, c = self.start(w, h, "+devmap", "training")
+    def bar_entries(self, screen):
+        """The visible buttons and the title of a screen's bar, top to bottom."""
+        entries = [(n, w) for n, w in screen["widgets"].items() if w["depth"] == 1 and w["shown"]
+                   and "text" in w and (w["class"] == "UIButton" or n == "title")]
+        return sorted(entries, key=lambda e: e[1]["rect"][1])
+
+    def assert_bar(self, screen, msg):
+        # left-aligned under the title, inside the bar, no two entries overlapping
+        entries = self.bar_entries(screen)
+        h = screen["screen"][1]
+        title = screen["widgets"]["title"]["text"]
+        for i, (name, w) in enumerate(entries):
+            self.assertAlmostEqual(w["text"][0], title[0], delta=2, msg=(msg, name))
+            self.assertLess(w["text"][2], 200 * h / 480 * 1.1 + 2, (msg, name))
+            for other, w2 in entries[i + 1:]:
+                self.assertFalse(self.overlap(w["rect"], w2["rect"]), (msg, name, other))
+        return entries
+
+    def test_main_layout(self):
+        # no game: no gap where the hidden entries are, no "New game" next to Campaign; in a game, the
+        # in-game entries show next to Quit without overlapping the others; after "disconnect" they go
+        for w, h, scales in self.LAYOUT_SCREENS:
+            home, c = self.start(w, h)
+            for scale in scales:
+                screen = self.widgets(c, "set ui_plusscale " + scale, "popmenu 0", "pushmenu main")
+                msg = (w, h, scale)
+                self.assertEqual(screen["menu"], "main", msg)
+                entries = [e for e in self.assert_bar(screen, msg) if e[0] not in ("title", "quit")]
+                titles = [e[1]["title"] for e in entries]
+                self.assertNotIn("New game", titles, msg)
+                for name in self.IN_GAME_ENTRIES:
+                    self.assertFalse(screen["widgets"][name]["shown"], (msg, name))
+                row = entries[0][1]["rect"][3] - entries[0][1]["rect"][1]
+                for (n1, e1), (n2, e2) in zip(entries, entries[1:]):
+                    self.assertLessEqual(e2["rect"][1] - e1["rect"][1], 1.5 * row, (msg, n1, n2))
+            self.assertEqual(c.quit(), 0)
+
+        w, h = 1280, 1024
+        home, c = self.start(w, h, "+set", "ui_plusscale", "1.1", "+devmap", "training")
         c.wait_for(r"==== InitGame ====", timeout=120)
         time.sleep(15)
-        c.send("pushmenu main")
-        time.sleep(3)
-        _, _, in_game = self.screenshot(home, c)
+        in_game = self.widgets(c, "pushmenu main")
         c.send("disconnect")
         time.sleep(5)
-        _, _, no_game = self.screenshot(home, c)
+        no_game = self.widgets(c)
         self.assertEqual(c.quit(), 0)
-        for name, rect in self.IN_GAME_ENTRIES.items():
-            x0, y0, x1, y1 = (v * h // 480 for v in rect)
-            self.assertGreater(self.mean_brightness(in_game, x0, x1, y0, y1)
-                               - self.mean_brightness(no_game, x0, x1, y0, y1), 40 / 3, name)
-        self.assertTrue(self.is_blue(no_game[int(h * 0.6)][w - 5]), "the Plus main menu is up")
+        self.assertEqual(in_game["menu"], "main")
+        entries = self.assert_bar(in_game, "in game")
+        names = [n for n, _ in entries]
+        for name in self.IN_GAME_ENTRIES:
+            self.assertIn(name, names)
+            self.assertFalse(no_game["widgets"][name]["shown"], name)
+        # the in-game group sits right above Quit
+        self.assertEqual(names[-4:], ["backtogame", "savegame", "disconnect", "quit"])
+
+    def test_options_layout(self):
+        # each row in the panel: label on the left, control and value to its right, inside the
+        # panel; nothing overlaps; the bar keeps its entries
+        for w, h, scales in self.LAYOUT_SCREENS:
+            _, c = self.start(w, h, "+set", "cl_language", "es")
+            for scale in scales:
+                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_options")
+                c.send("popmenu 0")
+                msg = (w, h, scale)
+                self.assertEqual(screen["menu"], "plus_options", msg)
+                widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
+                panel = widgets["panel"]["rect"]
+                bar = [n for n, _ in self.assert_bar(screen, msg)]
+                self.assertEqual(bar, ["title", "apply", "back"], msg)
+                in_panel = [n for n, v in widgets.items() if n.endswith((" label", " value", " slider", " checkbox",
+                                                                          " list")) or n.startswith("language note")]
+                self.assertEqual(len(in_panel), 18, msg)
+                texts = []
+                for name in in_panel:
+                    v = widgets[name]
+                    self.assertTrue(self.inside(v["rect"], panel), (msg, name, v["rect"], panel))
+                    if "text" in v:
+                        self.assertTrue(self.inside(v["text"], panel), (msg, name, v["text"], panel))
+                        self.assertTrue(self.inside(v["text"], v["rect"]), (msg, name))
+                        texts.append(name)
+                # no text over another widget's text or control
+                for name in texts:
+                    for other in in_panel:
+                        if other != name:
+                            self.assertFalse(self.overlap(widgets[name]["text"], widgets[other]["rect"]),
+                                             (msg, name, other))
+                # rows evenly spaced, controls to the right of their label
+                labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
+                steps = {round(b[0] - a[0]) for a, b in zip(labels, labels[1:])}
+                self.assertLessEqual(max(steps) - min(steps), 2, (msg, steps))
+                for top, name in labels:
+                    for v in widgets.values():
+                        if v is not widgets[name] and abs(v["rect"][1] - top) < 10 and \
+                                self.inside(v["rect"], panel) and v["class"] != "UIFakkLabel":
+                            self.assertGreater(v["rect"][0], widgets[name]["text"][2], (msg, name))
+            self.assertEqual(c.quit(), 0)
+
+    def test_browser_layout(self):
+        # the scroll bar at the list's right edge, a header about as high as a row, every column
+        # title fits its column, the columns end at the scroll bar
+        for w, h, scales in self.LAYOUT_SCREENS:
+            _, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
+            for scale in scales:
+                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_browser")
+                c.send("popmenu 0")
+                msg = (w, h, scale)
+                self.assert_bar(screen, msg)
+                lst = screen["widgets"]["netgamelist"]["rect"]
+                scroll = next(v for v in screen["widgets"].values() if v["class"] == "UIVertScroll")["rect"]
+                self.assertAlmostEqual(scroll[2], lst[2], delta=3, msg=(msg, scroll, lst))
+                self.assertTrue(self.inside(scroll, lst), (msg, scroll, lst))
+                self.assertLessEqual(screen["list"]["header"], 1.6 * screen["list"]["row"], msg)
+                columns = screen["columns"]
+                self.assertGreaterEqual(len(columns), 6, msg)
+                for col in columns:
+                    self.assertLessEqual(col["text"], col["width"], (msg, col))
+                end = columns[-1]["x"] + columns[-1]["width"]
+                self.assertLessEqual(lst[0] + end, scroll[0] + 1, msg)
+                self.assertGreater(lst[0] + end, scroll[0] - 0.02 * (lst[2] - lst[0]), msg)
+            self.assertEqual(c.quit(), 0)
 
     def test_anchor_follows_screen_edges(self):
         for w, h in ((1280, 720), (2560, 1080)):

@@ -28,8 +28,9 @@ Start the game with `+set fs_pluspath ""` (or remove `plus/zzz-plus.pk3`). The P
 
 ## The screens
 
-- Main menu: Back to game, Continue, New game, Save game and Disconnect show only when they
-  apply; Load game is always there.
+- Main menu: Continue shows when the last save exists, and Back to game, Save game and
+  Disconnect (grouped above Quit) only in a game; Load game is always there. Campaign starts a
+  new game.
 - Server browser: Internet, LAN, Favourites and Recent tabs, a refresh button and a favourite
   button.
 - Plus options: renderer (press Apply to restart the video), HUD scale, menu aspect, crosshair
@@ -63,6 +64,16 @@ Two opt-in keywords for fork menus; the original files do not use them:
 | `anchor <left> <top> <right> <bottom>` | Margins from the screen edges, in virtual units (1/480 of the screen height, times `ui_plusscale`). `-1` keeps the value of the `rect`. |
 | `cover <w> <h>` | The widget covers the whole screen without distortion, centred, cropping the excess. `w` and `h` give the picture's shape. |
 
+A widget with neither `align` nor `anchor` is placed in the menu's own frame, which on the Plus
+screens is 2048 units wide and starts off the screen: give every widget an `anchor`. `align left`
+puts the widget at the screen edge whatever the `rect` says.
+
 The server list widget also takes the events `togglefavorite` (favourite on or off for the
 selected server) and `selectitem <n>`. Its `printlist` command prints a `Columns: N` line first;
-the "Version" column appears when the list is wider than 800 virtual units.
+the "Version" column appears when the list is wider than 800 virtual units. An anchored list has
+its header in the row font and its columns end at the scroll bar.
+
+The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
+whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
+server list also the header and row heights and each column's position, width and title width.
+The tests use it to check the layout.
