@@ -174,7 +174,7 @@ anchor 30 142 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "pushmenu plus_options_video"
+stuffcommand "ui_marklatched;pushmenu plus_options_video"
 }
 
 resource
@@ -192,7 +192,7 @@ anchor 30 168 -1 -1
 textalign left
 hovershader "textures/menu_plus/hover"
 clicksound "sound/menu/apply.wav"
-stuffcommand "pushmenu plus_options"
+stuffcommand "ui_marklatched;pushmenu plus_options"
 }
 
 resource

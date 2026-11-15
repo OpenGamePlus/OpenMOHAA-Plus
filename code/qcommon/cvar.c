@@ -743,42 +743,6 @@ void Cvar_SetLatched( const char *var_name, const char *value) {
 
 /*
 ============
-Cvar_HasLatched
-
-Added in OpenMOHAA Plus: whether a cvar with one of these flags has a value waiting for a restart
-============
-*/
-qboolean Cvar_HasLatched(int flags) {
-	cvar_t	*var;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if ((var->flags & flags) && var->latchedString) {
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-/*
-============
-Cvar_DiscardLatched
-
-Added in OpenMOHAA Plus: drops every value waiting for a restart; cvars keep their current value
-============
-*/
-void Cvar_DiscardLatched(void) {
-	cvar_t	*var;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if (var->latchedString) {
-			Z_Free(var->latchedString);
-			var->latchedString = NULL;
-		}
-	}
-}
-
-/*
-============
 Cvar_SetValue
 ============
 */

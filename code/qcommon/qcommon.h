@@ -648,8 +648,6 @@ cvar_t	*Cvar_Next( cvar_t *var );
 // gets the next var
 
 void Cvar_SetLatched( const char *var_name, const char *value);
-qboolean Cvar_HasLatched(int flags); // Added in OpenMOHAA Plus
-void Cvar_DiscardLatched(void);     // Added in OpenMOHAA Plus
 // don't set the cvar immediately
 
 void	Cvar_SetValue( const char *var_name, float value );

@@ -48,9 +48,11 @@ Start the game with `+set fs_pluspath ""` (or remove `plus/zzz-plus.pk3`). The P
     language change needs a restart of the game, and the Spanish choice needs the `lang/es/` files
     of [the translations](07-plus-translations.md), which the fork does not ship.
 
-  Settings that need a restart (resolution, display mode, textures, renderer, sound quality) wait
-  for Apply, from any tab; Back returns to the main menu and drops them if Apply was not pressed.
-  Other settings (volumes, brightness, sensitivity...) apply at once. Antialiasing is not offered:
+  Settings that need a restart (resolution, display mode, textures, renderer, sound quality,
+  terrain detail) take effect with Apply, from any tab; Back (or Esc) returns to the main menu and
+  drops them if Apply was not pressed. Other settings (volumes, brightness, sensitivity...) apply at
+  once. A change waiting for a restart from before the options opened (a server setting for the
+  next map, for example) is left alone. Antialiasing is not offered:
   the Vulkan renderer does not support it.
 
 ## Pure servers
@@ -101,11 +103,16 @@ command matches while that cvar is at its default; other commands are ignored, s
 matching item the pulldown shows the linked cvar's value itself. Make
 the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
 
-Two console commands for option screens: `ui_applylatched` restarts what pending changes need
-(`vid_restart` when any cvar waits for a restart, else `snd_restart` or `ter_restart`) whichever
-menu changed them, and does nothing when nothing is pending (`ui_checkrestart` only looks at the
-current menu's widgets); `ui_discardlatched` drops every value waiting for a restart, so the
-cvars keep their current values.
+Three console commands for option screens. `ui_marklatched` (run when the Plus options open)
+records which cvars already wait for a restart and the values of the sound and terrain cvars
+(their `CVAR_SOUND_LATCH`/`CVAR_TERRAIN_LATCH` flags never latch: those cvars change at once and
+only take effect after `snd_restart`/`ter_restart`). `ui_applylatched` then restarts what the
+changes since the mark need, whichever menu made them: `vid_restart` for a cvar newly waiting for
+a restart, else `snd_restart` for a changed sound cvar and `ter_restart` (in a game) for a changed
+terrain cvar, and nothing when nothing changed (`ui_checkrestart` only looks at the current menu's
+widgets). `ui_discardlatched` drops the changes since the mark that need a restart and puts the
+sound and terrain cvars back. Esc on a `plus_options*` menu does what `ui_discardlatched;popmenu 0`
+does.
 
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a

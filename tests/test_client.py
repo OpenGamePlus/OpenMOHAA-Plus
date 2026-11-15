@@ -1550,6 +1550,40 @@ end.
         self.assert_no_restart(c, "ui_applylatched")
         self.assertEqual(c.quit(), 0)
 
+    def test_sound_quality_applies_and_back_restores(self):
+        # s_khz is CVAR_SOUND_LATCH (never latched by the cvar code): Apply restarts sound when it
+        # changed since the options opened, Back puts the old value back
+        _, c = self.start(1280, 720)
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        c.send("set s_khz 22")
+        mark = len(c.log())
+        c.send("ui_applylatched")
+        c.wait_for(r"Sound Shutdown", start=mark, timeout=30)
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        c.send("set s_khz 11")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("s_khz")
+        self.assertIn('"s_khz" is:"22', c.wait_for(r'"s_khz" is:"[^"]*"', start=mark, timeout=20)[mark:])
+        self.assertEqual(c.quit(), 0)
+
+    def test_latches_from_before_the_options_are_left_alone(self):
+        # a server cvar latched before the options opened (g_gametype for the next map) neither makes
+        # Apply restart video nor is dropped by Back
+        _, c = self.start(1280, 720)
+        c.send("set g_gametype 2")
+        c.send(self.urc_command("main", "options"))
+        time.sleep(2)
+        self.assert_no_restart(c, "ui_applylatched")
+        c.send("ui_discardlatched")
+        mark = len(c.log())
+        c.send("g_gametype")
+        self.assertIn('latched: "2"', c.wait_for(r'"g_gametype" is:[^\n]*\n(latched[^\n]*\n)?', start=mark,
+                                                 timeout=20)[mark:] + c.log()[mark:])
+        self.assertEqual(c.quit(), 0)
+
     def test_plus_scale_is_clamped(self):
         _, c = self.start(1280, 720)
         for value, expected in (("3", "1.1"), ("0.1", "0.85")):

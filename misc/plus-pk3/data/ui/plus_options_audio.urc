@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // OpenMOHAA Plus options, Audio tab: only cvars the OpenAL sound code uses. Volume, music and
-// ambience (s_ambientvolume, the ambient music tracks) apply at once; quality (s_khz) applies with
-// Apply (sound restart); speakers (s_speaker_type) reopen the OpenAL output at once. Same frame,
+// ambience (s_ambientvolume, the ambient music tracks) apply at once; quality (s_khz) takes effect
+// with Apply (ui_applylatched restarts sound when it changed since the options opened) and Back puts
+// it back; speakers (s_speaker_type) reopen the OpenAL output at once. Same frame,
 // bar and panel as the other tabs (see plus_options_video.urc).
 
 menu "plus_options_audio" 2048 480 NONE 0
