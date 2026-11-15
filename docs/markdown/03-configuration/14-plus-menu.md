@@ -100,8 +100,14 @@ cvars, e.g. `set r_mode -1; set r_customwidth 1920; set r_customheight 1080`). Q
 value are ignored and numbers compare as numbers (`"1.0"` matches `1`). A `reset <cvar>` in the
 command matches while that cvar is at its default; other commands are ignored, so an item with no
 `set` never matches. A latched cvar counts with the value waiting for the restart. With no
-matching item the pulldown shows the linked cvar's value itself. Make
-the `rect` wide enough for the longest title and the arrow, or clicks on the right part are lost.
+matching item the pulldown shows the linked cvar's value itself. A pulldown with a single entry
+(every `PulldownMenuContainer` in practice) opens on a click anywhere in its `rect`; its arrow
+keeps its own size. A click leaves the list open until the next click: on an item it picks it,
+anywhere else it closes the list (press, drag and release on an item also picks it, as in the
+original game). The Plus options draw the field with `shader "textures/menu_plus/field"` (border,
+fill, divider and down arrow, made for a 160x24 `rect`, tinted by `fgcolor`) and set the transparent
+`textures/menu_plus/clear` as `menushader` and `selmenushader`. Make the `rect` wide enough for the
+longest title and the arrow cell (24 units at the right of the field).
 
 `replacemenu <name>` puts a menu in place of the one on top in one step (the option tabs use it;
 `popmenu 0;pushmenu <name>` does not work, because popping locks the menus until the next frame).

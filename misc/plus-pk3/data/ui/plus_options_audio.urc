@@ -352,8 +352,9 @@ scalecvar ui_plusscale
 anchor 356 208 -1 -1
 linkcvar "s_khz"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Low" command "set s_khz 11"
 addpopup "MENU" "Medium" command "set s_khz 22"
 addpopup "MENU" "High" command "set s_khz 44"
@@ -387,8 +388,9 @@ scalecvar ui_plusscale
 anchor 356 240 -1 -1
 linkcvar "s_speaker_type"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Two speakers" command "set s_speaker_type 0"
 addpopup "MENU" "Headphones" command "set s_speaker_type 1"
 addpopup "MENU" "Surround" command "set s_speaker_type 2"

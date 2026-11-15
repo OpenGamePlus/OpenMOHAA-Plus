@@ -256,8 +256,9 @@ scalecvar ui_plusscale
 anchor 356 112 -1 -1
 linkcvar "cl_renderer"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "OpenGL" command "set cl_renderer opengl1"
 addpopup "MENU" "Vulkan" command "set cl_renderer vulkan"
 }
@@ -416,8 +417,9 @@ scalecvar ui_plusscale
 anchor 356 272 -1 -1
 linkcvar "cl_language"
 font facfont-20
-menushader "MENU" "textures/menu/pulldownarrow"
-selmenushader "MENU" "textures/menu/pulldownarrow_sel"
+shader "textures/menu_plus/field"
+menushader "MENU" "textures/menu_plus/clear"
+selmenushader "MENU" "textures/menu_plus/clear"
 addpopup "MENU" "Game default" command "reset cl_language"
 addpopup "MENU" "Spanish" command "set cl_language es"
 }

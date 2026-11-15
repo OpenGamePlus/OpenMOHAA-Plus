@@ -54,6 +54,7 @@ CLASS_DECLARATION(UIWidget, UIPulldownMenu, NULL) {
     {&W_LeftMouseDown,              &UIPulldownMenu::MousePressed    },
     {&W_LeftMouseUp,                &UIPulldownMenu::MouseReleased   },
     {&W_LeftMouseDragged,           &UIPulldownMenu::MouseDragged    },
+    {&W_MouseMoved,                 &UIPulldownMenu::MouseMoved      }, // Added in OpenMOHAA Plus
     {&EV_Pulldown_ChildKilled,      &UIPulldownMenu::ChildKilled     },
     {&EV_Pulldown_HighlightBGColor, &UIPulldownMenu::HighlightBGColor},
     {&EV_Pulldown_HighlightFGColor, &UIPulldownMenu::HighlightFGColor},
@@ -82,6 +83,7 @@ UIPulldownMenu::UIPulldownMenu()
 
     // uninitialized in original game
     m_submenuptr = NULL;
+    m_stayOpen   = false;
 
     m_valueFont = NULL; // Added in OpenMOHAA Plus
 
@@ -149,8 +151,14 @@ float UIPulldownMenu::getDescWidth(uipull_describe *desc)
 {
     UIReggedMaterial *mat = desc->material;
     if (mat) {
-        // Changed in OpenMOHAA Plus: plus the value shown before the arrow
-        return uii.Rend_GetShaderWidth(mat->GetMaterial()) + getValueWidth(desc);
+        // Changed in OpenMOHAA Plus: plus the value shown before the arrow; a lone pulldown is as
+        //  wide as the widget (less the 2-unit left margin of the hit test), so its whole field
+        //  opens it, with or without a value
+        const float width = uii.Rend_GetShaderWidth(mat->GetMaterial()) + getValueWidth(desc);
+        if (m_desc.NumObjects() == 1 && m_vVirtualScale[0] > 0) {
+            return Q_max(width, m_frame.size.width / m_vVirtualScale[0] - 2.0f);
+        }
+        return width;
     }
 
     return m_font->getWidth(desc->title, -1) + 8.0f;
@@ -207,8 +215,26 @@ void UIPulldownMenu::CreateAligned(UIWidget *parent, Listener *listener)
     Create(parent, listener, rect);
 }
 
+// Added in OpenMOHAA Plus: false once the menu holding this pulldown is hidden (setShow on the
+//  container) with its popup still open, e.g. by Esc
+static bool PulldownShown(UIWidget *w)
+{
+    for (; w && w != &uWinMan; w = w->getParent()) {
+        if (!w->IsVisible()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void UIPulldownMenu::MousePressed(Event *ev)
 {
+    // Added in OpenMOHAA Plus: a popup left open by a hidden menu closes and frees the mouse
+    if (!PulldownShown(this)) {
+        uWinMan.setFirstResponder(NULL); // so MouseReleased only closes, picks nothing
+        MouseReleased(ev);
+        return;
+    }
     uWinMan.setFirstResponder(this);
     MouseDragged(ev);
 }
@@ -280,8 +306,32 @@ void UIPulldownMenu::MouseDragged(Event *ev)
     m_submenuptr->Connect(this, W_Destroyed, EV_Pulldown_ChildKilled);
 }
 
+// Added in OpenMOHAA Plus: while a popup stays open (see MouseReleased) this widget is still the
+//  first responder, so it gets the moves and passes them to the popup to highlight items
+void UIPulldownMenu::MouseMoved(Event *ev)
+{
+    if (m_submenu != -1) {
+        if (PulldownShown(this)) {
+            MouseDragged(ev);
+        } else {
+            uWinMan.setFirstResponder(NULL);
+            MouseReleased(ev);
+        }
+    }
+}
+
 void UIPulldownMenu::MouseReleased(Event *ev)
 {
+    // Changed in OpenMOHAA Plus: a click (press and release on the pulldown) keeps the popup open,
+    //  still first responder, until the next click picks an item or, anywhere else, closes it;
+    //  press, drag and release on an item still picks it
+    if (m_submenu != -1 && !m_stayOpen && uWinMan.getFirstResponder() == this && PulldownShown(this)
+        && getClientFrame().contains(MouseEventToClientPoint(ev))) {
+        m_stayOpen = true;
+        return;
+    }
+    m_stayOpen = false;
+
     if (uWinMan.getFirstResponder() == this) {
         uWinMan.setFirstResponder(NULL);
         UIPoint2D    point(ev->GetFloat(1), ev->GetFloat(2));
@@ -300,6 +350,7 @@ void UIPulldownMenu::MouseReleased(Event *ev)
 
 void UIPulldownMenu::ChildKilled(Event *ev)
 {
+    m_stayOpen = false; // Added in OpenMOHAA Plus
     if (m_submenu != -1) {
         m_submenu = -1;
     }
@@ -420,7 +471,7 @@ void UIPulldownMenu::Draw(void)
 
             m_valueFont->setColor(m_submenu == i ? m_highlightFGColor : m_foreground_color);
             m_valueFont->Print(
-                atx / m_vVirtualScale[0] + 4.0f,
+                atx / m_vVirtualScale[0] + 6.0f,
                 (boxh / m_vVirtualScale[1] - m_valueFont->getHeight(NULL)) * 0.5f,
                 Sys_LV_CL_ConvertString(m_valueTitle),
                 -1,
@@ -429,6 +480,9 @@ void UIPulldownMenu::Draw(void)
             atx += valuew;
             width -= valuew;
         }
+        // Added in OpenMOHAA Plus: the arrow keeps its size when the field is wider (getDescWidth)
+        const float arroww =
+            desc->material ? uii.Rend_GetShaderWidth(desc->material->GetMaterial()) * m_vVirtualScale[0] : width;
 
         // Set font color based on whether the current item is selected
         if (m_submenu == i) {
@@ -436,7 +490,7 @@ void UIPulldownMenu::Draw(void)
             m_font->setColor(m_highlightFGColor);
             if (desc->selected_material) {
                 uii.Rend_DrawPicStretched(
-                    atx, 0.0f, width, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->selected_material->GetMaterial()
+                    atx, 0.0f, arroww, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->selected_material->GetMaterial()
                 );
             } else {
                 DrawBox(atx, 0.0f, width, m_frame.size.height, m_highlightBGColor, 1.0f);
@@ -449,7 +503,7 @@ void UIPulldownMenu::Draw(void)
         if (desc->material) {
             if (m_submenu != i) {
                 uii.Rend_DrawPicStretched(
-                    atx, 0.0f, width, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->material->GetMaterial()
+                    atx, 0.0f, arroww, height, 0.0f, 0.0f, 1.0f, 1.0f, desc->material->GetMaterial()
                 );
             }
         } else {

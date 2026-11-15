@@ -63,6 +63,7 @@ protected:
     UColor                       m_highlightFGColor;
     str                          m_valueTitle; // Added in OpenMOHAA Plus: see setValue
     UIFont                      *m_valueFont;  // Added in OpenMOHAA Plus: the container's font, not owned
+    bool                         m_stayOpen;   // Added in OpenMOHAA Plus: the popup opened by a click stays open
 
 public:
     CLASS_PROTOTYPE(UIPulldownMenu);
@@ -85,6 +86,7 @@ public:
     void MousePressed(Event *ev);
     void MouseDragged(Event *ev);
     void MouseReleased(Event *ev);
+    void MouseMoved(Event *ev); // Added in OpenMOHAA Plus
     void ChildKilled(Event *ev);
     void AddUIPopupDescribe(const char *title, uipopup_describe *d);
     void setHighlightFGColor(UColor c);

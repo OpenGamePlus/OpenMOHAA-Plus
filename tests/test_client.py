@@ -1222,7 +1222,7 @@ end.
 
     def assert_options_tab(self, screen, menu, rows, msg, bar=None):
         """An option tab: the tab bar, every row inside the panel, label on the left and control to
-        its right, no text over another widget, rows evenly spaced, pulldowns clickable."""
+        its right, no text over another widget, rows evenly spaced, pulldowns clickable over the whole field."""
         self.assertEqual(screen["menu"], menu, msg)
         widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
         panel = widgets["panel"]["rect"]
@@ -1234,7 +1234,10 @@ end.
         labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
         self.assertEqual(len(labels), rows, (msg, labels))
         for p in screen["pulldowns"]:
-            self.assertLessEqual(p["width"], p["rect"][2] - p["rect"][0] + 1, (msg, p))
+            # clickable over the whole field (value and arrow), not past it
+            field = p["rect"][2] - p["rect"][0]
+            self.assertLessEqual(p["width"], field + 1, (msg, p))
+            self.assertGreaterEqual(p["width"], field * 0.95, (msg, p))
         texts = []
         for name in in_panel:
             v = widgets[name]
