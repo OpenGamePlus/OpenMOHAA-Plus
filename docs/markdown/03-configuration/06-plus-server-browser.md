@@ -28,7 +28,7 @@ even when the master servers are down or do not list them.
 | `dm_filter_pure` | `1` shows only pure servers |
 | `dm_run_fast`, `dm_run_normal` | `0` hides servers with / without sprint (`sv_sprinton`) |
 
-Favorites are never hidden by the filters. Change a filter, then press Refresh.
+Favorites are hidden by the Favourites and Recent filters (`dm_browser_show` 1 and 3): Favourites lists only them, Recent hides those you did not play lately. Only All (0) shows every server. Change a filter, then press Refresh.
 
 ## Files
 

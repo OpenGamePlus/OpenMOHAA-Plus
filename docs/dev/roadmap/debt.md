@@ -96,6 +96,7 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | Plus menu: macOS | `plus/` folder next to the app unchecked | `fs_pluspath` defaults to the binary folder; the macOS bundle path was not tried on a real Mac |
 | Plus menu: pulldowns | Cannot show the current value | The options pulldowns do not display the selected value; labels beside them show it |
 | Plus menu: entries | Hover and click of entries not tested | Tests open the screens and drive cvars/commands; no pointer events were simulated |
+| Plus menu: install | `plus/` not found from symlinks | `Sys_BinaryPath` does not resolve symlinks, so `cmake --install` and launcher symlinks need `fs_pluspath` |
 | Plus menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
 
 ## Not attempted (needs data or hardware not available)

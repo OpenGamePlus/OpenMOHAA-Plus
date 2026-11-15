@@ -198,8 +198,25 @@ stuffcommand "pushmenu plus_options"
 resource
 Button
 {
+name "warrecords"
+rect 0 288 200 28
+title "War records"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu war_records"
+}
+
+resource
+Button
+{
 name "loadgame"
-rect 0 308 200 28
+rect 0 316 200 28
 title "Load game"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -218,7 +235,7 @@ resource
 Button
 {
 name "savegame"
-rect 0 336 200 28
+rect 0 344 200 28
 title "Save game"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1
@@ -235,7 +252,7 @@ resource
 Button
 {
 name "disconnect"
-rect 0 364 200 28
+rect 0 372 200 28
 title "Disconnect"
 font facfont-20
 fgcolor 0.93 0.89 0.80 1

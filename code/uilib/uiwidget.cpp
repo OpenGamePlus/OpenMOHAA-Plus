@@ -2486,7 +2486,7 @@ void UIWidget::ApplyAnchor(void)
 
     if (left >= 0 && right >= 0) {
         m_frame.pos.x      = left * scale[0];
-        m_frame.size.width = uid.vidWidth - (left + right) * scale[0];
+        m_frame.size.width = Q_max(0.0f, uid.vidWidth - (left + right) * scale[0]); // Added in OpenMOHAA Plus: no negative size
     } else if (left >= 0) {
         m_frame.pos.x = left * scale[0];
     } else if (right >= 0) {
@@ -2495,7 +2495,7 @@ void UIWidget::ApplyAnchor(void)
 
     if (top >= 0 && bottom >= 0) {
         m_frame.pos.y       = top * scale[1];
-        m_frame.size.height = uid.vidHeight - (top + bottom) * scale[1];
+        m_frame.size.height = Q_max(0.0f, uid.vidHeight - (top + bottom) * scale[1]);
     } else if (top >= 0) {
         m_frame.pos.y = top * scale[1];
     } else if (bottom >= 0) {

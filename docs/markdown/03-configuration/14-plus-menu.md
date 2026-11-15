@@ -15,9 +15,9 @@ next to `openmohaa.exe`.
 
 | Cvar | Default | Meaning |
 |---|---|---|
-| `fs_pluspath` | the folder of the executable | Folder that holds `plus/`. Only set at start (`+set fs_pluspath <dir>`). Empty turns the Plus data off. |
+| `fs_pluspath` | the folder of the executable | Folder that holds `plus/`. Only set at start (`+set fs_pluspath <dir>`). Empty turns the Plus data off. On Linux the folder is found next to the real binary, not a symlink to it (`cmake --install`, launchers): set it there. |
 | `ui_plusscale` | `1` | Size of the Plus menu text and buttons, from `0.85` to `1.1`. Also on the Plus options screen. |
-| `dm_browser_show` | `0` | `3` lists only the servers you played recently (see [the server browser](06-plus-server-browser.md)); the Recent tab sets it for you. |
+| `dm_browser_show` | `0` | `3` lists only the servers you played recently (see [the server browser](06-plus-server-browser.md)); the Recent tab sets it for you. It is saved: leaving the Plus browser on Recent or Favourites carries over to the original browser if the pak is removed. |
 
 The paks in `plus/` load above the base game and below `fs_game`, so a mod's own menu files still
 win. `plus_browser_refresh` is used by the browser tabs; do not set it yourself.
@@ -60,7 +60,7 @@ Two opt-in keywords for fork menus; the original files do not use them:
 
 | Keyword | Effect |
 |---|---|
-| `anchor <left> <top> <right> <bottom>` | Margins from the screen edges, in virtual units (640x480 base). `-1` keeps the value of the `rect`. |
+| `anchor <left> <top> <right> <bottom>` | Margins from the screen edges, in virtual units (1/480 of the screen height, times `ui_plusscale`). `-1` keeps the value of the `rect`. |
 | `cover <w> <h>` | The widget covers the whole screen without distortion, centred, cropping the excess. `w` and `h` give the picture's shape. |
 
 The server list widget also takes the events `togglefavorite` (favourite on or off for the

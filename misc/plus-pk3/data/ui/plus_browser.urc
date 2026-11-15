@@ -190,6 +190,40 @@ stuffcommand "widgetcommand netgamelist togglefavorite"
 resource
 Button
 {
+name "createserver"
+rect 0 336 200 28
+title "Create server"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "pushmenu multiplayerstart"
+}
+
+resource
+Button
+{
+name "playersetup"
+rect 0 364 200 28
+title "Player setup"
+font facfont-20
+fgcolor 0.93 0.89 0.80 1
+bgcolor 0 0 0 0
+borderstyle "NONE"
+scalecvar ui_plusscale
+align left
+hovershader "textures/menu_plus/hover"
+clicksound "sound/menu/apply.wav"
+stuffcommand "ui_getplayermodel;pushmenu mpoptions"
+}
+
+resource
+Button
+{
 name "back"
 rect 0 0 200 28
 title "Back"

@@ -939,8 +939,8 @@ class PlusMenu(GameTestCase):
     # virtual units are 1/480 of the screen height (ui_plusscale 1)
     BAR_FADE_END = 300                     # the bar gradient is transparent from here
     # x0 y0 x1 y1 of the text area of the entries shown in a game only
-    IN_GAME_ENTRIES = {"backtogame": (60, 100, 140, 128), "savegame": (60, 336, 140, 364),
-                       "disconnect": (60, 364, 140, 392)}
+    IN_GAME_ENTRIES = {"backtogame": (60, 100, 140, 128), "savegame": (60, 344, 140, 372),
+                       "disconnect": (60, 372, 140, 400)}
 
     # a test menu with a green panel anchored like the Plus content panel
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
@@ -1096,6 +1096,23 @@ end.
             y = int(h * 0.6)
             panel = [x for x in range(w // 2, w) if rows[y][x][2] < 150]
             self.assertAlmostEqual(panel[-1] + 1, w - 20 * h / 480, delta=3, msg=(w, h))
+
+    def test_original_screens_reachable(self):
+        # the buttons that open the original screens, run as the .urc holds them
+        cmds = []
+        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
+            for urc, name in (("plus_browser", "createserver"), ("plus_browser", "playersetup"),
+                              ("main", "warrecords")):
+                text = z.read("ui/%s.urc" % urc).decode()
+                cmds.append(re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1))
+        _, c = self.start(1280, 720)
+        for cmd in cmds:
+            c.send(cmd)
+            time.sleep(1.5)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
+            self.assertNotIn(error, log)
 
     def test_browser_columns_follow_width(self):
         # a list wider than 800 virtual units also shows the game version
