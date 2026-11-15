@@ -370,6 +370,25 @@ class PlusDataFolder(GameTestCase):
         self.assertIn("zzz-mod.pk3", self._which(c, "ui/main.urc"))
         c.quit()
 
+    def test_fs_game_mod_beats_plus_pak_on_pure_server(self):
+        def mod_pak(home):
+            os.makedirs(os.path.join(home.path, "plusmod"))
+            with zipfile.ZipFile(os.path.join(home.path, "plusmod", "zzz-mod.pk3"), "w") as z:
+                z.writestr("ui/main.urc", "mod")
+        mod_pak(self.home)
+        s = self.server("+set", "developer", "1", "+set", "sv_pure", "1", "+set", "g_gametype", "1",
+                        "+set", "fs_game", "plusmod", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        mod_pak(client_home)
+        c = self.plus_client(client_home, self._plus_pak(["ui/main.urc"]),
+                             "+set", "fs_game", "plusmod", "+connect", f"127.0.0.1:{s.port}")
+        s.wait_for(r"entered the battle|Unpure", timeout=120)
+        self.assertIn("zzz-mod.pk3", self._which(c, "ui/main.urc"))
+        c.quit()
+        s.quit()
+
     def test_plus_pak_on_pure_server(self):
         s = self.server("+set", "developer", "1", "+set", "sv_pure", "1", "+set", "g_gametype", "1",
                         "+map", "dm/mohdm1")

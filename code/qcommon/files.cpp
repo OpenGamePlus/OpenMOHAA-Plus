@@ -2446,7 +2446,9 @@ char **FS_ListFilteredFiles( const char *path, const char *extension, const char
 
 				//ZOID:  If we are pure, don't search for files on paks that
 				// aren't on the pure list
-				if ( !FS_PakIsPure(search->pack) ) {
+				// Changed in OpenMOHAA Plus: the fork data folder still lists its menu and font files
+				const qboolean notPure = !FS_PakIsPure(search->pack);
+				if ( notPure && !search->pack->plusData ) {
 					continue;
 				}
 
@@ -2459,7 +2461,10 @@ char **FS_ListFilteredFiles( const char *path, const char *extension, const char
 
 					// check for directory match
 					name = buildBuffer[i].name;
-					
+					if ( notPure && !FS_PlusDataAllowed( pak, name ) ) {
+						continue;
+					}
+
 					zpathLen = FS_ReturnPath(name, zpath, &depth);
 
 					if ( pathLength > (zpathLen + 1) || Q_stricmpn( name, path, pathLength ) || ((!wantSubs || bDirSearch) && depth - pathDepth != 1) ) {
@@ -3576,22 +3581,20 @@ static void FS_ReorderPurePaks( void )
 
 	fs_reordered = qfalse;
 
-	// Added in OpenMOHAA Plus: the fork data folder keeps priority over the server's paks
-	// (only its menu and font files are readable on a pure server)
-	p_insert_index = &fs_searchpaths;
+	// Added in OpenMOHAA Plus: take the fork data packs out, they are put back below
+	searchpath_t *plusList = NULL, **plusTail = &plusList;
 	for ( p_previous = &fs_searchpaths; ( s = *p_previous ) != NULL; ) {
-		if ( s->pack && s->pack->plusData && p_previous != p_insert_index ) {
+		if ( s->pack && s->pack->plusData ) {
 			*p_previous = s->next;
-			s->next = *p_insert_index;
-			*p_insert_index = s;
-			p_insert_index = &s->next;
+			s->next = NULL;
+			*plusTail = s;
+			plusTail = &s->next;
 		} else {
-			if ( s->pack && s->pack->plusData ) {
-				p_insert_index = &s->next;
-			}
 			p_previous = &s->next;
 		}
 	}
+
+	p_insert_index = &fs_searchpaths; // we insert in order at the beginning of the list
 
 	for ( i = 0 ; i < fs_numServerPaks ; i++ ) {
 		p_previous = p_insert_index; // track the pointer-to-current-item
@@ -3609,6 +3612,18 @@ static void FS_ReorderPurePaks( void )
 			}
 			p_previous = &s->next;
 		}
+	}
+
+	// Added in OpenMOHAA Plus: the fork data packs go after the server's mod paks and before
+	// its base game paks, so a mod's menu still wins over the fork's
+	for ( p_previous = &fs_searchpaths; ( s = *p_previous ) != NULL; p_previous = &s->next ) {
+		if ( s->pack && !Q_stricmp( s->pack->pakGamename, com_basegame->string ) ) {
+			break;
+		}
+	}
+	if ( plusList ) {
+		*plusTail = *p_previous;
+		*p_previous = plusList;
 	}
 }
 
