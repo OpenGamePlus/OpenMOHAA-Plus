@@ -2930,7 +2930,7 @@ static void UI_PrintWidgets_f()
 {
     Menu *currentMenu = menuManager.CurrentMenu();
 
-    if (!currentMenu) {
+    if (!currentMenu || !currentMenu->GetContainerWidget()) {
         Com_Printf("No menu is up\n");
         return;
     }
