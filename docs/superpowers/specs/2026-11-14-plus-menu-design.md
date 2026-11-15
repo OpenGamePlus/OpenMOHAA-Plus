@@ -1,7 +1,7 @@
 # OpenMOHAA Plus menu (design)
 
 Date: 2026-11-14. Status: approach 2 chosen; builder check done; pk3 location decided (A); waiting for approval.
-Branch: `feat/plus-menu`, from `feat/menu-hd` (not merged yet).
+Branch: `feat/plus-menu`, from `main`. It first started from `feat/menu-hd`; that work was discarded on 2026-11-15 (see the HD menus design) and the branch was rebased onto `main` without it.
 
 ## Intent
 
@@ -55,9 +55,6 @@ and a place for the fork's options, such as choosing the Vulkan or GL renderer.
   `cl_main.cpp` and `cl_keys.cpp`). The new menu is therefore `ui/main.urc` in the pk3, which
   replaces the original by load order (a pk3 sorted after `Pak0.pk3`); without the pk3 the
   original loads. Its behaviour on those paths must be kept.
-- `zzz-menu-hd.pk3` (local, from `misc/menu-hd`) also replaces `ui/main.urc`. The fork's pk3
-  must sort after it so the new `main` wins (`zzz-plus...` > `zzz-menu-hd`); menu-hd keeps
-  improving the original screens the new menu still opens.
 - `uilib` already has `align left|right|centerx|top|bottom|centery` and
   `stretch horizontal|vertical` relative to the real screen (`UIWidget::Realign`,
   `code/uilib/uiwidget.cpp`), and `noparentclip`. Not checked: how children of an aligned or
@@ -121,11 +118,10 @@ Chosen by the maintainer on 2026-11-14.
   game, Continue, Save/Load and Disconnect only when they apply, with the widget names the engine
   expects; in-game, `main` opens the same way as the original.
 - **Art while the licence is unchecked:** the first background is
-  `E:\LLM\ComfyUI\output\omohplus_menu\fondo_00001_.png` (edited in place). If the Klein 9B licence
+  the maintainer's `fondo_00001_.png` (edited by hand). If the Klein 9B licence
   does not allow publishing it, the menu uses a placeholder gradient made by the builder until the
   maintainer regenerates it with Klein 4B.
-- **menu-hd:** `feat/menu-hd` merges into `main` first (this branch starts from it). menu-hd is
-  not changed: its `main` is hidden by the new one, and it still improves the original screens.
+- **menu-hd:** discarded by the maintainer on 2026-11-15 (a remaster of the original menu, replaced by this menu); not merged.
 - **Where the menu sources live:** `misc/plus-pk3/` with the tree as it goes in the pk3
   (`ui/*.urc`, `textures/menu_plus/...`), plus a short build script that adds it to the pk3 made
   by `make_fonts.py`. No CMake step: the fork already builds data pk3s with Python in CI.
@@ -152,5 +148,4 @@ Chosen by the maintainer on 2026-11-14.
 - The browser filter for the Favourites / Recent tabs (engine side) and how tabs map to it.
 - The exact list of options in Plus and how a renderer change is applied (prompt + `vid_restart`).
 - How the background is cut into tiles and anchored (centre crop at any aspect).
-- Tests (an automated check that the new `main` loads without errors and fills 16:9 and 21:9, like
-  the menu-hd tests) and the user guide page (`docs/markdown/NN-plus-*.md`).
+- Tests (an automated check that the new `main` loads without errors and fills 16:9 and 21:9, with screenshots) and the user guide page (`docs/markdown/NN-plus-*.md`).
