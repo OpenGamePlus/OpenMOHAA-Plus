@@ -993,6 +993,32 @@ addpopup "MENU" "Max" command "set cg_effectdetail \\"1.0\\";set vss_maxcount 10
 end.
 """
 
+    # sliders with "showvalue": a percentage, a plain float, a format that is refused, and none
+    SLIDER_URC = """menu "plus_slider_test" 640 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+""" + "".join(f"""resource
+Slider
+{{
+name "{name}"
+rect 0 0 200 16
+fgcolor 0.94 0.75 0.38 1
+scalecvar ui_plusscale
+anchor 100 {y} -1 -1
+font facfont-20
+linkcvar "{cvar}"
+slidertype float
+setrange {lo} {hi}
+{extra}
+}}
+""" for name, y, cvar, lo, hi, extra in (
+        ("pct", 100, "s_volume", 0, 1, 'showvalue "%.0f%%" 100'),
+        ("gamma", 140, "r_gamma", 0.5, 3, 'showvalue "%.1f"'),
+        ("bad", 180, "r_gamma", 0.5, 3, 'showvalue "%s"'),
+        ("plain", 220, "r_gamma", 0.5, 3, ""))) + "end.\n"
+
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -1028,6 +1054,7 @@ end.
             z.writestr("textures/menu_plus/bg_r.tga", right)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
             z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
+            z.writestr("ui/plus_slider_test.urc", cls.SLIDER_URC)
 
     @classmethod
     def tearDownClass(cls):
@@ -1072,7 +1099,7 @@ end.
         mark = len(c.log())
         c.send("ui_printwidgets")
         out = c.wait_for(r"end of widgets", start=mark, timeout=20)[mark:]
-        result = {"widgets": {}, "columns": [], "pulldowns": []}
+        result = {"widgets": {}, "columns": [], "pulldowns": [], "sliders": {}}
         for line in out.splitlines():
             m = self.WIDGET_RE.match(line)
             if line.startswith("menu "):
@@ -1095,6 +1122,10 @@ end.
             elif line.startswith("pulldown value "):
                 m2 = re.match(r'pulldown value "([^"]*)" width (\S+)', line)
                 result["pulldowns"].append({"value": m2.group(1), "width": float(m2.group(2)), "rect": item["rect"]})
+            elif line.startswith("slider value "):
+                m2 = re.match(r'slider value "([^"]*)" track (\S+) (\S+) text (\S+) (\S+)', line)
+                result["sliders"][name] = {"value": m2.group(1), "track": (float(m2.group(2)), float(m2.group(3))),
+                                           "text": (float(m2.group(4)), float(m2.group(5))), "rect": item["rect"]}
             elif line.startswith("items scale "):
                 result["items"] = float(line.split()[3])
             elif line.startswith("column "):
@@ -1238,6 +1269,11 @@ end.
             field = p["rect"][2] - p["rect"][0]
             self.assertLessEqual(p["width"], field + 1, (msg, p))
             self.assertGreaterEqual(p["width"], field * 0.95, (msg, p))
+        for name, sl in screen["sliders"].items():
+            # the value sits right of the track, inside the slider
+            self.assertLessEqual(sl["track"][1], sl["text"][0], (msg, name, sl))
+            self.assertGreaterEqual(sl["track"][0], sl["rect"][0] - 1, (msg, name, sl))
+            self.assertLessEqual(sl["text"][1], sl["rect"][2] + 1, (msg, name, sl))
         texts = []
         for name in in_panel:
             v = widgets[name]
@@ -1475,6 +1511,22 @@ end.
             found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
             self.assertEqual(c.quit(), 0)
             self.assertIn(f"Columns: {columns}", found, (w, h))
+
+    def test_slider_shows_its_value(self):
+        # "showvalue" prints value * multiplier with its format right of the track; a format with
+        # anything but one float conversion is refused and the slider stays as before
+        _, c = self.start(1280, 720)
+        screen = self.widgets(c, "set s_volume 0.8", "set r_gamma 1.5", "pushmenu plus_slider_test")
+        self.assertEqual(screen["menu"], "plus_slider_test")
+        sliders = screen["sliders"]
+        self.assertEqual(sorted(sliders), ["gamma", "pct"], sliders)
+        self.assertEqual(sliders["pct"]["value"], "80%")
+        self.assertEqual(sliders["gamma"]["value"], "1.5")
+        for name, sl in sliders.items():
+            self.assertLessEqual(sl["track"][1], sl["text"][0], (name, sl))
+            self.assertLessEqual(sl["text"][1], sl["rect"][2] + 1, (name, sl))
+            self.assertGreater(sl["track"][1] - sl["track"][0], (sl["rect"][2] - sl["rect"][0]) / 2, (name, sl))
+        self.assertEqual(c.quit(), 0)
 
     def test_pulldown_matches_every_set(self):
         # an item matches when every set in it matches (quotes and number formats aside); an item

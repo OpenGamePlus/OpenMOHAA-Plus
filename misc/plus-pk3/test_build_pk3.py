@@ -62,6 +62,21 @@ class BuildPk3(unittest.TestCase):
         clear = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/clear.tga"))).convert("RGBA")
         self.assertEqual({px[3] for px in clear.getdata()}, {0})
 
+    def test_checkbox(self):
+        """Checkbox textures: white border, dark see-through fill, a white tick only when on."""
+        on, off = (Image.open(io.BytesIO(self.zip.read(f"textures/menu_plus/checkbox_{n}.tga"))).convert("RGBA")
+                   for n in ("on", "off"))
+        for img in (on, off):
+            self.assertEqual(img.size, (64, 64))
+            self.assertEqual(img.getpixel((32, 1))[:3], (255, 255, 255))
+            self.assertGreater(img.getpixel((32, 1))[3], 100)
+        fill = off.getpixel((32, 32))
+        self.assertLess(max(fill[:3]), 10)
+        self.assertTrue(30 < fill[3] < 160, fill)
+        ink = lambda img: sum(1 for x in range(8, 56) for y in range(8, 56) if img.getpixel((x, y))[3] > 200)
+        self.assertEqual(ink(off), 0)
+        self.assertGreater(ink(on), 100)
+
     def test_tiles_are_power_of_two(self):
         for name in ("bg_l", "bg_r"):
             self.assertEqual(self.tile(name).size, (2048, 2048))

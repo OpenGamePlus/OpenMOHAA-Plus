@@ -10,7 +10,7 @@ ART-LICENSE.md, the menu background as two 2048x2048 textures, textures/menu_plu
 bg_r.tga: the halves of art/background.jpg (3840x1600), each stretched anamorphically, and two
 256x4 alpha gradients drawn by the menus: bar.tga (the dark left bar) and hover.tga (a highlighted
 entry), and the pulldown field, textures/menu_plus/field.tga (see pulldown_field), with clear.tga, the
-transparent pulldown arrow that only sets the clickable area. Requires Pillow (python3 -m pip install pillow).
+transparent pulldown arrow that only sets the clickable area, and checkbox_off.tga / checkbox_on.tga. Requires Pillow (python3 -m pip install pillow).
 """
 import argparse
 import io
@@ -79,6 +79,20 @@ def pulldown_field():
         yield f"textures/menu_plus/{name}.tga", out.getvalue()
 
 
+def checkbox():
+    """(name, TGA bytes) of the checkbox, off and on: the field's border and fill, a tick when on.
+    White, so the widget's fgcolor tints it; 64x64 over its 24x24 virtual units."""
+    for name, tick in (("checkbox_off", False), ("checkbox_on", True)):
+        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rectangle((0, 0, 63, 63), fill=(0, 0, 0, 110), outline=(255, 255, 255, 150), width=3)
+        if tick:
+            d.line([(14, 34), (27, 47), (50, 17)], fill=(255, 255, 255, 255), width=8, joint="curve")
+        out = io.BytesIO()
+        img.save(out, "TGA")
+        yield f"textures/menu_plus/{name}.tga", out.getvalue()
+
+
 def add_tree(z, root):
     for folder, _, files in os.walk(root):
         for f in sorted(files):
@@ -99,7 +113,7 @@ def main(argv=None):
             subprocess.run([sys.executable, os.path.join(HERE, "..", "fonts", "make_fonts.py"), "--out", fonts],
                            check=True)
             add_tree(z, fonts)
-        for name, data in [*tiles(), *gradients(), *pulldown_field()]:
+        for name, data in [*tiles(), *gradients(), *pulldown_field(), *checkbox()]:
             z.writestr(name, data)
         z.write(os.path.join(HERE, "ART-LICENSE.md"), "ART-LICENSE.md")
     print(f"wrote {args.out}")

@@ -247,13 +247,14 @@ resource
 Slider
 {
 name "s_volume slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 116 -1 -1
-shader "textures/menu/slider"
+anchor 356 114 -1 -1
+font facfont-20
+showvalue "%.0f%%" 100
 linkcvar "s_volume"
 slidertype float
 setrange 0 1
@@ -279,13 +280,14 @@ resource
 Slider
 {
 name "s_musicvolume slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 148 -1 -1
-shader "textures/menu/slider"
+anchor 356 146 -1 -1
+font facfont-20
+showvalue "%.0f%%" 100
 linkcvar "s_musicvolume"
 slidertype float
 setrange 0 1
@@ -311,13 +313,14 @@ resource
 Slider
 {
 name "s_ambientvolume slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 180 -1 -1
-shader "textures/menu/slider"
+anchor 356 178 -1 -1
+font facfont-20
+showvalue "%.0f%%" 100
 linkcvar "s_ambientvolume"
 slidertype float
 setrange 0 1

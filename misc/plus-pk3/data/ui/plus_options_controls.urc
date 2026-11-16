@@ -279,13 +279,14 @@ resource
 Slider
 {
 name "sensitivity slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 272 -1 -1
-shader "textures/menu/slider"
+anchor 356 270 -1 -1
+font facfont-20
+showvalue "%.0f"
 linkcvar "sensitivity"
 slidertype float
 setrange 1 20
@@ -312,14 +313,14 @@ CheckBox
 {
 name "m_invert_pitch checkbox"
 rect 0 0 24 24
-fgcolor 1 1 1 1
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 anchor 356 300 -1 -1
 linkcvar "m_invert_pitch"
-checked_shader "textures/menu/checkbox_checked"
-unchecked_shader "textures/menu/checkbox_unchecked"
+checked_shader "textures/menu_plus/checkbox_on"
+unchecked_shader "textures/menu_plus/checkbox_off"
 }
 
 resource
@@ -342,14 +343,14 @@ CheckBox
 {
 name "m_filter checkbox"
 rect 0 0 24 24
-fgcolor 1 1 1 1
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 anchor 356 332 -1 -1
 linkcvar "m_filter"
-checked_shader "textures/menu/checkbox_checked"
-unchecked_shader "textures/menu/checkbox_unchecked"
+checked_shader "textures/menu_plus/checkbox_on"
+unchecked_shader "textures/menu_plus/checkbox_off"
 }
 
 resource
@@ -372,14 +373,14 @@ CheckBox
 {
 name "cl_run checkbox"
 rect 0 0 24 24
-fgcolor 1 1 1 1
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 anchor 356 364 -1 -1
 linkcvar "cl_run"
-checked_shader "textures/menu/checkbox_checked"
-unchecked_shader "textures/menu/checkbox_unchecked"
+checked_shader "textures/menu_plus/checkbox_on"
+unchecked_shader "textures/menu_plus/checkbox_off"
 }
 
 end.

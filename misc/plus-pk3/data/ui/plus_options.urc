@@ -282,13 +282,14 @@ resource
 Slider
 {
 name "ui_hudscale slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 148 -1 -1
-shader "textures/menu/slider"
+anchor 356 146 -1 -1
+font facfont-20
+showvalue "%.1fx"
 linkcvar "ui_hudscale"
 slidertype float
 setrange 0.5 4
@@ -315,14 +316,14 @@ CheckBox
 {
 name "ui_menuaspect checkbox"
 rect 0 0 24 24
-fgcolor 1 1 1 1
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 anchor 356 176 -1 -1
 linkcvar "ui_menuaspect"
-checked_shader "textures/menu/checkbox_checked"
-unchecked_shader "textures/menu/checkbox_unchecked"
+checked_shader "textures/menu_plus/checkbox_on"
+unchecked_shader "textures/menu_plus/checkbox_off"
 }
 
 resource
@@ -344,13 +345,14 @@ resource
 Slider
 {
 name "cg_crosshair_size slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 212 -1 -1
-shader "textures/menu/slider"
+anchor 356 210 -1 -1
+font facfont-20
+showvalue "%.1f"
 linkcvar "cg_crosshair_size"
 slidertype float
 setrange 0 4
@@ -376,13 +378,14 @@ resource
 Slider
 {
 name "cg_crosshair_scale slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 244 -1 -1
-shader "textures/menu/slider"
+anchor 356 242 -1 -1
+font facfont-20
+showvalue "%.1f"
 linkcvar "cg_crosshair_scale"
 slidertype float
 setrange 0.1 4
@@ -443,13 +446,14 @@ resource
 Slider
 {
 name "ui_plusscale slider"
-rect 0 0 148 16
-fgcolor 1 1 1 1
+rect 0 0 160 20
+fgcolor 0.94 0.75 0.38 1
 bgcolor 0.5 0.5 0.5 0
 borderstyle "NONE"
 scalecvar ui_plusscale
-anchor 356 308 -1 -1
-shader "textures/menu/slider"
+anchor 356 306 -1 -1
+font facfont-20
+showvalue "%.0f%%" 100
 linkcvar "ui_plusscale"
 slidertype float
 setrange 0.85 1.1
