@@ -11,7 +11,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | Part | Location |
 |---|---|
 | Widgets (labels, lists, pulldowns, bind list), layout, menu stack | `code/uilib` (`uiwidget.cpp`, `uimenu.cpp`, `uipulldownmenu*.cpp`, `uibindlist.cpp`) |
-| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`), Esc hook (`UI_MenuEscape`), `ui_plusscale` | `code/client/cl_ui.cpp` |
+| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
 | Server list widget (columns, favourites) | `code/client/cl_uiserverlist.cpp` |
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
@@ -20,13 +20,14 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 
 ## Rules
 
-- Fork behaviour is opt-in: `anchor` sets `WF_ANCHORED`, `cover` sets `WF_COVER`, `scalecvar`
-  sets `m_scaleCvar`, `linkcvar` turns on the pulldown value. Branch on those, never on menu names; the one exception
+- Fork behaviour is opt-in: `anchor` sets `WF_ANCHORED` (also sizes a checkbox's box), `cover`
+  sets `WF_COVER`, `scalecvar` sets `m_scaleCvar`, `linkcvar` turns on the pulldown value,
+  `showvalue` the flat slider. The build label is the one exception that shows in every menu. Branch on those, never on menu names; the one exception
   is the Esc hook on `plus_options*` menus.
 - Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
   the user page, "Writing menus".
 - Textures in the pak are powers of two. Widget art meant to follow the widget's colour is
-  generated white, so `fgcolor` tints it (`field.tga`); the bar and hover gradients carry their
+  generated white, so `fgcolor` tints it (`field.tga`, `checkbox_on/off.tga`); the bar and hover gradients carry their
   own colour.
 - New user-visible behaviour is documented on the user page in the same commit.
 

@@ -1122,6 +1122,9 @@ end.
             elif line.startswith("pulldown value "):
                 m2 = re.match(r'pulldown value "([^"]*)" width (\S+)', line)
                 result["pulldowns"].append({"value": m2.group(1), "width": float(m2.group(2)), "rect": item["rect"]})
+            elif line.startswith("build label "):
+                m2 = re.match(r'build label "([^"]*)" rect (\S+) (\S+) (\S+) (\S+)', line)
+                result["label"] = {"text": m2.group(1), "rect": tuple(float(v) for v in m2.group(2, 3, 4, 5))}
             elif line.startswith("slider value "):
                 m2 = re.match(r'slider value "([^"]*)" track (\S+) (\S+) text (\S+) (\S+)', line)
                 result["sliders"][name] = {"value": m2.group(1), "track": (float(m2.group(2)), float(m2.group(3))),
@@ -1511,6 +1514,25 @@ end.
             found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
             self.assertEqual(c.quit(), 0)
             self.assertIn(f"Columns: {columns}", found, (w, h))
+
+    def test_build_label_in_every_menu(self):
+        # "OpenMOHAA-Plus <version> (<hash>)" bottom right in any menu, the original ones too, over
+        # no widget's text
+        _, c = self.start(1600, 900)
+        for commands, menu in (((), "main"), (("pushmenu plus_options_video",), "plus_options_video"),
+                               (("popmenu 0", "pushmenu options_main"), "options_main")):
+            screen = self.widgets(c, *commands)
+            command = commands
+            self.assertEqual(screen.get("menu"), menu)
+            label = screen.get("label")
+            self.assertIsNotNone(label, menu)
+            self.assertRegex(label["text"], r"^OpenMOHAA-Plus \d+\.\d+\.\d+-plus\.\d+\S*( \([0-9a-f]{7,}\))?$")
+            x0, y0, x1, y1 = label["rect"]
+            self.assertTrue(1600 * 0.6 < x0 < x1 <= 1600 and 900 * 0.9 < y0 < y1 <= 900, label)
+            for name, w in screen["widgets"].items():
+                if w["shown"] and "text" in w and w["title"].strip():
+                    self.assertFalse(self.overlap(w["text"], label["rect"]), (command, name, w, label))
+        self.assertEqual(c.quit(), 0)
 
     def test_slider_shows_its_value(self):
         # "showvalue" prints value * multiplier with its format right of the track; a format with

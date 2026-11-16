@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus checkbox, slider and build label
+- Maintainer picked from mockups: tick checkbox (generated textures, no code but a box sized to the rect for anchored ones; the original draws 14 units whatever the rect), sliders with their value (`showvalue`, flat style drawn in code; textures alone could not drop the arrows) and a build label in every menu, original and in-game ones too.
+- The embedded git hash only changed on a manual reconfigure (the build said `4db67c7a` three days and many commits later); `cmake/version.cmake` now lists HEAD, the branch ref and packed-refs as configure dependencies. A `git archive` build has no hash and the label shows the version only.
+- The `showvalue` format comes from a menu file, so it is checked (one float conversion) before it reaches `snprintf`.
+
 ## 2026-11-15 — Docs audit
 - Structure, ADRs and memory were sound; the drift was in what recent work never wrote down. New `docs/dev/architecture/ui-menus.md` gathers the UI code map, the opt-in rule and the pitfalls that were only in memory stages.
 - Also added: doc-sync rows (menus, pk3 art, banner), where specs and plans live, and the MSVC strictness note in `compiling.md`. A fresh review caught three overstatements (`cover` flag, white textures, ART-LICENSE scope), fixed before merge.

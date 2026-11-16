@@ -58,7 +58,7 @@ compatibilidad con los assets, scripts y servidores originales
   (también dentro de Wine), y un AppImage para Linux y la Steam Deck
 - audio HRTF para audífonos (`s_hrtf 1`)
 - un [renderer Vulkan](docs/markdown/03-configuration/12-plus-vulkan.md) experimental (`cl_renderer vulkan`, en los builds de Linux y Windows)
-- el [menú Plus](docs/markdown/03-configuration/14-plus-menu.md): menú principal, buscador de servidores y pantalla de opciones que se adaptan a cualquier forma de pantalla (`plus/zzz-plus.pk3`, `fs_pluspath`, `ui_plusscale`)
+- el [menú Plus](docs/markdown/03-configuration/14-plus-menu.md): menú principal, buscador de servidores y pantalla de opciones que se adaptan a cualquier forma de pantalla (`plus/zzz-plus.pk3`, `fs_pluspath`, `ui_plusscale`); todos los menús muestran la compilación (versión y commit) abajo a la derecha
 
 ### Para servidores y juego competitivo
 

@@ -23,6 +23,10 @@ next to `openmohaa.exe`.
 The paks in `plus/` load above the base game and below `fs_game`, so a mod's own menu files still
 win. `plus_browser_refresh` is used by the browser tabs; do not set it yourself.
 
+Every menu, the original ones and the in-game menu too, shows the build in its bottom right corner,
+for example `OpenMOHAA-Plus 0.83.0-plus.1-unstable (867cfc7e)`: version and git commit. A build made
+without git (from a source archive) shows the version only. It is not shown during play.
+
 ## Go back to the original menu
 
 Start the game with `+set fs_pluspath ""` (or remove `plus/zzz-plus.pk3`). The Plus fonts go with it.
@@ -109,6 +113,16 @@ fill, divider and down arrow, made for a 160x24 `rect`, tinted by `fgcolor`) and
 `textures/menu_plus/clear` as `menushader` and `selmenushader`. Make the `rect` wide enough for the
 longest title and the arrow cell (24 units at the right of the field).
 
+A `Slider` with `showvalue "<format>" [<multiplier>]` has a flat look (track, filled part and thumb
+in its `fgcolor`, no arrows) and prints its value times the multiplier with the format right of the
+track, in its `font`; the track ends before the widest value. The format takes one `%f`, `%g` or
+`%e` (flags, width and precision allowed) and `%%` for a percent sign, e.g. `showvalue "%.0f%%" 100`
+for a 0 to 1 volume shown as `80%`; any other format is refused with a console warning and the
+slider keeps the original look. A `CheckBox` with an `anchor` draws its box as tall as its `rect`
+less 2 units at the top and bottom, at its left edge (the original checkboxes draw a 14-unit box).
+The Plus options use `textures/menu_plus/checkbox_on` and `checkbox_off` (white, tinted by
+`fgcolor`).
+
 `replacemenu <name>` puts a menu in place of the one on top in one step (the option tabs use it;
 `popmenu 0;pushmenu <name>` does not work, because popping locks the menus until the next frame).
 
@@ -126,6 +140,7 @@ does.
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
 pulldown with `linkcvar` the value it shows and the width of what it draws (`pulldown value`); for a
-server list also the header and row heights, the scale its rows are drawn at (`items scale`) and
+slider with `showvalue` the value shown and where its track and value text run (`slider value`); the
+build label and its rectangle (`build label`); for a server list also the header and row heights, the scale its rows are drawn at (`items scale`) and
 each column's position, width and title width.
 The tests use it to check the layout.

@@ -1815,6 +1815,68 @@ qboolean UI_FullscreenMenuUp()
 
 /*
 ====================
+UI_BuildLabel
+
+Added in OpenMOHAA Plus: the build shown in a corner of every menu, so screenshots and reports
+identify it: name, version and, when the build knows it, the git commit. ASCII only, as the
+original fonts have no other glyph.
+====================
+*/
+static const char *UI_BuildLabel(void)
+{
+#ifdef PRODUCT_VERSION_REVISION_SHORT
+    return "OpenMOHAA-Plus " PRODUCT_VERSION_1 " (" PRODUCT_VERSION_REVISION_SHORT ")";
+#else
+    return "OpenMOHAA-Plus " PRODUCT_VERSION_1;
+#endif
+}
+
+/*
+====================
+UI_BuildLabelFont
+
+Added in OpenMOHAA Plus: the label's font, its scale (the 640x480 height) and its screen rect
+in pixels, bottom right with a margin
+====================
+*/
+static UIFont *UI_BuildLabelFont(vec2_t scale, UIRect2D& rect)
+{
+    static UIFont *font;
+
+    if (!font) {
+        font = new UIFont("verdana-12");
+    }
+    scale[0] = scale[1] = uid.vidHeight / 480.0f;
+
+    const float w = font->getWidth(UI_BuildLabel(), -1) * scale[0];
+    const float h = font->getHeight(scale);
+    rect          = UIRect2D(uid.vidWidth - w - 6.0f * scale[0], uid.vidHeight - h - 4.0f * scale[1], w, h);
+    return font;
+}
+
+/*
+====================
+UI_DrawBuildLabel
+
+Added in OpenMOHAA Plus: drawn over any menu on the stack (main, options, the in-game menu,
+the original ones), never during play; outlined so it reads on any background
+====================
+*/
+static void UI_DrawBuildLabel(void)
+{
+    vec2_t   scale;
+    UIRect2D rect;
+
+    if (!menuManager.CurrentMenu()) {
+        return;
+    }
+    UIFont *font = UI_BuildLabelFont(scale, rect);
+    font->setColor(UColor(0.95f, 0.90f, 0.78f, 0.8f));
+    font->PrintOutlinedJustified(rect, FONT_JUSTHORZ_LEFT, FONT_JUSTVERT_CENTER, UI_BuildLabel(), UBlack, scale);
+}
+
+/*
+====================
 UI_Update
 
 Updates the UI.
@@ -2396,6 +2458,7 @@ void UI_Update(void)
     }
 
     uWinMan.UpdateViews();
+    UI_DrawBuildLabel(); // Added in OpenMOHAA Plus
 }
 
 /*
@@ -2955,6 +3018,20 @@ static void UI_PrintWidgets_f()
 
     Com_Printf("menu \"%s\" screen %d %d\n", currentMenu->m_name.c_str(), uid.vidWidth, uid.vidHeight);
     currentMenu->GetContainerWidget()->PrintGeometry(0);
+    // Added in OpenMOHAA Plus: the build label (UI_DrawBuildLabel)
+    {
+        vec2_t   scale;
+        UIRect2D rect;
+        UI_BuildLabelFont(scale, rect);
+        Com_Printf(
+            "build label \"%s\" rect %.0f %.0f %.0f %.0f\n",
+            UI_BuildLabel(),
+            rect.pos.x,
+            rect.pos.y,
+            rect.pos.x + rect.size.width,
+            rect.pos.y + rect.size.height
+        );
+    }
     Com_Printf("end of widgets\n");
 }
 
