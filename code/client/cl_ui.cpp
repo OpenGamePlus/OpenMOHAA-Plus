@@ -1825,10 +1825,12 @@ original fonts have no other glyph.
 static const char *UI_BuildLabel(void)
 {
 #ifdef PRODUCT_VERSION_REVISION_SHORT
-    return "OpenMOHAA-Plus " PRODUCT_VERSION_1 " (" PRODUCT_VERSION_REVISION_SHORT ")";
-#else
-    return "OpenMOHAA-Plus " PRODUCT_VERSION_1;
+    // the generated header defines the hash empty when the build had no git
+    if (PRODUCT_VERSION_REVISION_SHORT[0]) {
+        return "OpenMOHAA-Plus " PRODUCT_VERSION_1 " (" PRODUCT_VERSION_REVISION_SHORT ")";
+    }
 #endif
+    return "OpenMOHAA-Plus " PRODUCT_VERSION_1;
 }
 
 /*
