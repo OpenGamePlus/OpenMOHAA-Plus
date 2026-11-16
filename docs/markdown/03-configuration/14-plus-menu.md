@@ -72,8 +72,10 @@ python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3
 python3 -m unittest discover -s misc/plus-pk3 -v
 ```
 
-The script packs the fonts, the menu files in `misc/plus-pk3/data/` and the background
-(`misc/plus-pk3/art/`) into `zzz-plus.pk3`. The art is AI-generated and under CC BY-SA 4.0
+The script packs the fonts, the menu files in `misc/plus-pk3/data/` and the backgrounds
+(`misc/plus-pk3/art/`: `background.jpg` for the main menu and server browser,
+`background_options.jpg` for the options, each 3840x1600, packed as the JPEG textures
+`textures/menu_plus/bg_l`/`bg_r` and `opt_l`/`opt_r`) into `zzz-plus.pk3`. The art is AI-generated and under CC BY-SA 4.0
 (`misc/plus-pk3/ART-LICENSE.md`).
 
 ## Writing menus (`.urc`)

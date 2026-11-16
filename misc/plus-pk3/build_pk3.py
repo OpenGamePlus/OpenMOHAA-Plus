@@ -6,8 +6,9 @@
   python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 [--skip-fonts]
 
 The pk3 holds misc/plus-pk3/data/**, the fonts from misc/fonts/make_fonts.py (unless --skip-fonts),
-ART-LICENSE.md, the menu background as two 2048x2048 textures, textures/menu_plus/bg_l.tga and
-bg_r.tga: the halves of art/background.jpg (3840x1600), each stretched anamorphically, and two
+ART-LICENSE.md, each menu background as two 2048x2048 textures, the halves of a 3840x1600 picture
+stretched anamorphically, as JPEG: textures/menu_plus/bg_l.jpg and bg_r.jpg from art/background.jpg (main
+menu, server browser), opt_l.jpg and opt_r.jpg from art/background_options.jpg (options), and two
 256x4 alpha gradients drawn by the menus: bar.tga (the dark left bar) and hover.tga (a highlighted
 entry), and the pulldown field, textures/menu_plus/field.tga (see pulldown_field), with clear.tga, the
 transparent pulldown arrow that only sets the clickable area, and checkbox_off.tga / checkbox_on.tga. Requires Pillow (python3 -m pip install pillow).
@@ -27,14 +28,20 @@ LANCZOS = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
 TILE = 2048
 
 
+# texture prefix -> art file: the main menu (and browser) background, the options background
+BACKGROUNDS = {"bg": "background.jpg", "opt": "background_options.jpg"}
+
+
 def tiles():
-    """(name, TGA bytes) of the left and right half of the art, each stretched to TILE x TILE."""
-    art = Image.open(os.path.join(HERE, "art", "background.jpg")).convert("RGB")
-    half = art.width // 2
-    for name, box in (("bg_l", (0, 0, half, art.height)), ("bg_r", (half, 0, art.width, art.height))):
-        out = io.BytesIO()
-        art.crop(box).resize((TILE, TILE), LANCZOS).save(out, "TGA")
-        yield f"textures/menu_plus/{name}.tga", out.getvalue()
+    """(name, JPEG bytes) of the left and right half of each background, stretched to TILE x TILE."""
+    for prefix, art_file in BACKGROUNDS.items():
+        art = Image.open(os.path.join(HERE, "art", art_file)).convert("RGB")
+        half = art.width // 2
+        for side, box in (("l", (0, 0, half, art.height)), ("r", (half, 0, art.width, art.height))):
+            out = io.BytesIO()
+            # JPEG: a painting deflates badly as TGA (12 MB a tile); the renderer tries .jpg first
+            art.crop(box).resize((TILE, TILE), LANCZOS).save(out, "JPEG", quality=90)
+            yield f"textures/menu_plus/{prefix}_{side}.jpg", out.getvalue()
 
 
 def bar_alpha(x):

@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Menu backgrounds per screen
+- Maintainer's ComfyUI art (3840x1600, 2.4:1 like the old one): an operations room for the main menu and browser, a radio desk for the options (`opt_l`/`opt_r`).
+- The tiles moved from TGA to JPEG: as TGA the two paintings made the pak 40 MB; as JPEG it is about 5 MB, smaller than before. The client tests swap in plain TGAs, so they drop the built JPEGs (the renderer would load those first).
+- Open: more screens (campaign, load/save, war records, player setup) are not ported yet; each new background costs about 1.5 MB.
+
 ## 2026-11-15 — Plus pulldown lists match the field
 - The open list still used the original popup: `verdana-12` scaled up (blurry) on a fixed green box. A `linkcvar` pulldown's list now takes the container's font and scale, the field's width, a dark box, a gold border and padded rows.
 - The lit row is a translucent accent with a bar, not dark text on gold: the Plus `facfont-20` has a baked dark outline that smears on a light fill.

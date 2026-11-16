@@ -15,7 +15,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | Server list widget (columns, favourites) | `code/client/cl_uiserverlist.cpp` |
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
-| Pak build, generated textures (background tiles, bar and hover gradients, pulldown field, clear) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
+| Pak build, generated textures (background tiles: `bg_*` main menu and browser, `opt_*` options, JPEG; bar and hover gradients, pulldown field, clear) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
 | Tests | `PlusMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py` |
 
 ## Rules
@@ -26,7 +26,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   is the Esc hook on `plus_options*` menus.
 - Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
   the user page, "Writing menus".
-- Textures in the pak are powers of two. Widget art meant to follow the widget's colour is
+- Textures in the pak are powers of two. Paintings go in as JPEG (the renderer tries `.jpg` before `.tga`; a 2048x2048 TGA of a painting deflates to about 10 MB). Widget art meant to follow the widget's colour is
   generated white, so `fgcolor` tints it (`field.tga`, `checkbox_on/off.tga`); the bar and hover gradients carry their
   own colour.
 - New user-visible behaviour is documented on the user page in the same commit.

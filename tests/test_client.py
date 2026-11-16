@@ -1047,11 +1047,14 @@ end.
         right = _tga(4, [(0, 0, 255)] * 256)
         with zipfile.ZipFile(built) as src, \
                 zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
+            plain = {f"textures/menu_plus/{p}_{side}.tga": tile
+                     for p in ("bg", "opt") for side, tile in (("l", left), ("r", right))}
             for name in src.namelist():
-                if name not in ("textures/menu_plus/bg_l.tga", "textures/menu_plus/bg_r.tga"):
+                # the built art is JPEG, which the renderer would try before these plain TGAs
+                if name[:-4] + ".tga" not in plain:
                     z.writestr(name, src.read(name))
-            z.writestr("textures/menu_plus/bg_l.tga", left)
-            z.writestr("textures/menu_plus/bg_r.tga", right)
+            for name, tile in plain.items():
+                z.writestr(name, tile)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
             z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
             z.writestr("ui/plus_slider_test.urc", cls.SLIDER_URC)

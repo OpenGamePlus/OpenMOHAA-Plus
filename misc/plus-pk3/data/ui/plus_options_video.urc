@@ -25,7 +25,7 @@ bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 cover 1152 480
-shader "textures/menu_plus/bg_l"
+shader "textures/menu_plus/opt_l"
 }
 
 resource
@@ -38,7 +38,7 @@ bgcolor 0 0 0 0
 borderstyle "NONE"
 scalecvar ui_plusscale
 cover 1152 480
-shader "textures/menu_plus/bg_r"
+shader "textures/menu_plus/opt_r"
 }
 
 resource

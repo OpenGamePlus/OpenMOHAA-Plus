@@ -26,7 +26,6 @@ class BuildPk3(unittest.TestCase):
         cls.pk3 = os.path.join(cls.tmp.name, "zzz-plus.pk3")
         assert build_pk3.main(["--out", cls.pk3, "--skip-fonts"]) == 0
         cls.zip = zipfile.ZipFile(cls.pk3)
-        cls.art = Image.open(os.path.join(HERE, "art", "background.jpg")).convert("RGB")
 
     @classmethod
     def tearDownClass(cls):
@@ -34,11 +33,11 @@ class BuildPk3(unittest.TestCase):
         cls.tmp.cleanup()
 
     def tile(self, name):
-        return Image.open(io.BytesIO(self.zip.read(f"textures/menu_plus/{name}.tga"))).convert("RGB")
+        return Image.open(io.BytesIO(self.zip.read(f"textures/menu_plus/{name}.jpg"))).convert("RGB")
 
     def test_pk3_holds_data_tree_tiles_and_license(self):
         names = set(self.zip.namelist())
-        expected = {"textures/menu_plus/bg_l.tga", "textures/menu_plus/bg_r.tga", "ART-LICENSE.md"}
+        expected = {f"textures/menu_plus/{n}.jpg" for n in ("bg_l", "bg_r", "opt_l", "opt_r")} | {"ART-LICENSE.md"}
         data = os.path.join(HERE, "data")
         for root, _, files in os.walk(data):
             for f in files:
@@ -78,17 +77,20 @@ class BuildPk3(unittest.TestCase):
         self.assertGreater(ink(on), 100)
 
     def test_tiles_are_power_of_two(self):
-        for name in ("bg_l", "bg_r"):
+        for name in ("bg_l", "bg_r", "opt_l", "opt_r"):
             self.assertEqual(self.tile(name).size, (2048, 2048))
 
     def test_tiles_split_the_art_in_halves(self):
-        w, h = self.art.size
-        self.assertEqual((w, h), (3840, 1600))
-        for y in (100, 800, 1500):
-            ty = round(y * 2048 / h)
-            for got, want in ((self.tile("bg_l").getpixel((0, ty)), self.art.getpixel((0, y))),
-                              (self.tile("bg_r").getpixel((2047, ty)), self.art.getpixel((w - 1, y)))):
-                self.assertTrue(all(abs(a - b) < 24 for a, b in zip(got, want)), (y, got, want))
+        """Each background (main menu, options) is split in a left and right tile."""
+        for prefix, art_file in (("bg", "background.jpg"), ("opt", "background_options.jpg")):
+            art = Image.open(os.path.join(HERE, "art", art_file)).convert("RGB")
+            w, h = art.size
+            self.assertEqual((w, h), (3840, 1600))
+            for y in (100, 800, 1500):
+                ty = round(y * 2048 / h)
+                for got, want in ((self.tile(prefix + "_l").getpixel((0, ty)), art.getpixel((0, y))),
+                                  (self.tile(prefix + "_r").getpixel((2047, ty)), art.getpixel((w - 1, y)))):
+                    self.assertTrue(all(abs(a - b) < 24 for a, b in zip(got, want)), (prefix, y, got, want))
 
     def test_bar_gradient_fades_out(self):
         bar = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/bar.tga")))
