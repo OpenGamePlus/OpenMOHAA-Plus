@@ -108,7 +108,9 @@ matching item the pulldown shows the linked cvar's value itself. A pulldown with
 (every `PulldownMenuContainer` in practice) opens on a click anywhere in its `rect`; its arrow
 keeps its own size. A click leaves the list open until the next click: on an item it picks it,
 anywhere else it closes the list (press, drag and release on an item also picks it, as in the
-original game). The Plus options draw the field with `shader "textures/menu_plus/field"` (border,
+original game). The list of a pulldown with `linkcvar` matches the field: the container's `font`
+and scale, the field's width, padded rows on a dark box with a 1-unit `fgcolor` border, the
+highlighted row tinted with `fgcolor` (the original list keeps `verdana-12` on green). The Plus options draw the field with `shader "textures/menu_plus/field"` (border,
 fill, divider and down arrow, made for a 160x24 `rect`, tinted by `fgcolor`) and set the transparent
 `textures/menu_plus/clear` as `menushader` and `selmenushader`. Make the `rect` wide enough for the
 longest title and the arrow cell (24 units at the right of the field).

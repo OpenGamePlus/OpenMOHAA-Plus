@@ -21,7 +21,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 ## Rules
 
 - Fork behaviour is opt-in: `anchor` sets `WF_ANCHORED` (also sizes a checkbox's box), `cover`
-  sets `WF_COVER`, `scalecvar` sets `m_scaleCvar`, `linkcvar` turns on the pulldown value,
+  sets `WF_COVER`, `scalecvar` sets `m_scaleCvar`, `linkcvar` turns on the pulldown value and its styled list,
   `showvalue` the flat slider. The build label is the one exception that shows in every menu. Branch on those, never on menu names; the one exception
   is the Esc hook on `plus_options*` menus.
 - Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
@@ -41,6 +41,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | The game's `ui/bind.scr` gives bind-list columns in fixed units; rows are 16 units (`commandheight`) | Columns are narrowed to fit scaled lists; a list height must be whole rows |
 | Children of a `WF_NOPARENTADJUST` widget were placed from the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
 | `CVAR_SOUND_LATCH` / `CVAR_TERRAIN_LATCH` never latch in `cvar.c` | `ui_marklatched` snapshots their values; Apply and Back compare against it |
+| `UIWidget::InitFrame` sets the font again (default `verdana-12`) | A popup that sizes its rows with another font must pass it to `InitFrame` too |
 | While its list is open a pulldown is the first responder and gets every mouse event | A list left open by a hidden menu closes on the next mouse event |
 
 ## Testing

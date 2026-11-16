@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-15 — Plus pulldown lists match the field
+- The open list still used the original popup: `verdana-12` scaled up (blurry) on a fixed green box. A `linkcvar` pulldown's list now takes the container's font and scale, the field's width, a dark box, a gold border and padded rows.
+- The lit row is a translucent accent with a bar, not dark text on gold: the Plus `facfont-20` has a baked dark outline that smears on a light fill.
+- Not covered by tests: the headless client cannot open a list; checked with a temporary hook and screenshots.
+
 ## 2026-11-15 — Plus checkbox, slider and build label
 - Maintainer picked from mockups: tick checkbox (generated textures, no code but a box sized to the rect for anchored ones; the original draws 14 units whatever the rect), sliders with their value (`showvalue`, flat style drawn in code; textures alone could not drop the arrows) and a build label in every menu, original and in-game ones too.
 - The embedded git hash only changed on a manual reconfigure (the build said `4db67c7a` three days and many commits later); `cmake/version.cmake` now lists HEAD, the branch ref and packed-refs as configure dependencies. A `git archive` build has no hash and the label shows the version only.

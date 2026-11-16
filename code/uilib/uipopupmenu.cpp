@@ -137,6 +137,11 @@ float UIPopupMenu::getDescribeHeight(uipopup_describe *d)
         return 8.0f * getVirtualScale()[0];
     }
 
+    // Added in OpenMOHAA Plus: padded rows (4 units above and below the text)
+    if (m_plusFont.length()) {
+        return m_font->getHeight(getVirtualScale()) + 8.0f * getVirtualScale()[1];
+    }
+
     return m_font->getHeight(getVirtualScale());
 }
 
@@ -174,7 +179,8 @@ void UIPopupMenu::Create(
 {
     m_describe = describe;
     m_listener = listener;
-    setFont("verdana-12");
+    // Changed in OpenMOHAA Plus: a Plus pulldown's list uses the pulldown's font
+    setFont(m_plusFont.length() ? m_plusFont.c_str() : "verdana-12");
 
     if (bVirtualSize) {
         m_bVirtual         = qtrue;
@@ -200,7 +206,11 @@ void UIPopupMenu::Create(
 
     totalSize.height /= getVirtualScale()[1];
 
-    if (width != -1.0f) {
+    if (m_plusFont.length()) {
+        // Added in OpenMOHAA Plus: as wide as the pulldown (width), or wider for a long item; the
+        //  original adds 24 units below without converting the text width to units
+        totalSize.width = Q_max(width, totalSize.width / getVirtualScale()[0] + 16.0f - 24.0f);
+    } else if (width != -1.0f) {
         totalSize.width = width;
     }
 
@@ -245,7 +255,8 @@ void UIPopupMenu::Create(
         }
     }
 
-    InitFrame(NULL, place.x, place.y, totalSize.width, totalSize.height, 1);
+    // Changed in OpenMOHAA Plus: InitFrame sets the font again; keep the one used to size the list
+    InitFrame(NULL, place.x, place.y, totalSize.width, totalSize.height, 1, m_plusFont.length() ? m_plusFont.c_str() : "verdana-12");
 }
 
 void UIPopupMenu::YouAreASubmenu(UIPopupMenu *me)
@@ -257,6 +268,10 @@ void UIPopupMenu::Draw(void)
 {
     const float originX = getVirtualScale()[0] * 4.0f;
     const float originY = getVirtualScale()[1] * 4.0f;
+
+    if (m_plusFont.length()) {
+        return DrawPlus();
+    }
 
     float fFontHeight = m_font->getHeight(getVirtualScale());
     float top         = originY;
@@ -295,6 +310,40 @@ void UIPopupMenu::Draw(void)
         }
 
         top += getDescribeHeight(desc);
+    }
+}
+
+// Added in OpenMOHAA Plus: the list of a Plus pulldown: the background (dark, see
+//  UIPulldownMenu) comes from Display; a 1-unit border and the highlighted row in the accent colour
+void UIPopupMenu::DrawPlus(void)
+{
+    const float sx = getVirtualScale()[0];
+    const float sy = getVirtualScale()[1];
+    const float w  = m_frame.size.width;
+    const float h  = m_frame.size.height;
+
+    DrawBox(0.0f, 0.0f, w, sy, m_plusAccent, m_local_alpha);
+    DrawBox(0.0f, h - sy, w, sy, m_plusAccent, m_local_alpha);
+    DrawBox(0.0f, 0.0f, sx, h, m_plusAccent, m_local_alpha);
+    DrawBox(w - sx, 0.0f, sx, h, m_plusAccent, m_local_alpha);
+
+    float top = 4.0f * sy;
+    for (int i = 1; i <= m_describe->NumObjects(); i++) {
+        uipopup_describe *desc   = m_describe->ObjectAt(i);
+        const float       height = getDescribeHeight(desc);
+        if (desc->type == UIP_SEPARATOR) {
+            DrawBox(8.0f * sx, top + height * 0.5f, w - 16.0f * sx, sy, m_plusAccent, m_local_alpha * 0.5f);
+        } else {
+            const bool lit = m_selected == i || m_submenu == i;
+            // the font has a dark outline, so the lit row keeps light text on a translucent accent
+            if (lit) {
+                DrawBox(3.0f * sx, top, w - 6.0f * sx, height, m_highlightBGColor, m_local_alpha * 0.25f);
+                DrawBox(3.0f * sx, top, 3.0f * sx, height, m_highlightBGColor, m_local_alpha);
+            }
+            m_font->setColor(lit ? m_highlightFGColor : m_foreground_color);
+            m_font->Print(8.0f, top / sy + 4.0f, Sys_LV_CL_ConvertString(desc->title), -1, getVirtualScale());
+        }
+        top += height;
     }
 }
 

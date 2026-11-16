@@ -302,7 +302,23 @@ void UIPulldownMenu::MouseDragged(Event *ev)
     m_submenuptr = new UIPopupMenu();
     subRect.pos.x += m_screenframe.pos.x;
     subRect.pos.y += m_screenframe.pos.y;
-    m_submenuptr->Create(&subdesc->desc, m_listener, subRect, UIP_WHERE_DOWN, m_bVirtual, -1.0f);
+    float listWidth = -1.0f;
+    // Added in OpenMOHAA Plus: the list of a pulldown showing its value (linkcvar, see setValue)
+    //  matches the field: same font, scale and colour, as wide, on a dark box instead of green
+    if (m_valueFont && m_valueTitle.length() && subdesc == m_desc.ObjectAt(1)) {
+        UIPopupMenu *list        = m_submenuptr;
+        list->m_plusFont         = m_valueFont->getName();
+        list->m_plusAccent       = m_foreground_color;
+        list->m_scaleCvar        = m_scaleCvar;
+        list->m_foreground_color = UColor(0.95f, 0.90f, 0.78f, 1.0f);
+        list->m_background_color = UColor(0.05f, 0.05f, 0.04f, 0.94f);
+        list->m_highlightBGColor = m_foreground_color;
+        list->m_highlightFGColor = m_foreground_color;
+        // aligned with the field's left edge; Create adds 24 units to the width it is given
+        subRect.pos.x -= 2.0f * m_vVirtualScale[0];
+        listWidth = m_frame.size.width / m_vVirtualScale[0] - 24.0f;
+    }
+    m_submenuptr->Create(&subdesc->desc, m_listener, subRect, UIP_WHERE_DOWN, m_bVirtual, listWidth);
     m_submenuptr->Connect(this, W_Destroyed, EV_Pulldown_ChildKilled);
 }
 
