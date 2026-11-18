@@ -1732,6 +1732,17 @@ class LegacyMenu(GameTestCase):
         time.sleep(8)                      # the main menu is up
         return c
 
+    def top_menu(self, c, want, timeout=15):
+        """The menu on top once it is want, or the last one seen after timeout seconds: a menu
+        change waits for the next frames (MenuManager::PopMenu locks the stack until then), which
+        take long on a loaded machine."""
+        end = time.time() + timeout
+        while True:
+            menu = self.widgets(c)["menu"]
+            if menu == want or time.time() > end:
+                return menu
+            time.sleep(1)
+
     def test_legacy_main_wins(self):
         c = self.start(1280, 720)
         self.assertIn("plus/zzzz-plus-legacy.pk3", PlusDataFolder._which(self, c, "ui/main.urc"))
@@ -1766,10 +1777,10 @@ class LegacyMenu(GameTestCase):
                          | {"loadsave"})
         c = self.start(1280, 720)
         for target in targets:
-            screen = self.widgets(c, "pushmenu " + target)
-            self.assertEqual(screen["menu"], target)
+            c.send("pushmenu " + target)
+            self.assertEqual(self.top_menu(c, target), target)
             c.send("popmenu 0")
-            time.sleep(1)
+            self.assertEqual(self.top_menu(c, "main"), "main")
         log = c.log()
         self.assertEqual(c.quit(), 0)
         for error in self.UI_ERRORS:
