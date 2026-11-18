@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Builds the Legacy menu pak files from the mapping files (misc/plus-pk3/legacy/<menu>.json) and a
 Blender export (export_hotspots.py): per exported screen a generated ui/<menu>.urc, its background
-as two 2048x2048 JPEG tiles and one power-of-two JPEG per hover crop, all under
+as two 2048x2048 JPEG tiles and one power-of-two JPEG per hotspot hover: the background under the
+hotspot with the object (its mask from the export) lit, all under
 textures/menu_plus/legacy/ (read on pure servers too). The pak needs zzz-plus.pk3 (font, clear.tga).
 """
 import glob
@@ -11,7 +12,7 @@ import json
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageEnhance, ImageFilter
 
 from . import hotspots
 
@@ -32,6 +33,17 @@ def _jpeg(img):
     out = io.BytesIO()
     img.convert("RGB").save(out, "JPEG", quality=90)
     return out.getvalue()
+
+
+def lit(background, mask, gain=1.2, color=(255, 214, 150)):
+    """The background with the masked object lit: brighter by gain, tinted 10% towards color, with a
+    soft rim of that colour around it (the look the maintainer picked on 2026-11-17)."""
+    mask = mask.convert("L").resize(background.size, LANCZOS)
+    tint = Image.new("RGB", background.size, tuple(color))
+    bright = Image.blend(ImageEnhance.Brightness(background).enhance(gain), tint, 0.10)
+    out = Image.composite(bright, background, mask.filter(ImageFilter.GaussianBlur(1.5)))
+    rim = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(9)), mask).filter(ImageFilter.GaussianBlur(4))
+    return Image.composite(tint, out, rim.point(lambda v: v // 2))
 
 
 def _mappings(mapping_dir):
@@ -101,23 +113,29 @@ def files(mapping_dir, export_root):
             export = json.load(f)
         for spot in mapping["hotspots"]:
             entry = export["hotspots"].get(spot["name"])
-            if entry is None or (not spot.get("board") and "hover" not in entry):
+            if entry is None or (not spot.get("board") and "mask" not in entry):
                 raise ValueError(f"{menu}: hotspot {spot['name']} missing in {json_path}")
         yield f"ui/{menu}.urc", urc(mapping, export).encode()
         background = Image.open(os.path.join(folder, export["background"])).convert("RGB")
         half = background.width // 2
         for side, box in (("l", (0, 0, half, background.height)), ("r", (half, 0, background.width, background.height))):
             yield f"{TEXTURES}/{menu}_{side}.jpg", _jpeg(background.crop(box).resize((2048, 2048), LANCZOS))
+        k = background.width / export["picture"][0]
+        light = mapping.get("highlight", {})
         for spot in mapping["hotspots"]:
             if spot.get("board"):
                 continue
-            crop = Image.open(os.path.join(folder, export["hotspots"][spot["name"]]["hover"]))
+            entry = export["hotspots"][spot["name"]]
+            x, y, w, h = entry["rect"]
+            under = background.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+            crop = lit(under, Image.open(os.path.join(folder, entry["mask"])),
+                       light.get("gain", 1.2), light.get("color", (255, 214, 150)))
             crop = crop.resize((_pow2(crop.width), _pow2(crop.height)), LANCZOS)
             yield f"{TEXTURES}/{menu}_{hotspots.slug(spot['name'])}_h.jpg", _jpeg(crop)
 
 
 def fake_export(mapping_dir, out_root, rects=None):
-    """For tests: an export of every mapping with solid pictures. rects: {menu: {hotspot: [x, y, w, h]}};
+    """For tests: an export of every mapping with a solid (40, 60, 80) background. rects: {menu: {hotspot: [x, y, w, h]}};
     by default hotspot i gets (300 + 40 i, 100 + 30 i, 60, 40)."""
     for mapping in _mappings(mapping_dir):
         menu = mapping["menu"]
@@ -128,10 +146,12 @@ def fake_export(mapping_dir, out_root, rects=None):
         for i, spot in enumerate(mapping["hotspots"]):
             rect = (rects or {}).get(menu, {}).get(spot["name"], [300 + 40 * i, 100 + 30 * i, 60, 40])
             entry = {"rect": rect}
-            if not spot.get("board"):
-                entry["hover"] = f"hover_{hotspots.slug(spot['name'])}.png"
+            if not spot.get("board"):  # the mask: the object fills the left half of its rect
+                entry["mask"] = f"mask_{hotspots.slug(spot['name'])}.png"
                 size = (max(1, round(rect[2] * 10 / 3)), max(1, round(rect[3] * 10 / 3)))
-                Image.new("RGB", size, (200, 160, 90)).save(os.path.join(folder, entry["hover"]))
+                mask = Image.new("L", size, 0)
+                mask.paste(255, (0, 0, size[0] // 2, size[1]))
+                mask.save(os.path.join(folder, entry["mask"]))
             export["hotspots"][spot["name"]] = entry
         with open(os.path.join(folder, menu + ".json"), "w") as f:
             json.dump(export, f, indent=1)

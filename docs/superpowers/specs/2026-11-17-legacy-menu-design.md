@@ -60,8 +60,8 @@ entries), chosen by the player. How the player chooses is decided after the prot
 - Text entries for **Back to game** (`popmenu 0` four times, as the original), **Quit** (main)
   and **Back** (options, war records) in the bottom corners, in the Plus font, like the Back of
   `war_records.urc`.
-- Under the pointer an object lights up: the hotspot's `hovershader` is a crop of a second render
-  in which that object is highlighted.
+- Under the pointer an object lights up: the hotspot's `hovershader` is the background under the
+  hotspot with the object lit (brighter by 1.2, tinted warm, soft rim), from an object mask.
 - Hotspots stay on their objects at any aspect ratio and any `ui_plusscale` (checked with
   `ui_printwidgets` in tests).
 
@@ -141,10 +141,12 @@ render settings, then per hotspot object (with its children):
   (`world_to_camera_view`), keep those in front of the camera, take the bounding box, scale to the
   picture units (1152x480 for 3840x1600), round outwards, clamp to the picture. Occlusion is
   ignored (a chair in front of a desk is inside the desk's rect).
-- **Highlight crop**: render only that rect (render border, cropped) with the object highlighted
-  and save it. How "highlighted" looks is the maintainer's art call; the script's default is a
-  temporary emission boost on the object's materials (warm tint, strength set in the mapping
-  file), restored afterwards.
+- **Mask**: render only that rect (render border, cropped) with Workbench, the hotspot's objects
+  white and every other mesh black (so what stands in front stays dark); under a second. Object
+  colours, engine and colour management are restored afterwards.
+- Changed during the build (2026-11-17): the first design rendered each crop with the object's
+  emission raised. On the main room it washed the map out to white and took about 8 minutes a crop
+  (EEVEE, 512 samples). The maintainer picked the mask and a gain of 1.2 from mockups.
 - Writes, in an output folder next to the `.blend` (outside the repo), the background, the crops
   and `<screen>.json`: picture size, background file, and per hotspot the rect and the crop file.
   The maintainer approves the scene before a run; the script never saves the `.blend`.
@@ -156,12 +158,14 @@ sign shader, and the sign cvar of the screen (`ui_signshader` for main, `ui_opti
 options). The sign board is an entry with no command. The export fills in rects; a hand-written
 `rect` in the mapping overrides the exported one (for objects whose mesh is wrong for clicking).
 
-### Pak build (`misc/plus-pk3/build_pk3.py --legacy <render folder>`)
+### Pak build (`misc/plus-pk3/build_pk3.py --legacy <export folder>`)
 
 - Reads the mapping files and the exported `<screen>.json` from the render folder.
 - Background: same split as today into `textures/menu_plus/legacy/<screen>_l.jpg` / `_r.jpg`.
-- Hover crops: each resized to the nearest power of two on each side (the widget stretches it
-  back), `textures/menu_plus/legacy/<screen>_<widget>_h.jpg`.
+- Hovers: the background under each hotspot, lit where its mask is white (`pak.lit`: brightness
+  times the mapping's `highlight.gain`, 1.2, blended 10% towards `highlight.color`, 255 214 150, and
+  a soft rim of that colour), resized to the nearest power of two on each side (the widget
+  stretches it back), `textures/menu_plus/legacy/<screen>_<widget>_h.jpg`.
 - Generates `ui/<screen>.urc`: the two background labels as in `war_records.urc`; per hotspot a
   `Button` with the rect, `scalecvar ui_plusscale`, `cover 1152 480`, `shader
   textures/menu_plus/clear`, `hovershader` the crop, `clicksound sound/menu/apply.wav`,
@@ -192,7 +196,7 @@ moves, proposed through Blender MCP and approved by the maintainer before re-ren
 
 ### Docs
 
-- `docs/dev/architecture/ui-menus.md`: the legacy pak, the export and the generated `.urc`.
+- `docs/dev/architecture/ui-menus.md`: the legacy pak, the export, `legacy/pak.py` and the generated `.urc`.
 - User page `docs/markdown/03-configuration/14-plus-menu.md`: a short "Legacy menu (prototype)"
   section, and that `cover` also places widgets in a picture.
 - `docs/ai/PROJECT_MEMORY.md` stage; `docs/dev/roadmap/debt.md` row for the unsettled art licence
@@ -200,7 +204,6 @@ moves, proposed through Blender MCP and approved by the maintainer before re-ren
 
 ## Left to the builder
 
-- Exact emission tint and strength default; the maintainer tunes it per screen.
 - How the fake render folder for tests is produced.
 - Where in the task order the scene adjustments go (they only change exported rects); the export
   and build can be built and tested on the current scenes before the art is final.

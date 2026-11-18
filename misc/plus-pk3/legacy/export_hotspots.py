@@ -1,7 +1,8 @@
 # Copyright (C) 2026 the OpenMOHAA Plus contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Blender side of the Legacy menu: renders a screen's background and one highlight crop per
-hotspot from the open scene, and writes the hotspot rects in picture units.
+"""Blender side of the Legacy menu: renders a screen's background and one object mask per hotspot
+from the open scene, and writes the hotspot rects in picture units. The pak build lights the masked
+part of the background for the hover (legacy/pak.py), so hovers match the background exactly.
 
 Run inside Blender (Blender MCP or the text editor), with the screen's .blend open:
 
@@ -9,11 +10,14 @@ Run inside Blender (Blender MCP or the text editor), with the screen's .blend op
     exec(compile(open(path).read(), path, "exec"), g := {"__file__": path, "__name__": "legacy_export"})
     g["export_all"](r"<repo>/misc/plus-pk3/legacy/main.json", r"<export root>")
 
-Everything comes from one scene state, so the crops match the background. Writes
-<export root>/<menu>/background.png, hover_<slug>.png and <menu>.json:
+Export the background and the masks from one scene state. Writes <export root>/<menu>/background.png,
+mask_<slug>.png and <menu>.json:
 {"menu", "picture": [W, 480], "background": "background.png",
- "hotspots": {name: {"rect": [x, y, w, h], "hover": "hover_<slug>.png"}}} (the board has no hover).
-The .blend is never saved; materials and render settings are restored after each render.
+ "hotspots": {name: {"rect": [x, y, w, h], "mask": "mask_<slug>.png"}}} (the board has no mask).
+A mask is a Workbench render of the hotspot's rect: its objects white, every other object black, so
+what stands in front of it stays dark (under a second). The background is a full render with the
+scene's own engine (minutes). The .blend is never saved; object colours, the engine and the render
+settings are restored after each render.
 """
 import json
 import os
@@ -100,44 +104,31 @@ def _rect(spot, menu):
     return rect
 
 
-def _input(node, identifier):
-    return next((i for i in node.inputs if i.identifier == identifier), None)
-
-
-class _Highlight:
-    """Gives the objects temporary copies of their materials with the emission raised; restores them."""
-
-    def __init__(self, objects, color, strength):
-        self.objects, self.color, self.strength, self.saved = objects, color, strength, []
-
-    def __enter__(self):
-        for ob in self.objects:
-            for i, slot in enumerate(ob.material_slots):
-                if slot.material is None:
-                    continue
-                original, link = slot.material, slot.link
-                slot.link = "OBJECT"  # never touch a mesh other objects may share
-                object_material = slot.material
-                copy = original.copy()
-                slot.material = copy
-                self.saved.append((ob, i, link, object_material, copy))
-                if copy.use_nodes:
-                    for node in copy.node_tree.nodes:
-                        if node.type == "BSDF_PRINCIPLED":
-                            color, strength = _input(node, "Emission Color"), _input(node, "Emission Strength")
-                            if color is not None and strength is not None:
-                                color.default_value = (*self.color, 1.0)
-                                strength.default_value = self.strength
-        return self
-
-    def __exit__(self, *exc):
-        for ob, i, link, object_material, copy in reversed(self.saved):
-            slot = ob.material_slots[i]
-            slot.link = "OBJECT"
-            slot.material = object_material
-            slot.link = link
-            bpy.data.materials.remove(copy)
-        return False
+def _render_mask(path, rect, objects):
+    """Renders the rect with Workbench: the objects white, the other meshes black."""
+    scene = bpy.context.scene
+    r, shading, view = scene.render, scene.display.shading, scene.view_settings
+    targets = {ob.name for ob in objects}
+    colors = {ob.name: tuple(ob.color) for ob in scene.objects if ob.type == "MESH"}
+    saved = (r.engine, shading.light, shading.color_type, shading.show_shadows, shading.show_cavity,
+             shading.show_object_outline, r.film_transparent, view.view_transform, view.look)
+    try:
+        try:
+            r.engine = "BLENDER_WORKBENCH"
+        except TypeError as error:  # the message lists the engines this Blender has
+            raise RuntimeError(f"no Workbench engine: {error}") from error
+        shading.light, shading.color_type = "FLAT", "OBJECT"
+        shading.show_shadows = shading.show_cavity = shading.show_object_outline = False
+        r.film_transparent = False
+        view.view_transform, view.look = "Standard", "None"
+        for name in colors:
+            scene.objects[name].color = (1, 1, 1, 1) if name in targets else (0, 0, 0, 1)
+        _render(path, border=rect)
+    finally:
+        for name, color in colors.items():
+            scene.objects[name].color = color
+        (r.engine, shading.light, shading.color_type, shading.show_shadows, shading.show_cavity,
+         shading.show_object_outline, r.film_transparent, view.view_transform, view.look) = saved
 
 
 def export_background(mapping_path, out_root):
@@ -150,17 +141,15 @@ def export_background(mapping_path, out_root):
 
 
 def export_hotspot(mapping_path, out_root, name):
-    """Measures one hotspot and, unless it is the board, renders its highlight crop; returns its entry."""
+    """Measures one hotspot and, unless it is the board, renders its mask; returns its entry."""
     mapping, folder, json_path = _paths(mapping_path, out_root)
     spot = next((s for s in mapping["hotspots"] if s["name"] == name), None)
     if spot is None:
         raise ValueError(f"{mapping['menu']}: no hotspot {name}")
     entry = {"rect": list(_rect(spot, mapping["menu"]))}
     if not spot.get("board"):
-        entry["hover"] = f"hover_{hotspots.slug(name)}.png"
-        light = mapping.get("highlight", {})
-        with _Highlight(_objects(spot), light.get("color", [1.0, 0.85, 0.6]), light.get("strength", 2.0)):
-            _render(os.path.join(folder, entry["hover"]), border=entry["rect"])
+        entry["mask"] = f"mask_{hotspots.slug(name)}.png"
+        _render_mask(os.path.join(folder, entry["mask"]), entry["rect"], _objects(spot))
     _update_json(json_path, mapping["menu"], lambda d: d["hotspots"].__setitem__(name, entry))
     return entry
 

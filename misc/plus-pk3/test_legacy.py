@@ -202,6 +202,16 @@ class BuildLegacy(unittest.TestCase):
         self.assertNotIn("ui/options_main.urc", self.zip.namelist())
         self.assertIn("legacy: no export for options_main", self.stderr.getvalue())
 
+    def test_hover_lights_the_masked_object_only(self):
+        # fake_export: background (40, 60, 80); the mask of "a b" is white in its left half
+        crop = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/main_a_b_h.jpg"))).convert("RGB")
+        w, h = crop.size
+        lit, plain = crop.getpixel((w // 4, h // 2)), crop.getpixel((w - 4, h // 2))
+        for got, base in zip(plain, (40, 60, 80)):
+            self.assertAlmostEqual(got, base, delta=4)
+        self.assertGreater(sum(lit), sum((40, 60, 80)) * 1.15)
+        self.assertGreater(lit[0] - lit[2], (40 - 80) + 4)  # warmer than the background (+7 expected)
+
     def test_missing_hotspot_raises(self):
         mappings, export = os.path.join(self.tmp.name, "mappings"), os.path.join(self.tmp.name, "export")
         with open(os.path.join(export, "main", "main.json")) as f:

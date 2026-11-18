@@ -2,12 +2,12 @@
  "menu": "options_main",
  "sign_cvar": "ui_optionshader",
  "highlight": {
+  "gain": 1.2,
   "color": [
-   1.0,
-   0.85,
-   0.6
-  ],
-  "strength": 2.0
+   255,
+   214,
+   150
+  ]
  },
  "hotspots": [
   {
