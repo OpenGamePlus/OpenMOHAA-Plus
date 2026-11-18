@@ -1,0 +1,60 @@
+{
+ "menu": "options_main",
+ "sign_cvar": "ui_optionshader",
+ "highlight": {
+  "color": [
+   1.0,
+   0.85,
+   0.6
+  ],
+  "strength": 2.0
+ },
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board*"
+   ]
+  },
+  {
+   "name": "advanced",
+   "objects": [
+    "Unit_TopPanel*"
+   ],
+   "command": "pushmenu advancedoptions",
+   "sign": "advanced_sign"
+  },
+  {
+   "name": "audio",
+   "objects": [
+    "Unit_Middle*"
+   ],
+   "command": "pushmenu audio_options",
+   "sign": "audio_sign"
+  },
+  {
+   "name": "controls",
+   "objects": [
+    "Unit_Keyboard*"
+   ],
+   "command": "pushmenu controls",
+   "sign": "controls_sign"
+  },
+  {
+   "name": "video",
+   "objects": [
+    "Unit_Mouse*"
+   ],
+   "command": "pushmenu video_options",
+   "sign": "video_sign"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

@@ -1,0 +1,82 @@
+{
+ "menu": "main",
+ "sign_cvar": "ui_signshader",
+ "highlight": {
+  "color": [
+   1.0,
+   0.85,
+   0.6
+  ],
+  "strength": 2.0
+ },
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board_Frame",
+    "Board_Felt"
+   ]
+  },
+  {
+   "name": "new game",
+   "objects": [
+    "Map_Europe"
+   ],
+   "command": "pushmenu briefingroom",
+   "sign": "newgame_sign"
+  },
+  {
+   "name": "briefing",
+   "objects": [
+    "DoorB_root"
+   ],
+   "command": "pushmenu briefingroom",
+   "sign": "briefingroom_sign"
+  },
+  {
+   "name": "multiplayer",
+   "objects": [
+    "DoorR_root"
+   ],
+   "command": "pushmenu multiplayer",
+   "sign": "multiplayer_sign"
+  },
+  {
+   "name": "options",
+   "objects": [
+    "Options_Root"
+   ],
+   "command": "pushmenu options_main",
+   "sign": "options_sign"
+  },
+  {
+   "name": "records",
+   "objects": [
+    "WarRecords_Root"
+   ],
+   "command": "pushmenu war_records",
+   "sign": "warrecords_sign"
+  },
+  {
+   "name": "credits",
+   "objects": [
+    "Projector_Deco"
+   ],
+   "command": "spmap credits",
+   "sign": "credits_sign"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back to game",
+   "side": "left",
+   "command": "popmenu 0;popmenu 0;popmenu 0;popmenu 0"
+  },
+  {
+   "title": "Quit",
+   "side": "right",
+   "command": "quit"
+  }
+ ]
+}

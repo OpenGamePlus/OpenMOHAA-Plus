@@ -1,0 +1,46 @@
+{
+ "menu": "war_records",
+ "sign_cvar": "ui_recordsign",
+ "highlight": {
+  "color": [
+   1.0,
+   0.85,
+   0.6
+  ],
+  "strength": 2.0
+ },
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board_Frame",
+    "Board_Felt"
+   ]
+  },
+  {
+   "name": "personal records",
+   "objects": [
+    "Box_*"
+   ],
+   "command": "pushmenu medals",
+   "sign": "personalrecords_sign"
+  },
+  {
+   "name": "loadsave",
+   "objects": [
+    "Tray*",
+    "Letter_Trays"
+   ],
+   "command": "pushmenu_sp loadsave;pushmenu_dm loadsave_mp",
+   "sign": "loadsave_sign"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

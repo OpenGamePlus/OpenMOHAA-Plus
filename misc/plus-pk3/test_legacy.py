@@ -84,5 +84,36 @@ class Hotspots(unittest.TestCase):
             self.load(data)
 
 
+class Mappings(unittest.TestCase):
+    """The hotspots agreed with the maintainer (spec 2026-11-17-legacy-menu-design.md)."""
+    AGREED = {
+        "main": {"sign": (None, None),
+                 "new game": ("pushmenu briefingroom", "newgame_sign"),
+                 "briefing": ("pushmenu briefingroom", "briefingroom_sign"),
+                 "multiplayer": ("pushmenu multiplayer", "multiplayer_sign"),
+                 "options": ("pushmenu options_main", "options_sign"),
+                 "records": ("pushmenu war_records", "warrecords_sign"),
+                 "credits": ("spmap credits", "credits_sign")},
+        "options_main": {"sign": (None, None),
+                         "advanced": ("pushmenu advancedoptions", "advanced_sign"),
+                         "audio": ("pushmenu audio_options", "audio_sign"),
+                         "controls": ("pushmenu controls", "controls_sign"),
+                         "video": ("pushmenu video_options", "video_sign")},
+        "war_records": {"sign": (None, None),
+                        "personal records": ("pushmenu medals", "personalrecords_sign"),
+                        "loadsave": ("pushmenu_sp loadsave;pushmenu_dm loadsave_mp", "loadsave_sign")},
+    }
+    SIGN_CVARS = {"main": "ui_signshader", "options_main": "ui_optionshader", "war_records": "ui_recordsign"}
+
+    def test_agreed_mapping(self):
+        for menu, agreed in self.AGREED.items():
+            mapping = hotspots.load_mapping(os.path.join(HERE, "legacy", menu + ".json"))
+            self.assertEqual(mapping["menu"], menu)
+            self.assertEqual(mapping["sign_cvar"], self.SIGN_CVARS[menu])
+            got = {h["name"]: (h.get("command"), h.get("sign")) for h in mapping["hotspots"]}
+            self.assertEqual(got, agreed, menu)
+            self.assertEqual(list(got), list(agreed), menu)  # board first, then the agreed order
+
+
 if __name__ == "__main__":
     unittest.main()
