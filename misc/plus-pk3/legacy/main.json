@@ -29,7 +29,8 @@
   {
    "name": "briefing",
    "objects": [
-    "DoorB_root"
+    "DoorB_root",
+    "DoorL_*"
    ],
    "command": "pushmenu briefingroom",
    "sign": "briefingroom_sign"

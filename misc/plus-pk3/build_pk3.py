@@ -12,6 +12,12 @@ menu, server browser), opt_l.jpg and opt_r.jpg from art/background_options.jpg (
 256x4 alpha gradients drawn by the menus: bar.tga (the dark left bar) and hover.tga (a highlighted
 entry), and the pulldown field, textures/menu_plus/field.tga (see pulldown_field), with clear.tga, the
 transparent pulldown arrow that only sets the clickable area, and checkbox_off.tga / checkbox_on.tga. Requires Pillow (python3 -m pip install pillow).
+
+  python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export root> [--legacy-out PATH]
+
+also writes the Legacy menu pak (default zzzz-plus-legacy.pk3 next to --out, so it loads after
+zzz-plus.pk3) from misc/plus-pk3/legacy/*.json and a Blender export (legacy/export_hotspots.py);
+see legacy/build_legacy.py.
 """
 import argparse
 import io
@@ -42,6 +48,15 @@ def tiles():
             # JPEG: a painting deflates badly as TGA (12 MB a tile); the renderer tries .jpg first
             art.crop(box).resize((TILE, TILE), LANCZOS).save(out, "JPEG", quality=90)
             yield f"textures/menu_plus/{prefix}_{side}.jpg", out.getvalue()
+
+
+def write_legacy(out, export_root, mapping_dir):
+    """Writes the Legacy menu pak (see legacy/build_legacy.py)."""
+    from legacy import build_legacy
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, data in build_legacy.files(mapping_dir, export_root):
+            z.writestr(name, data)
+    print(f"wrote {out}")
 
 
 def bar_alpha(x):
@@ -112,6 +127,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, help="the .pk3 file to write")
     ap.add_argument("--skip-fonts", action="store_true", help="do not run misc/fonts/make_fonts.py")
+    ap.add_argument("--legacy", metavar="EXPORT_ROOT", help="also write the Legacy menu pak from this Blender export")
+    ap.add_argument("--legacy-out", help="the Legacy pak (default: zzzz-plus-legacy.pk3 next to --out)")
+    ap.add_argument("--legacy-mappings", default=os.path.join(HERE, "legacy"), help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
     with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as z:
         add_tree(z, os.path.join(HERE, "data"))
@@ -124,6 +142,9 @@ def main(argv=None):
             z.writestr(name, data)
         z.write(os.path.join(HERE, "ART-LICENSE.md"), "ART-LICENSE.md")
     print(f"wrote {args.out}")
+    if args.legacy:
+        write_legacy(args.legacy_out or os.path.join(os.path.dirname(os.path.abspath(args.out)), "zzzz-plus-legacy.pk3"),
+                     args.legacy, args.legacy_mappings)
     return 0
 
 
