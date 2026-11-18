@@ -7,6 +7,7 @@ Run: OMOH_GAME_DIR=<GAME_DIR> python3 -m unittest discover -s tests -v
 """
 
 import glob
+import json
 import tempfile
 import re
 import statistics
@@ -1690,6 +1691,91 @@ end.
 
 
 # Mesa's software Vulkan driver, when installed: same pictures on every machine, no GPU needed
+@require_game
+@unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
+class LegacyMenu(GameTestCase):
+    """The Legacy menu pak (misc/plus-pk3/legacy/), built from a fake Blender export of the real
+    mapping files: solid pictures, hotspot i at (300 + 40 i, 100 + 30 i, 60, 40) in 1152x480."""
+
+    widgets = PlusMenu.widgets
+    WIDGET_RE = PlusMenu.WIDGET_RE
+    MENUS = ("main", "options_main", "war_records")
+    UI_ERRORS = ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu")
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.dirname(PLUS_PK3))
+        from legacy import pak as build_legacy, hotspots
+        cls.plus_dir = tempfile.mkdtemp()
+        export = os.path.join(cls.plus_dir, "export")
+        mappings = os.path.join(os.path.dirname(PLUS_PK3), "legacy")
+        build_legacy.fake_export(mappings, export)
+        os.makedirs(os.path.join(cls.plus_dir, "plus"))
+        subprocess.run([sys.executable, PLUS_PK3, "--out", os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"),
+                        "--skip-fonts", "--legacy", export], check=True, capture_output=True)
+        cls.rects = {}
+        for menu in cls.MENUS:
+            with open(os.path.join(export, menu, menu + ".json")) as f:
+                cls.rects[menu] = {name: e["rect"] for name, e in json.load(f)["hotspots"].items()}
+        cls.mappings = {m: hotspots.load_mapping(os.path.join(mappings, m + ".json")) for m in cls.MENUS}
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.plus_dir, True)
+
+    def start(self, width, height):
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        c = PlusDataFolder.plus_client(self, home, self.plus_dir, "+set", "r_mode", "-1",
+                                       "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height))
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)                      # the main menu is up
+        return c
+
+    def test_legacy_main_wins(self):
+        c = self.start(1280, 720)
+        self.assertIn("plus/zzzz-plus-legacy.pk3", PlusDataFolder._which(self, c, "ui/main.urc"))
+        self.assertEqual(c.quit(), 0)
+
+    def test_hotspots_follow_the_picture(self):
+        for w, h, scales in ((1280, 720, (1, 1.2)), (1024, 768, (1,)), (2560, 1080, (1,))):
+            c = self.start(w, h)
+            k = max(w / 1152, h / 480)
+            for scale in scales:
+                c.send(f"ui_plusscale {scale}")
+                for menu in self.MENUS:
+                    screen = self.widgets(c, "pushmenu " + menu)
+                    self.assertEqual(screen["menu"], menu)
+                    for name, (x, y, bw, bh) in self.rects[menu].items():
+                        rect = screen["widgets"][name]["rect"]
+                        want = ((w - 1152 * k) / 2 + x * k, (h - 480 * k) / 2 + y * k,
+                                (w - 1152 * k) / 2 + (x + bw) * k, (h - 480 * k) / 2 + (y + bh) * k)
+                        for got, exp in zip(rect, want):
+                            self.assertAlmostEqual(got, exp, delta=2, msg=(w, h, scale, menu, name, rect, want))
+                    if menu != "main":
+                        c.send("popmenu 0")
+                        time.sleep(1)
+            log = c.log()
+            self.assertEqual(c.quit(), 0)
+            for error in self.UI_ERRORS:
+                self.assertNotIn(error, log, (w, h))
+
+    def test_targets_open(self):
+        targets = sorted({cmd.split()[1] for m in self.mappings.values() for spot in m["hotspots"]
+                          for cmd in spot.get("command", "").split(";") if cmd.split()[:1] == ["pushmenu"]}
+                         | {"loadsave"})
+        c = self.start(1280, 720)
+        for target in targets:
+            screen = self.widgets(c, "pushmenu " + target)
+            self.assertEqual(screen["menu"], target)
+            c.send("popmenu 0")
+            time.sleep(1)
+        log = c.log()
+        self.assertEqual(c.quit(), 0)
+        for error in self.UI_ERRORS:
+            self.assertNotIn(error, log)
+
+
 LAVAPIPE = "/usr/share/vulkan/icd.d/lvp_icd.json"
 
 
