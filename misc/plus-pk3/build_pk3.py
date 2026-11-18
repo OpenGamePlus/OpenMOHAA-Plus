@@ -17,7 +17,7 @@ transparent pulldown arrow that only sets the clickable area, and checkbox_off.t
 
 also writes the Legacy menu pak (default zzzz-plus-legacy.pk3 next to --out, so it loads after
 zzz-plus.pk3) from misc/plus-pk3/legacy/*.json and a Blender export (legacy/export_hotspots.py);
-see legacy/build_legacy.py.
+see legacy/pak.py.
 """
 import argparse
 import io
@@ -51,8 +51,8 @@ def tiles():
 
 
 def write_legacy(out, export_root, mapping_dir):
-    """Writes the Legacy menu pak (see legacy/build_legacy.py)."""
-    from legacy import build_legacy
+    """Writes the Legacy menu pak (see legacy/pak.py)."""
+    from legacy import pak as build_legacy
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for name, data in build_legacy.files(mapping_dir, export_root):
             z.writestr(name, data)

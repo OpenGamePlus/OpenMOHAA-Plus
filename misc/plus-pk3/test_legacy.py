@@ -138,7 +138,7 @@ class BuildLegacy(unittest.TestCase):
     def setUpClass(cls):
         global build_pk3, build_legacy
         import build_pk3
-        from legacy import build_legacy
+        from legacy import pak as build_legacy
         cls.tmp = tempfile.TemporaryDirectory()
         mappings = os.path.join(cls.tmp.name, "mappings")
         os.makedirs(mappings)
