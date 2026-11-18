@@ -78,6 +78,24 @@ The script packs the fonts, the menu files in `misc/plus-pk3/data/` and the back
 `textures/menu_plus/bg_l`/`bg_r` and `opt_l`/`opt_r`) into `zzz-plus.pk3`. The art is AI-generated and under CC BY-SA 4.0
 (`misc/plus-pk3/ART-LICENSE.md`).
 
+## Legacy menu (prototype)
+
+A second, optional pak, `plus/zzzz-plus-legacy.pk3`, replaces the main menu with rooms rendered in
+Blender that work like the original game's menus: click an object, the object lights up under the
+pointer and a sign names it. The main room, the options room and war records come from the pak;
+every other screen is the original menu from the game files. It needs `zzz-plus.pk3` next to it.
+Remove the file to get the Plus menu back.
+
+The renders are not in the repository yet, so the pak is built locally from a Blender export:
+
+```
+python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export folder>
+```
+
+`misc/plus-pk3/legacy/export_hotspots.py` (run inside Blender) writes the export: the background,
+one mask per clickable object and the objects' rectangles. `misc/plus-pk3/legacy/<menu>.json` says
+which objects are clickable and what they do.
+
 ## Writing menus (`.urc`)
 
 Two opt-in keywords for fork menus; the original files do not use them:
@@ -85,7 +103,7 @@ Two opt-in keywords for fork menus; the original files do not use them:
 | Keyword | Effect |
 |---|---|
 | `anchor <left> <top> <right> <bottom>` | Margins from the screen edges, in virtual units (1/480 of the screen height, times `ui_plusscale`). `-1` keeps the value of the `rect`. |
-| `cover <w> <h>` | The widget covers the whole screen without distortion, centred, cropping the excess. `w` and `h` give the picture's shape. |
+| `cover <w> <h>` | The widget is the `rect` part of a `w` x `h` picture that covers the whole screen without distortion, centred, cropping the excess. With `rect 0 0 w h` it is the background; with a smaller `rect` (in picture units) it stays on that part of the picture at any screen shape and `ui_plusscale`. |
 
 A widget with neither `align` nor `anchor` is placed in the menu's own frame, which on the Plus
 screens is 2048 units wide and starts off the screen: give every widget an `anchor`. `align left`

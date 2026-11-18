@@ -16,7 +16,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
 | Pak build, generated textures (background tiles: `bg_*` main menu and browser, `opt_*` options, JPEG; bar and hover gradients, pulldown field, clear) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
-| Tests | `PlusMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py` |
+| Legacy menu (prototype): mappings `<menu>.json`, Blender export `export_hotspots.py`, pak build `pak.py` (generated `.urc`, tiles, hovers) | `misc/plus-pk3/legacy/`; `build_pk3.py --legacy <export>` writes `zzzz-plus-legacy.pk3`; design `docs/superpowers/specs/2026-11-17-legacy-menu-design.md` |
+| Tests | `PlusMenu` and `LegacyMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py`, `misc/plus-pk3/test_legacy.py` |
 
 ## Rules
 
@@ -30,6 +31,10 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   generated white, so `fgcolor` tints it (`field.tga`, `checkbox_on/off.tga`); the bar and hover gradients carry their
   own colour.
 - New user-visible behaviour is documented on the user page in the same commit.
+- Legacy menu `.urc` files are generated: change the mapping (`misc/plus-pk3/legacy/<menu>.json`) or
+  the Blender scene and build again. Their widgets sit in picture units with `cover` (exact at any
+  shape and `ui_plusscale`); hovers are the background lit through an object mask, so they cannot
+  drift from it.
 
 ## Pitfalls (each cost a debugging round)
 
@@ -41,6 +46,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | The game's `ui/bind.scr` gives bind-list columns in fixed units; rows are 16 units (`commandheight`) | Columns are narrowed to fit scaled lists; a list height must be whole rows |
 | Children of a `WF_NOPARENTADJUST` widget were placed from the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
 | `CVAR_SOUND_LATCH` / `CVAR_TERRAIN_LATCH` never latch in `cvar.c` | `ui_marklatched` snapshots their values; Apply and Back compare against it |
+| `.gitignore` ignores `build*` | A new `build_*.py` is silently left out of commits (`legacy/build_legacy.py` was; now `legacy/pak.py`) |
 | `UIWidget::InitFrame` sets the font again (default `verdana-12`) | A popup that sizes its rows with another font must pass it to `InitFrame` too |
 | While its list is open a pulldown is the first responder and gets every mouse event | A list left open by a hidden menu closes on the next mouse event |
 
