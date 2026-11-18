@@ -62,7 +62,7 @@
   {
    "name": "credits",
    "objects": [
-    "Projector_Deco"
+    "FilmBox"
    ],
    "command": "spmap credits",
    "sign": "credits_sign"

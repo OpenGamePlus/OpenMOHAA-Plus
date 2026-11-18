@@ -14,7 +14,8 @@
    "name": "sign",
    "board": true,
    "objects": [
-    "Board*"
+    "Board_Frame",
+    "Board_Felt"
    ]
   },
   {
