@@ -105,30 +105,47 @@ def _rect(spot, menu):
 
 
 def _render_mask(path, rect, objects):
-    """Renders the rect with Workbench: the objects white, the other meshes black."""
+    """Renders the rect with Workbench: the objects white, every other object and the world black,
+    with neutral colour management, so the mask is pure black and white."""
     scene = bpy.context.scene
     r, shading, view = scene.render, scene.display.shading, scene.view_settings
     targets = {ob.name for ob in objects}
-    colors = {ob.name: tuple(ob.color) for ob in scene.objects if ob.type == "MESH"}
-    saved = (r.engine, shading.light, shading.color_type, shading.show_shadows, shading.show_cavity,
-             shading.show_object_outline, r.film_transparent, view.view_transform, view.look)
+    colors = {ob.name: tuple(ob.color) for ob in scene.objects}
+    settings = [(r, "engine"), (r, "film_transparent"),
+                (shading, "light"), (shading, "color_type"), (shading, "show_shadows"), (shading, "show_cavity"),
+                (shading, "show_object_outline"), (shading, "show_xray"), (shading, "show_backface_culling"),
+                (shading, "use_dof"), (view, "view_transform"), (view, "look"), (view, "exposure"), (view, "gamma"),
+                (view, "use_curve_mapping")]
+    if scene.world:
+        settings.append((scene.world, "color"))
+    saved = [(owner, name, getattr(owner, name)) for owner, name in settings]
+    saved = [(o, n, tuple(v) if n == "color" else v) for o, n, v in saved]
     try:
         try:
             r.engine = "BLENDER_WORKBENCH"
         except TypeError as error:  # the message lists the engines this Blender has
             raise RuntimeError(f"no Workbench engine: {error}") from error
+        r.film_transparent = False
         shading.light, shading.color_type = "FLAT", "OBJECT"
         shading.show_shadows = shading.show_cavity = shading.show_object_outline = False
-        r.film_transparent = False
-        view.view_transform, view.look = "Standard", "None"
-        for name in colors:
-            scene.objects[name].color = (1, 1, 1, 1) if name in targets else (0, 0, 0, 1)
+        shading.show_xray = shading.show_backface_culling = shading.use_dof = False
+        view.view_transform, view.look, view.exposure, view.gamma = "Standard", "None", 0.0, 1.0
+        view.use_curve_mapping = False
+        if scene.world:
+            scene.world.color = (0, 0, 0)
+        for ob in scene.objects:  # every type: curves and text default to white
+            ob.color = (1, 1, 1, 1) if ob.name in targets else (0, 0, 0, 1)
         _render(path, border=rect)
     finally:
-        for name, color in colors.items():
-            scene.objects[name].color = color
-        (r.engine, shading.light, shading.color_type, shading.show_shadows, shading.show_cavity,
-         shading.show_object_outline, r.film_transparent, view.view_transform, view.look) = saved
+        try:
+            for owner, name, value in saved:
+                setattr(owner, name, value)
+        finally:
+            for name, color in colors.items():
+                try:
+                    scene.objects[name].color = color
+                except (AttributeError, TypeError):  # linked, read-only
+                    pass
 
 
 def export_background(mapping_path, out_root):
@@ -155,7 +172,18 @@ def export_hotspot(mapping_path, out_root, name):
 
 
 def export_all(mapping_path, out_root):
-    """The background, then every hotspot."""
+    """A fresh export of the screen: every hotspot is measured first, so a mapping error stops the
+    run before anything is written; <menu>.json then starts over with no hotspots, so a run that
+    fails half way leaves an export the pak build refuses (a hotspot is missing) instead of a mix of
+    old and new rects. (It is overwritten, not deleted: over the WSL share Windows refuses to create
+    a file again right after deleting it.) export_background and export_hotspot alone update an
+    existing export."""
+    mapping, folder, json_path = _paths(mapping_path, out_root)
+    for spot in mapping["hotspots"]:
+        _rect(spot, mapping["menu"])
+    with open(json_path, "w") as f:
+        json.dump({"menu": mapping["menu"], "picture": list(_picture()), "background": "background.png",
+                   "hotspots": {}}, f, indent=1)
     export_background(mapping_path, out_root)
-    for spot in hotspots.load_mapping(mapping_path)["hotspots"]:
+    for spot in mapping["hotspots"]:
         export_hotspot(mapping_path, out_root, spot["name"])

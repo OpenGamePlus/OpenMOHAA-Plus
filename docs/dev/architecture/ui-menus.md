@@ -16,7 +16,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
 | Pak build, generated textures (background tiles: `bg_*` main menu and browser, `opt_*` options, JPEG; bar and hover gradients, pulldown field, clear) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
-| Legacy menu (prototype): mappings `<menu>.json`, Blender export `export_hotspots.py`, pak build `pak.py` (generated `.urc`, tiles, hovers) | `misc/plus-pk3/legacy/`; `build_pk3.py --legacy <export>` writes `zzzz-plus-legacy.pk3`; design `docs/superpowers/specs/2026-11-17-legacy-menu-design.md` |
+| Legacy menu (prototype): mappings `<menu>.json`, Blender export `export_hotspots.py` (checked by hand with `check_export.py` in `blender -b`), pak build `pak.py` (generated `.urc`, tiles, hovers) | `misc/plus-pk3/legacy/`; `build_pk3.py --legacy <export>` writes `zzzz-plus-legacy.pk3`; design `docs/superpowers/specs/2026-11-17-legacy-menu-design.md` |
 | Tests | `PlusMenu` and `LegacyMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py`, `misc/plus-pk3/test_legacy.py` |
 
 ## Rules

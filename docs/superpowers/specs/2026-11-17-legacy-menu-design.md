@@ -38,7 +38,7 @@ entries), chosen by the player. How the player chooses is decided after the prot
   | main | `DoorR_root` (right door) | `pushmenu multiplayer` | `multiplayer_sign` |
   | main | `Options_Root` (radio table) | `pushmenu options_main` | `options_sign` |
   | main | `WarRecords_Root` (desk with phones) | `pushmenu war_records` | `warrecords_sign` |
-  | main | `Projector_Deco` | `spmap credits` | `credits_sign` |
+  | main | `FilmBox` (box of film reels; was `Projector_Deco`, outside 4:3) | `spmap credits` | `credits_sign` |
   | main | `Board_Frame` | none: the sign is drawn here (`linkcvar ui_signshader`) | |
   | options_main | the panel labelled Advanced | `pushmenu advancedoptions` | `advanced_sign` |
   | options_main | the Audio unit | `pushmenu audio_options` | `audio_sign` |
@@ -103,7 +103,8 @@ entries), chosen by the player. How the player chooses is decided after the prot
   than 2.4:1 it crops top and bottom (at 32:9 the main sign board is cut off at the top; accepted,
   such screens are rare and clicking still works *(Claude's call)*).
   Everything clickable must sit in the 4:3 zone, the sides are decoration. Today
-  `Options_Root` (x 173..322) and `Projector_Deco` (x 926..1070) are outside it.
+  `Options_Root` (x 173..322) and `Projector_Deco` (x 926..1070) are outside it; see Scene
+  adjustments.
 - Textures are powers of two (`r_roundImagesDown`); paintings ship as JPEG (`build_pk3.py`
   splits each background into two 2048x2048 tiles).
 - Paks in `plus/` load in `FS_PathCmp` order and a later pak wins; `zzz-plus.pk3` holds the
@@ -155,8 +156,8 @@ render settings, then per hotspot object (with its children):
 
 The agreed table above, as data: per hotspot a widget name, the Blender object, the command, the
 sign shader, and the sign cvar of the screen (`ui_signshader` for main, `ui_optionshader` for
-options). The sign board is an entry with no command. The export fills in rects; a hand-written
-`rect` in the mapping overrides the exported one (for objects whose mesh is wrong for clicking).
+options). The sign board is an entry with no command. The export fills in rects; to change a
+clickable area, change the objects listed (for example `DoorB_root` plus the frame `DoorL_*`).
 
 ### Pak build (`misc/plus-pk3/build_pk3.py --legacy <export folder>`)
 
@@ -191,8 +192,10 @@ options). The sign board is an entry with no command. The export fills in rects;
 
 ### Scene adjustments (art, with the maintainer)
 
-`Options_Root` and `Projector_Deco` move into the 4:3 zone of the main room (camera or object
-moves, proposed through Blender MCP and approved by the maintainer before re-rendering).
+Measured on 2026-11-17: moving the options desk (~0.9 m) or the projector (~0.9 m) into the 4:3
+zone collides with the cabinet and with the reels, and widening the camera would need a ~10 mm
+lens. The maintainer chose, for the prototype: credits on `FilmBox` (inside 4:3), the options desk
+left where it is (inside 16:9, cut on 4:3 and 5:4; a debt row).
 
 ### Docs
 
