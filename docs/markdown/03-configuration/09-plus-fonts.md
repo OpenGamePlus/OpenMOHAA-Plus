@@ -20,6 +20,7 @@ copy `zzz-plus.pk3` from the release into a `plus/` folder next to `openmohaa.ex
 | `verdana-12`, `verdana-14` | console, menus, chat | DejaVu Sans |
 | `courier-16/18/20` | menus | DejaVu Sans Mono Bold |
 | `handle-*`, `marlett` | ornamental titles, symbols | not replaced |
+| `plussign-32` (new) | signs of the Legacy menu | DejaVu Serif Bold, white, at 3x resolution |
 
 Without the pk3, accented letters are drawn as their base letter (á as a).
 

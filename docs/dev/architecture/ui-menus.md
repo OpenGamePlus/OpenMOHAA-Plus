@@ -34,7 +34,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 - Legacy menu `.urc` files are generated: change the mapping (`misc/plus-pk3/legacy/<menu>.json`) or
   the Blender scene and build again. Their widgets sit in picture units with `cover` (exact at any
   shape and `ui_plusscale`); hovers are the background lit through an object mask, so they cannot
-  drift from it.
+  drift from it. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
+  texts (font `plussign-32`); text under `cover` follows the picture (`UIWidget::getTextScale`).
 
 ## Pitfalls (each cost a debugging round)
 
@@ -47,6 +48,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | Children of a `WF_NOPARENTADJUST` widget were placed from the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
 | `CVAR_SOUND_LATCH` / `CVAR_TERRAIN_LATCH` never latch in `cvar.c` | `ui_marklatched` snapshots their values; Apply and Back compare against it |
 | `.gitignore` ignores `build*` | A new `build_*.py` is silently left out of commits (`legacy/build_legacy.py` was; now `legacy/pak.py`) |
+| A font with no `.shader` script got a lit world shader and crashed the GL renderers on its first text | `R_LoadFontShader` falls back to the 2D shader; fork fonts need no script (and `scripts/` is not read from fork paks on pure servers) |
 | `UIWidget::InitFrame` sets the font again (default `verdana-12`) | A popup that sizes its rows with another font must pass it to `InitFrame` too |
 | While its list is open a pulldown is the first responder and gets every mouse event | A list left open by a hidden menu closes on the next mouse event |
 

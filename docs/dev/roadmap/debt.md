@@ -98,7 +98,7 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | Plus menu: install | `plus/` not found from symlinks | `Sys_BinaryPath` does not resolve symlinks, so `cmake --install` and launcher symlinks need `fs_pluspath` |
 | Legacy menu: renders | Not in the repo | The Blender renders are recreations of the original menu rooms; their licence is not settled, so the legacy pak is built locally only |
 | Legacy menu: 4:3 | Options desk cut on 4:3 and 5:4 screens | In the main room it sits at x 173..322 of 1152 (4:3 shows 256..896); moving it collides with the cabinet; fine on 16:9 and wider |
-| Legacy menu: text | Render text is English only | LOAD/SAVE trays and the options radio labels are painted; signs come from the original game (low resolution) |
+| Legacy menu: text | Render text is English only | LOAD/SAVE trays and the options radio labels are painted; the signs are engine text and translate |
 | Plus menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
 
 ## Not attempted (needs data or hardware not available)

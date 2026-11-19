@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-18 — Legacy menu: engine-drawn signs
+- The signs were the original 128x32 `*_sign` images stretched over the rendered boards. Now the sign label maps each sign value to the mapping's text with `linkstring`, in a new `plussign-32` serif font (DejaVu Serif Bold, 3x: 4x would be a 16 MB atlas). Linked texts now go through the localization, and text under `cover` scales with the picture, shrunk to 90% x 50% of its widget (the real main board cut "Multiplayer").
+- The new font crashed the GL renderers: game fonts have a `.shader` script, and without one `R_FindShader` built a lit world shader. A script would not fix pure servers (`scripts/` is not exempt), so scriptless fonts get the 2D shader.
+- Leftover headless clients from timed-out throwaway scripts ran for hours at ~380% CPU each and slowed the suite. Throwaway scripts must kill the client in `finally`. Open: Windows hand check of the signs.
+
 ## 2026-11-17 — Legacy menu prototype (Blender rooms)
 - The maintainer's Blender rooms (main, options, war records) as a separate `zzzz-plus-legacy.pk3` that works like the original menus; every other screen is the game's own. No engine change: `cover <w> <h>` already places any widget in picture units, exact at every shape and `ui_plusscale` (the war records draft's frame placement was a needless shortcut).
 - Hover: rendering each crop with raised emission washed the map out and took ~8 min a crop; a Workbench object mask (<1 s, occlusion kept) plus a 2D light in the pak build (gain 1.2, maintainer's pick) matches the background exactly. Background exports run in `blender -b` from the saved `.blend`, about 40 s a room, so the maintainer's open session is never touched.
