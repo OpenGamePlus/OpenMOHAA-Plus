@@ -67,7 +67,7 @@ class Hotspots(unittest.TestCase):
             return hotspots.load_mapping(write_json(tmp, "m.json", data))
 
     BOARD = {"name": "sign", "board": True, "objects": ["Board"]}
-    SPOT = {"name": "a", "objects": ["A"], "command": "pushmenu x", "sign": "x_sign"}
+    SPOT = {"name": "a", "objects": ["A"], "command": "pushmenu x", "sign": "x_sign", "text": "X"}
 
     def test_load_mapping(self):
         self.assertEqual(self.load(self.mapping([self.BOARD, self.SPOT]))["menu"], "main")
@@ -78,7 +78,17 @@ class Hotspots(unittest.TestCase):
 
     def test_load_mapping_rejects_missing_command(self):
         with self.assertRaisesRegex(ValueError, "main.*a"):
-            self.load(self.mapping([self.BOARD, {"name": "a", "objects": ["A"], "sign": "s"}]))
+            self.load(self.mapping([self.BOARD, {"name": "a", "objects": ["A"], "sign": "s", "text": "S"}]))
+
+    def test_load_mapping_rejects_missing_text(self):
+        spot = dict(self.SPOT)
+        del spot["text"]
+        with self.assertRaisesRegex(ValueError, "main.*a.*text"):
+            self.load(self.mapping([self.BOARD, spot]))
+
+    def test_load_mapping_rejects_quote_in_text(self):
+        with self.assertRaisesRegex(ValueError, "text"):
+            self.load(self.mapping([self.BOARD, dict(self.SPOT, text='say "x"')]))
 
     def test_load_mapping_rejects_quotes_and_duplicates(self):
         with self.assertRaisesRegex(ValueError, "name"):
@@ -96,21 +106,21 @@ class Hotspots(unittest.TestCase):
 class Mappings(unittest.TestCase):
     """The hotspots agreed with the maintainer (spec 2026-11-17-legacy-menu-design.md)."""
     AGREED = {
-        "main": {"sign": (None, None),
-                 "new game": ("pushmenu briefingroom", "newgame_sign"),
-                 "briefing": ("pushmenu briefingroom", "briefingroom_sign"),
-                 "multiplayer": ("pushmenu multiplayer", "multiplayer_sign"),
-                 "options": ("pushmenu options_main", "options_sign"),
-                 "records": ("pushmenu war_records", "warrecords_sign"),
-                 "credits": ("spmap credits", "credits_sign")},
-        "options_main": {"sign": (None, None),
-                         "advanced": ("pushmenu advancedoptions", "advanced_sign"),
-                         "audio": ("pushmenu audio_options", "audio_sign"),
-                         "controls": ("pushmenu controls", "controls_sign"),
-                         "video": ("pushmenu video_options", "video_sign")},
-        "war_records": {"sign": (None, None),
-                        "personal records": ("pushmenu medals", "personalrecords_sign"),
-                        "loadsave": ("pushmenu_sp loadsave;pushmenu_dm loadsave_mp", "loadsave_sign")},
+        "main": {"sign": (None, None, None),
+                 "new game": ("pushmenu briefingroom", "newgame_sign", "New Game"),
+                 "briefing": ("pushmenu briefingroom", "briefingroom_sign", "Briefing"),
+                 "multiplayer": ("pushmenu multiplayer", "multiplayer_sign", "Multiplayer"),
+                 "options": ("pushmenu options_main", "options_sign", "Options"),
+                 "records": ("pushmenu war_records", "warrecords_sign", "War Records"),
+                 "credits": ("spmap credits", "credits_sign", "Credits")},
+        "options_main": {"sign": (None, None, None),
+                         "advanced": ("pushmenu advancedoptions", "advanced_sign", "Advanced"),
+                         "audio": ("pushmenu audio_options", "audio_sign", "Audio"),
+                         "controls": ("pushmenu controls", "controls_sign", "Controls"),
+                         "video": ("pushmenu video_options", "video_sign", "Video")},
+        "war_records": {"sign": (None, None, None),
+                        "personal records": ("pushmenu medals", "personalrecords_sign", "Personal Records"),
+                        "loadsave": ("pushmenu_sp loadsave;pushmenu_dm loadsave_mp", "loadsave_sign", "Load / Save")},
     }
     SIGN_CVARS = {"main": "ui_signshader", "options_main": "ui_optionshader", "war_records": "ui_recordsign"}
 
@@ -119,7 +129,7 @@ class Mappings(unittest.TestCase):
             mapping = hotspots.load_mapping(os.path.join(HERE, "legacy", menu + ".json"))
             self.assertEqual(mapping["menu"], menu)
             self.assertEqual(mapping["sign_cvar"], self.SIGN_CVARS[menu])
-            got = {h["name"]: (h.get("command"), h.get("sign")) for h in mapping["hotspots"]}
+            got = {h["name"]: (h.get("command"), h.get("sign"), h.get("text")) for h in mapping["hotspots"]}
             self.assertEqual(got, agreed, menu)
             self.assertEqual(list(got), list(agreed), menu)  # board first, then the agreed order
 
@@ -128,8 +138,8 @@ class Mappings(unittest.TestCase):
 class BuildLegacy(unittest.TestCase):
     MAPPING = {"menu": "main", "sign_cvar": "ui_signshader", "hotspots": [
         {"name": "sign", "board": True, "objects": ["Board"]},
-        {"name": "a b", "objects": ["A"], "command": "pushmenu a", "sign": "a_sign"},
-        {"name": "c", "objects": ["C"], "command": "pushmenu c;set x 1", "sign": "c_sign"}],
+        {"name": "a b", "objects": ["A"], "command": "pushmenu a", "sign": "a_sign", "text": "A B"},
+        {"name": "c", "objects": ["C"], "command": "pushmenu c;set x 1", "sign": "c_sign", "text": "Ç"}],
         "corners": [{"title": "Back to game", "side": "left", "command": "popmenu 0"},
                     {"title": "Quit", "side": "right", "command": "quit"}]}
     RECTS = {"main": {"sign": [681, 38, 144, 72], "a b": [336, 304, 386, 145], "c": [823, 276, 3, 183]}}
@@ -160,7 +170,7 @@ class BuildLegacy(unittest.TestCase):
         cls.tmp.cleanup()
 
     def read(self, name):
-        return self.zip.read(name).decode()
+        return self.zip.read(name).decode("cp1252")
 
     def block(self, name):
         text = self.read("ui/main.urc")
@@ -192,8 +202,11 @@ class BuildLegacy(unittest.TestCase):
 
     def test_urc_sign_and_corners(self):
         sign = self.block("sign")
-        for line in ("rect 681 38 144 72", "cover 1152 480", 'linkcvar "ui_signshader"', "linkcvartoshader"):
-            self.assertIn(line, sign)
+        for line in ("rect 681 38 144 72", "cover 1152 480", 'linkcvar "ui_signshader"', "font plussign-32",
+                     "textalign center", "fgcolor 0.95 0.92 0.84 1",
+                     'linkstring "a_sign" "A B"\nlinkstring "c_sign" "Ç"'):
+            self.assertIn("\n" + line + "\n", sign + "\n", line)
+        self.assertNotIn("linkcvartoshader", sign)
         self.assertIn("anchor 30 -1 -1 40", self.block("Back to game"))
         self.assertIn("anchor -1 -1 30 40", self.block("Quit"))
         self.assertIn('stuffcommand "quit"', self.block("Quit"))

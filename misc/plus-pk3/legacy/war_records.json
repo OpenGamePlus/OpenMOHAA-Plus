@@ -24,7 +24,8 @@
     "Box_*"
    ],
    "command": "pushmenu medals",
-   "sign": "personalrecords_sign"
+   "sign": "personalrecords_sign",
+   "text": "Personal Records"
   },
   {
    "name": "loadsave",
@@ -33,7 +34,8 @@
     "Letter_Trays"
    ],
    "command": "pushmenu_sp loadsave;pushmenu_dm loadsave_mp",
-   "sign": "loadsave_sign"
+   "sign": "loadsave_sign",
+   "text": "Load / Save"
   }
  ],
  "corners": [

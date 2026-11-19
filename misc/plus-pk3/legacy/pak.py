@@ -75,9 +75,11 @@ def urc(mapping, export):
                          "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
                          cover, f'shader "{TEXTURES}/{menu}_{side}"'])
     board = next(s for s in mapping["hotspots"] if s.get("board"))
-    widget("Label", [f'name "{board["name"]}"', f"rect {rects[board['name']]}", "fgcolor 1 1 1 1",
+    # the engine writes the sign: each sign value the buttons set maps to its text (translated)
+    widget("Label", [f'name "{board["name"]}"', f"rect {rects[board['name']]}", "fgcolor 0.95 0.92 0.84 1",
                      "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
-                     f'linkcvar "{mapping["sign_cvar"]}"', "linkcvartoshader"])
+                     "font plussign-32", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
+                     *(f'linkstring "{s["sign"]}" "{s["text"]}"' for s in mapping["hotspots"] if not s.get("board"))])
     for spot in mapping["hotspots"]:
         if spot.get("board"):
             continue
@@ -115,7 +117,7 @@ def files(mapping_dir, export_root):
             entry = export["hotspots"].get(spot["name"])
             if entry is None or (not spot.get("board") and "mask" not in entry):
                 raise ValueError(f"{menu}: hotspot {spot['name']} missing in {json_path}")
-        yield f"ui/{menu}.urc", urc(mapping, export).encode()
+        yield f"ui/{menu}.urc", urc(mapping, export).encode("cp1252")
         background = Image.open(os.path.join(folder, export["background"])).convert("RGB")
         half = background.width // 2
         for side, box in (("l", (0, 0, half, background.height)), ("r", (half, 0, background.width, background.height))):

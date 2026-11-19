@@ -24,7 +24,8 @@
     "Map_Europe"
    ],
    "command": "pushmenu briefingroom",
-   "sign": "newgame_sign"
+   "sign": "newgame_sign",
+   "text": "New Game"
   },
   {
    "name": "briefing",
@@ -33,7 +34,8 @@
     "DoorL_*"
    ],
    "command": "pushmenu briefingroom",
-   "sign": "briefingroom_sign"
+   "sign": "briefingroom_sign",
+   "text": "Briefing"
   },
   {
    "name": "multiplayer",
@@ -41,7 +43,8 @@
     "DoorR_root"
    ],
    "command": "pushmenu multiplayer",
-   "sign": "multiplayer_sign"
+   "sign": "multiplayer_sign",
+   "text": "Multiplayer"
   },
   {
    "name": "options",
@@ -49,7 +52,8 @@
     "Options_Root"
    ],
    "command": "pushmenu options_main",
-   "sign": "options_sign"
+   "sign": "options_sign",
+   "text": "Options"
   },
   {
    "name": "records",
@@ -57,7 +61,8 @@
     "WarRecords_Root"
    ],
    "command": "pushmenu war_records",
-   "sign": "warrecords_sign"
+   "sign": "warrecords_sign",
+   "text": "War Records"
   },
   {
    "name": "credits",
@@ -65,7 +70,8 @@
     "FilmBox"
    ],
    "command": "spmap credits",
-   "sign": "credits_sign"
+   "sign": "credits_sign",
+   "text": "Credits"
   }
  ],
  "corners": [

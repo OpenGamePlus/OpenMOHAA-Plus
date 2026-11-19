@@ -84,6 +84,14 @@ def load_mapping(path):
                 raise ValueError(f"{menu}: the board {name} cannot have a command")
         elif not spot.get("command") or not spot.get("sign"):
             raise ValueError(f"{menu}: hotspot {name} needs a command and a sign")
+        else:
+            text = spot.get("text", "")
+            try:
+                text.encode("cp1252")  # the game's charset
+            except UnicodeEncodeError:
+                text = '"'
+            if not text or '"' in text:
+                raise ValueError(f"{menu}: hotspot {name} needs a text for the sign, in Windows-1252, without quotes")
     if boards != 1:
         raise ValueError(f"{menu}: needs exactly one board hotspot, has {boards}")
     for corner in mapping.get("corners", []):
