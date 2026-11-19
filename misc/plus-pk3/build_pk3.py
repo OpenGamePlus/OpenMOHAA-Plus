@@ -53,9 +53,18 @@ def tiles():
 def write_legacy(out, export_root, mapping_dir):
     """Writes the Legacy menu pak (see legacy/pak.py)."""
     from legacy import pak as build_legacy
+    sys.path.insert(0, os.path.join(HERE, "..", "fonts"))
+    import make_fonts
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for name, data in build_legacy.files(mapping_dir, export_root):
             z.writestr(name, data)
+        # the sign font ships here too: it is not in the game, and without it next to an older or
+        # --skip-fonts zzz-plus.pk3 the menu stops with "Couldn't load font"
+        font = "plussign-32"
+        text, tga, _ = make_fonts.build(font, 32, os.path.join(make_fonts.DEJAVU, make_fonts.DEFAULT_SET[font]),
+                                        make_fonts.FONT_SCALES[font])
+        z.writestr(f"fonts/{font}.RitualFont", text.encode("ascii"))
+        z.writestr(f"gfx/fonts/{font}.tga", tga)
     print(f"wrote {out}")
 
 

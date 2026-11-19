@@ -177,9 +177,12 @@ class BuildLegacy(unittest.TestCase):
         return text[text.index(f'name "{name}"'):].split("\n}", 1)[0]
 
     def test_legacy_pak_contents(self):
+        # the sign font too: plussign-32 is not in the game, and a zzz-plus.pk3 without it (--skip-fonts,
+        # an older release) would stop the menu with "Couldn't load font"
         self.assertEqual(set(self.zip.namelist()), {
             "ui/main.urc", "textures/menu_plus/legacy/main_l.jpg", "textures/menu_plus/legacy/main_r.jpg",
-            "textures/menu_plus/legacy/main_a_b_h.jpg", "textures/menu_plus/legacy/main_c_h.jpg"})
+            "textures/menu_plus/legacy/main_a_b_h.jpg", "textures/menu_plus/legacy/main_c_h.jpg",
+            "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga"})
 
     def test_crops_power_of_two(self):
         sides = {2 ** n for n in range(4, 12)}
