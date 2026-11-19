@@ -2458,13 +2458,29 @@ const vec2_t& UIWidget::getVirtualScale() const
 }
 
 // Added in OpenMOHAA Plus: text in a "cover" widget is part of the picture (a sign on a board), so
-//  it scales with the picture, not with the virtual scale (screen height x ui_plusscale)
-const vec2_t& UIWidget::getTextScale() const
+//  it scales with the picture, not with the virtual scale (screen height x ui_plusscale); it shrinks
+//  to stay within 90% of the widget's width and 50% of its height, in picture units, so a long or
+//  translated text still fits a small board at every resolution
+void UIWidget::getTextScale(const char *text, vec2_t out) const
 {
-    if ((m_flags & WF_COVER) && m_coverRectSet) {
-        return m_coverTextScale;
+    if (!(m_flags & WF_COVER) || !m_coverRectSet || !m_font) {
+        VectorCopy2D(getVirtualScale(), out);
+        return;
     }
-    return getVirtualScale();
+
+    const vec2_t unit  = {1, 1};
+    const float  width = m_font->getWidth(text, -1);
+    const float  height = m_font->getHeight(text, -1, unit);
+    float        fit    = 1;
+
+    if (width > 0) {
+        fit = Q_min(fit, m_coverRect.size.width * 0.9f / width);
+    }
+    if (height > 0) {
+        fit = Q_min(fit, m_coverRect.size.height * 0.5f / height);
+    }
+    out[0] = m_coverTextScale[0] * fit;
+    out[1] = m_coverTextScale[1] * fit;
 }
 
 const vec2_t& UIWidget::getHighResScale() const
@@ -2819,8 +2835,10 @@ void UIWidget::PrintGeometry(int depth)
     );
 
     if (m_font && *ctext) {
-        const float w = m_font->getWidth(ctext, -1) * getTextScale()[0];
-        const float h = m_font->getHeight(ctext, -1, getTextScale());
+        vec2_t scale;
+        getTextScale(ctext, scale);
+        const float w = m_font->getWidth(ctext, -1) * scale[0];
+        const float h = m_font->getHeight(ctext, -1, scale);
         float       x = m_screenframe.pos.x, y = m_screenframe.pos.y;
 
         if (m_iFontAlignmentHorizontal == FONT_JUSTHORZ_CENTER) {

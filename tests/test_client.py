@@ -1789,6 +1789,8 @@ class LegacyMenu(GameTestCase):
                 (x0, y0, x1, y1), (tx0, ty0, tx1, ty1) = sign["rect"], sign["text"]
                 self.assertAlmostEqual((tx0 + tx1) / 2, (x0 + x1) / 2, delta=2, msg=(w, h, scale))
                 self.assertAlmostEqual((ty0 + ty1) / 2, (y0 + y1) / 2, delta=2, msg=(w, h, scale))
+                self.assertLessEqual(tx1 - tx0, 0.9 * (x1 - x0) + 2, (w, h, scale))   # fits the board
+                self.assertLessEqual(ty1 - ty0, 0.5 * (y1 - y0) + 2, (w, h, scale))
                 ratios.append(((ty1 - ty0) / (y1 - y0), (w, h, scale)))
                 c.send("popmenu 0")
                 time.sleep(1)

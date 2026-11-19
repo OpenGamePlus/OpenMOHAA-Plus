@@ -347,6 +347,8 @@ void UILabel::Draw(void)
         m_font->setColor(UColor(nr, ng, nb, m_foreground_color.a * m_local_alpha));
 
         // Changed in OpenMOHAA Plus: getTextScale (text in a "cover" widget follows the picture)
+        vec2_t scale;
+        getTextScale(text.c_str(), scale);
         if (m_bOutlinedText) {
             // print the text
             m_font->PrintOutlinedJustified(
@@ -355,12 +357,12 @@ void UILabel::Draw(void)
                 m_iFontAlignmentVertical,
                 text.c_str(),
                 UBlack,
-                getTextScale()
+                scale
             );
         } else {
             // print the text
             m_font->PrintJustified(
-                getClientFrame(), m_iFontAlignmentHorizontal, m_iFontAlignmentVertical, text.c_str(), getTextScale()
+                getClientFrame(), m_iFontAlignmentHorizontal, m_iFontAlignmentVertical, text.c_str(), scale
             );
         }
     }

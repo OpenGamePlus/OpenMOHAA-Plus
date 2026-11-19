@@ -381,8 +381,8 @@ public:
     bool          isVirtual() const;
     const vec2_t& getVirtualScale() const;
     const vec2_t& getHighResScale() const;
-    // Added in OpenMOHAA Plus: the scale text is drawn at (the picture's under "cover")
-    const vec2_t& getTextScale() const;
+    // Added in OpenMOHAA Plus: the scale this text is drawn at (under "cover": the picture's, fitted)
+    void getTextScale(const char *text, vec2_t out) const;
 };
 
 class UIWidgetContainer : public UIWidget
