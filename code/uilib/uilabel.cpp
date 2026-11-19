@@ -233,56 +233,59 @@ void UILabel::EventSetOutlinedText(Event *ev)
     }
 }
 
-void UILabel::Draw(void)
+// Added in OpenMOHAA Plus: the cvar's value as Draw shows it (localizable values, link strings);
+//  translate also localizes the linked text, which the original never did
+str UILabel::LinkedValue(bool translate)
 {
     const char *string;
     str         val;
 
-    ProcessSounds();
+    string = uii.Cvar_GetString(m_cvarname, "");
 
-    m_iLastDrawTime = uii.Sys_Milliseconds();
+    //
+    // localize the cvar value when possible
+    //
+    for (int i = 0; localizableVars[i]; i++) {
+        if (!strcmp(localizableVars[i], string)) {
+            string = Sys_LV_CL_ConvertString(localizableVars[i]);
+        }
+    }
+
+    if (m_linkstrings.NumObjects()) {
+        cvar_t *cvar = UI_FindCvar(m_cvarname);
+        if (cvar) {
+            int ret;
+
+            if (cvar->latchedString) {
+                val = cvar->latchedString;
+            } else {
+                val = cvar->string;
+            }
+
+            ret = FindLinkString(val);
+            if (ret) {
+                string = m_linkstrings.ObjectAt(ret)->string;
+                if (translate) {
+                    // Added in OpenMOHAA Plus: linked texts go through the localization (the
+                    //  Legacy menu's signs, the video options' names)
+                    string = Sys_LV_CL_ConvertString(string);
+                }
+            }
+        }
+    }
+
+    return string;
+}
+
+// Added in OpenMOHAA Plus: the text choice of Draw, so ui_printwidgets reports what is drawn
+str UILabel::DisplayText(void)
+{
+    str string;
 
     if (m_cvarname.length()) {
-        string = uii.Cvar_GetString(m_cvarname, "");
-
-        //
-        // localize the cvar value when possible
-        //
-        for (int i = 0; localizableVars[i]; i++) {
-            if (!strcmp(localizableVars[i], string)) {
-                string = Sys_LV_CL_ConvertString(localizableVars[i]);
-            }
-        }
-
-        if (m_linkstrings.NumObjects()) {
-            cvar_t *cvar = UI_FindCvar(m_cvarname);
-            if (cvar) {
-                int ret;
-
-                if (cvar->latchedString) {
-                    val = cvar->latchedString;
-                } else {
-                    val = cvar->string;
-                }
-
-                ret = FindLinkString(val);
-                if (ret) {
-                    string = m_linkstrings.ObjectAt(ret)->string;
-                }
-            }
-        }
+        string = LinkedValue(true);
 
         if (m_bLinkCvarToShader) {
-            if (str::icmp(m_sCurrentShaderName, string)) {
-                m_sCurrentShaderName = string;
-
-                setMaterial(uWinMan.RegisterShader(m_sCurrentShaderName));
-
-                if (!m_material->GetMaterial()) {
-                    setMaterial(NULL);
-                }
-            }
-
             if (label.length()) {
                 string = label;
             } else if (m_title.length()) {
@@ -302,14 +305,40 @@ void UILabel::Draw(void)
 
         // Added in OpenMOHAA Plus: label text goes through the localization like buttons and titles
         //  (the HUD's "Health" and "Score:" labels could not be translated)
-        if (*string) {
+        if (string.length()) {
             string = Sys_LV_CL_ConvertString(string);
         }
     }
 
-    if (*string) {
+    return string;
+}
+
+void UILabel::Draw(void)
+{
+    str text;
+
+    ProcessSounds();
+
+    m_iLastDrawTime = uii.Sys_Milliseconds();
+
+    if (m_cvarname.length() && m_bLinkCvarToShader) {
+        const str shader = LinkedValue(false);
+
+        if (str::icmp(m_sCurrentShaderName, shader)) {
+            m_sCurrentShaderName = shader;
+
+            setMaterial(uWinMan.RegisterShader(m_sCurrentShaderName));
+
+            if (!m_material->GetMaterial()) {
+                setMaterial(NULL);
+            }
+        }
+    }
+
+    text = DisplayText();
+
+    if (text.length()) {
         float nr, ng, nb;
-        float alpha;
 
         nr = m_foreground_color.r;
         ng = m_foreground_color.g;
@@ -317,20 +346,21 @@ void UILabel::Draw(void)
 
         m_font->setColor(UColor(nr, ng, nb, m_foreground_color.a * m_local_alpha));
 
+        // Changed in OpenMOHAA Plus: getTextScale (text in a "cover" widget follows the picture)
         if (m_bOutlinedText) {
             // print the text
             m_font->PrintOutlinedJustified(
                 getClientFrame(),
                 m_iFontAlignmentHorizontal,
                 m_iFontAlignmentVertical,
-                string,
+                text.c_str(),
                 UBlack,
-                getVirtualScale()
+                getTextScale()
             );
         } else {
             // print the text
             m_font->PrintJustified(
-                getClientFrame(), m_iFontAlignmentHorizontal, m_iFontAlignmentVertical, string, getVirtualScale()
+                getClientFrame(), m_iFontAlignmentHorizontal, m_iFontAlignmentVertical, text.c_str(), getTextScale()
             );
         }
     }

@@ -85,4 +85,11 @@ public:
 
     void SetLabel(str lab);
     void Draw(void) override;
+    // Added in OpenMOHAA Plus: the text Draw prints (also reported by ui_printwidgets)
+    str DisplayText(void);
+
+private:
+    str LinkedValue(bool translate);
+
+public:
 };

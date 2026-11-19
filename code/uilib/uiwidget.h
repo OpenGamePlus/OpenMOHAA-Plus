@@ -186,6 +186,7 @@ protected:
     float    m_coverSize[2];
     UIRect2D m_coverRect;
     bool     m_coverRectSet;
+    vec2_t   m_coverTextScale; // the picture's scale: text drawn under "cover" follows the picture
 
 public:
     CLASS_PROTOTYPE(UIWidget);
@@ -380,6 +381,8 @@ public:
     bool          isVirtual() const;
     const vec2_t& getVirtualScale() const;
     const vec2_t& getHighResScale() const;
+    // Added in OpenMOHAA Plus: the scale text is drawn at (the picture's under "cover")
+    const vec2_t& getTextScale() const;
 };
 
 class UIWidgetContainer : public UIWidget

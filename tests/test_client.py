@@ -1712,7 +1712,7 @@ class LegacyMenu(GameTestCase):
         build_legacy.fake_export(mappings, export)
         os.makedirs(os.path.join(cls.plus_dir, "plus"))
         subprocess.run([sys.executable, PLUS_PK3, "--out", os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"),
-                        "--skip-fonts", "--legacy", export], check=True, capture_output=True)
+                        "--legacy", export], check=True, capture_output=True)      # fonts: the sign's plussign-32
         cls.rects = {}
         for menu in cls.MENUS:
             with open(os.path.join(export, menu, menu + ".json")) as f:
@@ -1723,11 +1723,13 @@ class LegacyMenu(GameTestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.plus_dir, True)
 
-    def start(self, width, height):
-        home = omoh.Home()
-        self.addCleanup(home.cleanup)
+    def start(self, width, height, *args, home=None):
+        if home is None:
+            home = omoh.Home()
+            self.addCleanup(home.cleanup)
         c = PlusDataFolder.plus_client(self, home, self.plus_dir, "+set", "r_mode", "-1",
-                                       "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height))
+                                       "+set", "r_customwidth", str(width), "+set", "r_customheight", str(height),
+                                       *args)
         c.wait_for(r"Opening IP socket", timeout=60)
         time.sleep(8)                      # the main menu is up
         return c
@@ -1770,6 +1772,37 @@ class LegacyMenu(GameTestCase):
             self.assertEqual(c.quit(), 0)
             for error in self.UI_ERRORS:
                 self.assertNotIn(error, log, (w, h))
+
+    def sign(self, c, value):
+        """The options_main sign widget after its cvar is set to value."""
+        return self.widgets(c, "pushmenu options_main", "set ui_optionshader " + value)["widgets"]["sign"]
+
+    def test_sign_text_fits_the_board(self):
+        # the engine writes the sign; its text keeps its place and size on the board everywhere
+        ratios = []
+        for w, h, scales in ((1280, 720, (1, 1.2)), (1024, 768, (1,)), (2560, 1080, (1,))):
+            c = self.start(w, h)
+            for scale in scales:
+                c.send(f"ui_plusscale {scale}")
+                sign = self.sign(c, "audio_sign")
+                self.assertEqual(sign.get("title"), "Audio", (w, h, scale))
+                (x0, y0, x1, y1), (tx0, ty0, tx1, ty1) = sign["rect"], sign["text"]
+                self.assertAlmostEqual((tx0 + tx1) / 2, (x0 + x1) / 2, delta=2, msg=(w, h, scale))
+                self.assertAlmostEqual((ty0 + ty1) / 2, (y0 + y1) / 2, delta=2, msg=(w, h, scale))
+                ratios.append(((ty1 - ty0) / (y1 - y0), (w, h, scale)))
+                c.send("popmenu 0")
+                time.sleep(1)
+            self.assertEqual(c.quit(), 0)
+        for ratio, case in ratios:
+            self.assertAlmostEqual(ratio, ratios[0][0], delta=0.03, msg=case)
+
+    def test_sign_is_translated(self):
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        home.write("lang/es/localization.txt", '{ "Audio" "Sonido" }\r\n')
+        c = self.start(1280, 720, "+set", "cl_language", "es", home=home)
+        self.assertEqual(self.sign(c, "audio_sign").get("title"), "Sonido")
+        self.assertEqual(c.quit(), 0)
 
     def test_targets_open(self):
         targets = sorted({cmd.split()[1] for m in self.mappings.values() for spot in m["hotspots"]

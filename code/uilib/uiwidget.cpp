@@ -723,6 +723,7 @@ UIWidget::UIWidget()
     m_anchor[0] = m_anchor[1] = m_anchor[2] = m_anchor[3] = -1;
     m_coverSize[0] = m_coverSize[1] = 0;
     m_coverRectSet                  = false;
+    VectorSet2D(m_coverTextScale, 1, 1);
 
     m_fadeSequenceDelay    = 0;
     m_fadeSequenceFadeIn   = 0;
@@ -2456,6 +2457,16 @@ const vec2_t& UIWidget::getVirtualScale() const
     }
 }
 
+// Added in OpenMOHAA Plus: text in a "cover" widget is part of the picture (a sign on a board), so
+//  it scales with the picture, not with the virtual scale (screen height x ui_plusscale)
+const vec2_t& UIWidget::getTextScale() const
+{
+    if ((m_flags & WF_COVER) && m_coverRectSet) {
+        return m_coverTextScale;
+    }
+    return getVirtualScale();
+}
+
 const vec2_t& UIWidget::getHighResScale() const
 {
     return uid.scaleRes;
@@ -2537,6 +2548,7 @@ void UIWidget::ApplyCover(void)
     }
 
     const float k = Q_max(uid.vidWidth / m_coverSize[0], uid.vidHeight / m_coverSize[1]);
+    VectorSet2D(m_coverTextScale, k, k);
 
     m_frame.pos.x       = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
     m_frame.pos.y       = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
@@ -2783,14 +2795,14 @@ void UIWidgetContainer::SetLastActiveWidgetOrderNum(void)
 
 // Added in OpenMOHAA Plus: "ui_printwidgets" prints the screen geometry of a menu, in pixels, for
 //  the tests. One line per widget: depth, name, class, shown, rect "x y w h", and for a widget with text
-//  (a label bound to a cvar shows its value) the rect the text is drawn in.
+//  (a label: the text it draws) the rect the text is drawn in.
 void UIWidget::PrintGeometry(int depth)
 {
     str         text = Sys_LV_CL_ConvertString(m_title);
     const char *ctext;
 
-    if (!m_title.length() && m_cvarname.length() && isSubclassOf(UILabel)) {
-        text = uii.Cvar_GetString(m_cvarname.c_str(), "");
+    if (isSubclassOf(UILabel)) {
+        text = static_cast<UILabel *>(this)->DisplayText();
     }
     ctext = text.c_str();
 
@@ -2807,8 +2819,8 @@ void UIWidget::PrintGeometry(int depth)
     );
 
     if (m_font && *ctext) {
-        const float w = m_font->getWidth(ctext, -1) * getVirtualScale()[0];
-        const float h = m_font->getHeight(ctext, -1, getVirtualScale());
+        const float w = m_font->getWidth(ctext, -1) * getTextScale()[0];
+        const float h = m_font->getHeight(ctext, -1, getTextScale());
         float       x = m_screenframe.pos.x, y = m_screenframe.pos.y;
 
         if (m_iFontAlignmentHorizontal == FONT_JUSTHORZ_CENTER) {
