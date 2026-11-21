@@ -117,11 +117,15 @@ def credits_urc(credits):
 
     label("title", 30, 32, "facfont-20", "0.94 0.75 0.38 1", "Model Credits")
     label("intro", 64, 16, "verdana-12", "0.80 0.78 0.72 1",
-          "3D models in the menu scenes, placed and lit in Blender; licence: " + credits["license_url"])
-    for i, model in enumerate(credits["models"]):
-        y = 92 + 42 * i
+          "3D models in the menu scenes, placed and lit in Blender; CC BY 4.0: " + credits["license_url"])
+    models = credits["models"]
+    step = min(42, (428 - 92) // max(1, len(models)))  # down to Back's plate (its top at 430)
+    if step < 31:  # a title and its source line
+        raise ValueError(f"{CREDITS}: {len(models)} models do not fit the board (10 at most)")
+    for i, model in enumerate(models):
+        y = 92 + step * i
         label(f"model {i}", y, 18, "verdana-14", "0.93 0.89 0.80 1", f'{model["title"]} - {model["author"]}')
-        label(f"source {i}", y + 19, 16, "verdana-12", "0.70 0.68 0.62 1", f'{model["license"]}  {model["url"]}')
+        label(f"source {i}", y + 16, 16, "verdana-12", "0.70 0.68 0.62 1", f'{model["license"]}  {model["url"]}')
     out.extend(["", "resource", "Button", "{", *corner_button("Back", "left", "popmenu 0"), "}", "end."])
     return "\n".join(out) + "\n"
 
@@ -149,14 +153,14 @@ def green_plate(hover=False):
     return img
 
 
-def corner_button(name, side, command, slot=0):
+def corner_button(name, side, command, slot=0, widget=None):
     """Lines of a green corner button: plate, hover plate and the engine's text, 12 units from the side
     and 20 from the bottom, clear of the build label (the original's were 8 from the edges); slot 1
-    sits next to the corner one, and so on."""
+    sits next to the corner one, and so on. widget: its name when the game finds it by name."""
     left = side == "left"
     sound = "back" if command.startswith("popmenu") else "apply"
     margin = 12 + slot * (128 + 12)
-    return [f'name "{name}"', "rect 0 0 128 30", f'title "{name}"', "font facfont-20", "fgcolor 1 1 1 1",
+    return [f'name "{widget or name}"', "rect 0 0 128 30", f'title "{name}"', "font facfont-20", "fgcolor 1 1 1 1",
             "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
             f"anchor {margin} -1 -1 20" if left else f"anchor -1 -1 {margin} 20", "textalign center",
             f'shader "{TEXTURES}/button"', f'hovershader "{TEXTURES}/button_h"',
@@ -308,7 +312,7 @@ def screen_urc(mapping, export):
                 f"font {font}", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
                 *(f'linkstring "{hotspots.slug(c["name"])}" "{c[field]}"' for c in medals)])
     for corner in mapping.get("corners", []):
-        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0)))
+        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0), corner.get("widget")))
     out.append("end.")
     return "\n".join(out) + "\n"
 
@@ -360,7 +364,7 @@ def urc(mapping, export):
                           'clicksound "sound/menu/apply.wav"', f'stuffcommand "{spot["command"]}"',
                           f'hovercommand "set {mapping["sign_cvar"]} {spot["sign"]}"'])
     for corner in mapping.get("corners", []):
-        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0)))
+        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0), corner.get("widget")))
     out.append("end.")
     return "\n".join(out) + "\n"
 
@@ -432,8 +436,10 @@ def files(mapping_dir, export_root):
             under = background.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
             mask = Image.open(os.path.join(folder, entry["mask"]))
             if "lit" in entry:
-                crop = zone_lit(under, Image.open(os.path.join(folder, entry["lit"])), mask,
-                                frame=spot.get("glow") == "frame")
+                lamp = Image.open(os.path.join(folder, entry["lit"]))
+                if lamp.size == background.size:  # rendered over the whole frame (a border render lights differently)
+                    lamp = lamp.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+                crop = zone_lit(under, lamp, mask, frame=spot.get("glow") == "frame")
             else:
                 crop = lit(under, mask, light.get("gain", 1.2), light.get("color", (255, 214, 150)))
             crop = crop.resize((_pow2(crop.width), _pow2(crop.height)), LANCZOS)
@@ -476,9 +482,11 @@ def fake_export(mapping_dir, out_root, rects=None):
                 mask = Image.new("L", size, 0)
                 mask.paste(255, (0, 0, size[0] // 2, size[1]))
                 mask.save(os.path.join(folder, entry["mask"]))
-            if spot.get("lights"):  # the lit render: solid (200, 180, 150)
+            if spot.get("lights"):  # the lit render, over the whole frame: (200, 180, 150) in the rect, black around
                 entry["lit"] = f"lit_{hotspots.slug(spot['name'])}.png"
-                Image.new("RGB", size, (200, 180, 150)).save(os.path.join(folder, entry["lit"]))
+                full = Image.new("RGB", (3840, 1600), (0, 0, 0))
+                full.paste((200, 180, 150), tuple(round(v * 10 / 3) for v in (rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3])))
+                full.save(os.path.join(folder, entry["lit"]))
             export["hotspots"][spot["name"]] = entry
         with open(os.path.join(folder, menu + ".json"), "w") as f:
             json.dump(export, f, indent=1)

@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy multiplayer room
+- The main room's multiplayer door opens a corridor built from a copy of the main room (`mp_build.py` rebuilds it from that file each run), framed on the original by overlaying it: map-room doorway, locker (player options, three Sketchfab jackets), red door (join), board and chest (start or change map). Hotspot and corner names stay the original's (`startnew`, `changemap`, `joinlan`, `disconnect`): the game enables them by name.
+- Zone hovers are now rendered over the whole frame and cut by the pak: a border render lit the room darker, so a hover could darken its zone. Hotspots sharing a lamp (start and change map) keep it on for both.
+- Credits: a Polish name broke cp1252 (now transliterated, tested on the real file) and ten models overflowed the board under Back (spacing fits it, eleven is a build error).
+
 ## 2026-11-21 — Legacy war records, medal case, load/save folder
 - War records is the main room's desk up close (`off` lists the room's zone lamps); its box opens the medal case and its trays a load/save folder, both close-ups built from copies of that scene.
 - Medal case: the original's nine medals, modelled, ComfyUI reliefs; each shows when earned and names itself on the case's strips. Folder: built in 3D (ComfyUI paper textures, DejaVu stamps), seen straight down so the game's save list (`LoadSaveList`, fixed `facfont-20` column titles) is not distorted.

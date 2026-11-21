@@ -265,8 +265,10 @@ def export_hotspot(mapping_path, out_root, name):
     if spot.get("lights"):  # the rect with only this hotspot's lamps on: its hover
         zones = _zone_lights(mapping)
         entry["lit"] = f"lit_{hotspots.slug(name)}.png"
-        with _lights_off([ob for zone, objects in zones.items() if zone != name for ob in objects]):
-            _render(os.path.join(folder, entry["lit"]), border=entry["rect"])
+        own = set(zones[name])  # a lamp two hotspots share stays on for both
+        with _lights_off([ob for zone, objects in zones.items() if zone != name for ob in objects if ob not in own]):
+            # the whole frame, cut by the pak: a border render lights the room differently (darker)
+            _render(os.path.join(folder, entry["lit"]))
     _update_json(json_path, mapping["menu"], lambda d: d["hotspots"].__setitem__(name, entry))
     return entry
 

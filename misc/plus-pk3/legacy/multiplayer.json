@@ -1,0 +1,108 @@
+{
+ "menu": "multiplayer",
+ "sign_cvar": "ui_multiplayersign",
+ "highlight": {
+  "gain": 1.2,
+  "color": [
+   255,
+   214,
+   150
+  ]
+ },
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board_Frame",
+    "Board_Felt"
+   ]
+  },
+  {
+   "name": "maproom",
+   "objects": [
+    "DoorR_root",
+    "DoorR_head",
+    "DoorR_jamb",
+    "DoorR_jamb2"
+   ],
+   "glow": "frame",
+   "command": "popmenu 0",
+   "sign": "maproom_sign",
+   "text": "Map Room",
+   "lights": [
+    "MP_Hover_Map"
+   ]
+  },
+  {
+   "name": "Multiplayer Options",
+   "objects": [
+    "MP_Locker_Back",
+    "MP_Locker_Hinge*",
+    "MP_Jacket*"
+   ],
+   "command": "ui_getplayermodel;pushmenu mpoptions",
+   "sign": "multiplayeroptions_sign",
+   "text": "Options",
+   "lights": [
+    "MP_Hover_Locker",
+    "Wall_Lamp_R1*"
+   ]
+  },
+  {
+   "name": "joinlan",
+   "objects": [
+    "DoorB_root",
+    "DoorL_head",
+    "DoorL_jamb",
+    "DoorL_jamb2",
+    "MP_Door*"
+   ],
+   "glow": "frame",
+   "command": "pushmenu joingame",
+   "sign": "joingame_sign",
+   "text": "Join Game",
+   "lights": [
+    "MP_Hover_Door"
+   ]
+  },
+  {
+   "name": "startnew",
+   "objects": [
+    "MP_Chest",
+    "MP_Board",
+    "Phone_Wall_Red_W48"
+   ],
+   "command": "pushmenu multiplayerstart",
+   "sign": "startgame_sign",
+   "text": "Start Game",
+   "lights": [
+    "MP_Hover_Board",
+    "Wall_Lamp_R0*"
+   ]
+  },
+  {
+   "name": "changemap",
+   "objects": [
+    "MP_Chest",
+    "MP_Board",
+    "Phone_Wall_Red_W48"
+   ],
+   "command": "pushmenu multiplayerstart",
+   "sign": "changemap_sign",
+   "text": "Change Map",
+   "lights": [
+    "MP_Hover_Board",
+    "Wall_Lamp_R0*"
+   ]
+  }
+ ],
+ "corners": [
+  {
+   "title": "Disconnect",
+   "widget": "disconnect",
+   "side": "right",
+   "command": "disconnect; pushmenu multiplayer"
+  }
+ ]
+}

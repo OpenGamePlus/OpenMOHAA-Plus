@@ -253,6 +253,24 @@ class Screens(unittest.TestCase):
             bad = json.loads(json.dumps(self.LOADSAVE)); del bad["controls"][1]["command"]
             self.load(bad)
 
+    def test_model_credits_stay_above_back(self):
+        # Back's plate is anchored 20 above the bottom, 30 tall: its top at y 430 of 480
+        from legacy import pak
+        models = [{"title": f"Model {i}", "author": "a", "url": f"https://example.org/{i}", "license": "CC0 1.0"}
+                  for i in range(11)]
+        text = pak.credits_urc({"license_url": "https://example.org/by", "models": models[:10]})
+        last = self.block(text, "source 9")
+        y = int(re.search(r"anchor 30 (\d+) ", last).group(1))
+        self.assertLessEqual(y + 16, 428)
+        with self.assertRaises(ValueError):  # more than the board holds: a build error, not an overlap
+            pak.credits_urc({"license_url": "https://example.org/by", "models": models})
+
+    def test_real_model_credits_fit_the_game_charset(self):
+        # the credits room is written in cp1252: a name outside it (Polish l-stroke) stops the build
+        from legacy import pak
+        with open(os.path.join(HERE, "legacy", "credits", "models.json"), encoding="utf-8") as f:
+            pak.credits_urc(json.load(f))
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
@@ -466,6 +484,13 @@ class BuildLegacy(unittest.TestCase):
                      'shader "textures/menu_plus/clear"', 'hovershader "textures/menu_plus/legacy/main_c_h"',
                      'stuffcommand "pushmenu c;set x 1"', 'hovercommand "set ui_signshader c_sign"'):
             self.assertIn("\n" + line + "\n", block + "\n", line)
+
+    def test_corner_widget_name(self):
+        # the game enables "disconnect" by name (UI_MultiplayerMenuWidgetsUpdate), case-sensitive
+        from legacy import pak
+        lines = pak.corner_button("Disconnect", "right", "disconnect", widget="disconnect")
+        self.assertIn('name "disconnect"', lines)
+        self.assertIn('title "Disconnect"', lines)
 
     def test_urc_sign_and_corners(self):
         sign = self.block("sign")

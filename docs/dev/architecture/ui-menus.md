@@ -37,8 +37,11 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   mapping) off, and a hotspot's hover is its rect rendered with its own lamps on, faded into the
   background (`zone_lit`: the light falls off from the object inside a rect padded 8% by the export,
   so it never meets the tile's edge; `"glow": "frame"` keeps a short falloff at a door or board); a hotspot without lamps gets the
-  background lit through its object mask. `legacy_credits.urc` (model credits) is generated from
-  `legacy/credits/models.json`. Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
+  background lit through its object mask. A hotspot's button is named after it and a corner may
+  give `widget`, its name apart from its title: the multiplayer room keeps the original's names
+  (`startnew`, `changemap`, `joinlan`, `disconnect`), which the game enables by name, case-sensitive
+  (`UI_MultiplayerMenuWidgetsUpdate`). `legacy_credits.urc` (model credits) is generated from
+  `legacy/credits/models.json` (ten fit the board; more is a build error). Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
   close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
   over the plate (which shows the value; when every item sets the list's cvar to a value of its
   own, a label maps that value as the original did, so the item's other cvars need not match), a check lights its lamp (`lamp_on`), a slider sits on its
