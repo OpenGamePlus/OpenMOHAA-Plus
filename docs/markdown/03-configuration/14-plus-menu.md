@@ -98,7 +98,7 @@ those lamps on. `misc/plus-pk3/legacy/<menu>.json` says which objects are clicka
 the name the sign shows and which lamps light up when the pointer is on them (the room is dark
 otherwise). The video, audio, advanced and controls units in the options room open close-ups of them with
 working controls, as the original option screens did (the key list on the controls unit's card). In war records the box opens the medal case: each medal
-earned shows in it, and pointing at one names it. The field telephone in the options room opens the Plus options (every tab, the fork's own settings
+earned shows in it, and pointing at one names it. The trays open a folder with the saved games. The field telephone in the options room opens the Plus options (every tab, the fork's own settings
 included). The chalkboard in the main room opens the credits of the 3D models in the scenes
 (`misc/plus-pk3/legacy/credits/models.json`, all CC BY 4.0). The game writes the sign
 with the Plus serif font `plussign-32`, sized to its board, and translates it with `cl_language`

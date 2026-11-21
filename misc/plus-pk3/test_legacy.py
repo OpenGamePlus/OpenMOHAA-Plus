@@ -221,6 +221,33 @@ class Screens(unittest.TestCase):
             bad = json.loads(json.dumps(self.MEDALS)); del bad["controls"][0]["desc"]
             self.load(bad)
 
+    LOADSAVE = {"menu": "loadsave", "screen": True, "camera": "Cam_LoadSave", "controls": [
+        {"name": "LoadSaveShot", "kind": "shot", "plate": ["P"]},
+        {"name": "Load Game", "kind": "action", "plate": ["S"], "title": "Load",
+         "command": "widgetcommand LoadSaveList loadgame"},
+        {"name": "LoadSaveList", "kind": "saves", "plate": ["L"]}],
+        "corners": [{"title": "Back", "side": "left", "command": "popmenu 0"}]}
+    LOADSAVE_EXPORT = {"menu": "loadsave", "picture": [854, 480], "background": "background.png", "controls": {
+        "LoadSaveShot": {"plate": [100, 60, 150, 110]}, "Load Game": {"plate": [300, 60, 100, 20]},
+        "LoadSaveList": {"plate": [100, 200, 500, 150]}}}
+
+    def test_loadsave(self):
+        # the game finds the picture and the list by name (cl_uiloadsave.cpp): LoadSaveShot, LoadSaveList
+        from legacy import pak
+        text = pak.screen_urc(self.load(self.LOADSAVE), self.LOADSAVE_EXPORT)
+        shot, act, lst = self.block(text, "LoadSaveShot"), self.block(text, "Load Game"), self.block(text, "LoadSaveList")
+        self.assertIn("\nrect 100 60 150 110\n", shot + "\n")
+        self.assertIn("FakkLoadGameClass", text)
+        self.assertIn("\nrect 100 200 500 150\n", lst + "\n")
+        for line in ("rect 300 60 100 20", 'title "Load"', "font courier-20", 'stuffcommand "widgetcommand LoadSaveList loadgame"',
+                     'hovershader "textures/menu_plus/legacy/slip_h"', 'shader "textures/menu_plus/clear"'):
+            self.assertIn("\n" + line + "\n", act + "\n", line)
+        stamp = json.loads(json.dumps(self.LOADSAVE)); del stamp["controls"][1]["title"]  # text in the picture
+        self.assertNotIn("title", self.block(pak.screen_urc(self.load(stamp), self.LOADSAVE_EXPORT), "Load Game"))
+        with self.assertRaises(ValueError):  # an action needs a command
+            bad = json.loads(json.dumps(self.LOADSAVE)); del bad["controls"][1]["command"]
+            self.load(bad)
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
@@ -266,6 +293,13 @@ class Screens(unittest.TestCase):
             self.assertIn("\n" + line + "\n", check + "\n", line)
         self.assertIn("anchor -1 -1 152 20", self.block(text, "Defaults"))  # next to Apply
         self.assertIn("anchor -1 -1 12 20", self.block(text, "Apply"))
+
+    def test_slip_highlight_art(self):
+        from legacy import pak
+        img = pak.slip_h()
+        self.assertEqual(img.mode, "RGBA")
+        self.assertEqual(img.getpixel((0, 0))[3], 0)  # soft: clear at its edge
+        self.assertTrue(0 < img.getpixel((img.width // 2, img.height // 2))[3] < 200)  # the slip still shows
 
     def test_lamp_on_art(self):
         from legacy import pak
@@ -369,6 +403,7 @@ class BuildLegacy(unittest.TestCase):
             "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg",
             "ui/video_options.urc", "textures/menu_plus/legacy/video_options_l.jpg",
             "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga",
+            "textures/menu_plus/legacy/slip_h.tga",
             "ui/medals.urc", "textures/menu_plus/legacy/medals_l.jpg", "textures/menu_plus/legacy/medals_r.jpg",
             "textures/menu_plus/legacy/medals_silver_star.jpg"})
 

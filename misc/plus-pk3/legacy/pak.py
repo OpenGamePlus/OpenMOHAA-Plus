@@ -177,6 +177,18 @@ def lamp_on():
     return img
 
 
+def slip_h():
+    """The glow over a slip under the pointer, 128x32 on transparency: warm, soft, the slip readable."""
+    img = Image.new("RGBA", (128, 32), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(32):
+        for x in range(128):
+            d = max(abs(x - 63.5) / 64, abs(y - 15.5) / 16)
+            if d < 1:
+                px[x, y] = (255, 200, 110, round(120 * max(0.0, min(1.0, (1 - d) * 3.2 - 0.1))))
+    return img
+
+
 INK = "0.12 0.11 0.09 1"  # dark print on the units' light plates
 
 
@@ -261,6 +273,18 @@ def screen_urc(mapping, export):
             widget("Button", common(name + " button", rects["medal"]) + [
                 'shader "textures/menu_plus/clear"', f'enabledcvar "{control["cvar"]}"',
                 f'hovercommand "set {mapping["sign_cvar"]} {key}"'])
+        elif control["kind"] == "shot":  # the game puts the selected save's picture in it (by name)
+            widget("Label", common(name, rects["plate"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover])
+        elif control["kind"] == "action":  # a typed slip or a stamp: a soft glow under the pointer
+            title = [f'title "{control["title"]}"', "font courier-20", "textalign center"] if control.get("title") else []
+            widget("Button", common(name, rects["plate"]) + title + [
+                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/slip_h"',
+                'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"'])
+        elif control["kind"] == "saves":  # the game's save list, by name
+            lines = common(name, rects["plate"])
+            lines[2] = "fgcolor 0 0 0 1"
+            widget("FakkLoadGameClass", lines)
         elif control["kind"] == "binds":  # the game's key list, black on the card like the original
             lines = common(name, rects["plate"])
             lines[2] = "fgcolor 0 0 0 1"
@@ -370,9 +394,10 @@ def files(mapping_dir, export_root):
                     raise ValueError(f"{menu}: control {control['name']} missing in {json_path}")
             if not lamp_done:
                 lamp_done = True
-                out = io.BytesIO()
-                lamp_on().save(out, "TGA")  # the glow needs its alpha: TGA, not JPEG
-                yield f"{TEXTURES}/lamp_on.tga", out.getvalue()
+                for art, name in ((lamp_on(), "lamp_on"), (slip_h(), "slip_h")):
+                    out = io.BytesIO()
+                    art.save(out, "TGA")  # glows need their alpha: TGA, not JPEG
+                    yield f"{TEXTURES}/{name}.tga", out.getvalue()
             yield f"ui/{menu}.urc", screen_urc(mapping, export).encode("cp1252")
             background = yield from _background_tiles(folder, export, menu)
             k = background.width / export["picture"][0]

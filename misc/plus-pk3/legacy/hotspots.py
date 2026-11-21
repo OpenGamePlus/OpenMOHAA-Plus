@@ -129,7 +129,8 @@ def _check_corners(menu, mapping):
 
 
 CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",),
-                 "medal": ("medal",)}
+                 "medal": ("medal",), "shot": ("plate",), "action": ("plate",), "saves": ("plate",)}
+NO_CVAR = ("binds", "shot", "action", "saves")  # controls the game drives by name or by command
 
 
 def _check_screen(path, mapping):
@@ -145,7 +146,7 @@ def _check_screen(path, mapping):
         names.add(name)
         if kind not in CONTROL_PARTS:
             raise ValueError(f"{menu}: control {name}: kind is one of {', '.join(CONTROL_PARTS)}")
-        if kind != "binds" and not control.get("cvar"):  # the key list reads the game's ui/bind.scr
+        if kind not in NO_CVAR and not control.get("cvar"):
             raise ValueError(f"{menu}: control {name} needs a cvar")
         if any('"' in control.get(k, "") for k in ("checked_command", "unchecked_command")):
             raise ValueError(f"{menu}: check {name}: no quotes in its commands")
@@ -156,6 +157,9 @@ def _check_screen(path, mapping):
             items = control.get("items") or []
             if not items or any(len(i) != 2 or '"' in "".join(i) for i in items):
                 raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
+        if kind == "action" and (not control.get("command")
+                                 or '"' in control.get("title", "") + control.get("command", "")):
+            raise ValueError(f"{menu}: action {name} needs a command, and no quotes in it or its title")
         if kind == "medal":
             for key in ("title", "desc"):
                 text = control.get(key, "")
