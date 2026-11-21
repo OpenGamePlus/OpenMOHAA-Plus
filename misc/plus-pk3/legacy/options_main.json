@@ -1,14 +1,6 @@
 {
  "menu": "options_main",
  "sign_cvar": "ui_optionshader",
- "highlight": {
-  "gain": 1.2,
-  "color": [
-   255,
-   214,
-   150
-  ]
- },
  "hotspots": [
   {
    "name": "sign",
@@ -25,7 +17,10 @@
    ],
    "command": "pushmenu advancedoptions",
    "sign": "advanced_sign",
-   "text": "Advanced"
+   "text": "Advanced",
+   "lights": [
+    "Hover_Advanced"
+   ]
   },
   {
    "name": "audio",
@@ -34,7 +29,10 @@
    ],
    "command": "pushmenu audio_options",
    "sign": "audio_sign",
-   "text": "Audio"
+   "text": "Audio",
+   "lights": [
+    "Hover_Audio"
+   ]
   },
   {
    "name": "controls",
@@ -43,7 +41,10 @@
    ],
    "command": "pushmenu controls",
    "sign": "controls_sign",
-   "text": "Controls"
+   "text": "Controls",
+   "lights": [
+    "Hover_Controls"
+   ]
   },
   {
    "name": "video",
@@ -52,7 +53,22 @@
    ],
    "command": "pushmenu video_options",
    "sign": "video_sign",
-   "text": "Video"
+   "text": "Video",
+   "lights": [
+    "Hover_Video"
+   ]
+  },
+  {
+   "name": "plus",
+   "objects": [
+    "FieldPhone_Root"
+   ],
+   "command": "pushmenu plus_options",
+   "sign": "plus_sign",
+   "text": "Plus Options",
+   "lights": [
+    "Hover_Plus"
+   ]
   }
  ],
  "corners": [
