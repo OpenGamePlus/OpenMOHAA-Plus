@@ -79,6 +79,8 @@ def load_mapping(path):
     """Reads and checks a mapping file (misc/plus-pk3/legacy/<menu>.json)."""
     with open(path) as f:
         mapping = json.load(f)
+    if mapping.get("screen"):
+        return _check_screen(path, mapping)
     for key in ("menu", "sign_cvar", "hotspots"):
         if key not in mapping:
             raise ValueError(f"{path}: missing {key}")
@@ -111,7 +113,46 @@ def load_mapping(path):
             raise ValueError(f"{menu}: hotspot {name}: glow can only be \"frame\"")
     if boards != 1:
         raise ValueError(f"{menu}: needs exactly one board hotspot, has {boards}")
+    _check_corners(menu, mapping)
+    return mapping
+
+
+def _check_corners(menu, mapping):
     for corner in mapping.get("corners", []):
         if not corner.get("title") or not corner.get("command") or corner.get("side") not in ("left", "right"):
             raise ValueError(f"{menu}: corner {corner!r} needs a title, a command and side left or right")
+        if not isinstance(corner.get("slot", 0), int) or corner.get("slot", 0) < 0:
+            raise ValueError(f"{menu}: corner {corner['title']}: slot is a count from the corner (0, 1, ...)")
+
+
+CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",)}
+
+
+def _check_screen(path, mapping):
+    """An option screen: a close-up whose controls (list, check, slider) sit on Blender objects."""
+    for key in ("menu", "camera", "controls"):
+        if not mapping.get(key):
+            raise ValueError(f"{path}: missing {key}")
+    menu, names = mapping["menu"], set()
+    for control in mapping["controls"]:
+        name, kind = control.get("name", ""), control.get("kind")
+        if not name or '"' in name or name in names:
+            raise ValueError(f"{menu}: bad or repeated control name {name!r}")
+        names.add(name)
+        if kind not in CONTROL_PARTS:
+            raise ValueError(f"{menu}: control {name}: kind is one of {', '.join(CONTROL_PARTS)}")
+        if not control.get("cvar"):
+            raise ValueError(f"{menu}: control {name} needs a cvar")
+        for part in CONTROL_PARTS[kind]:
+            if not control.get(part):
+                raise ValueError(f"{menu}: control {name} needs the objects of its {part}")
+        if kind == "list":
+            items = control.get("items") or []
+            if not items or any(len(i) != 2 or '"' in "".join(i) for i in items):
+                raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
+        if kind == "slider":
+            low, high = control.get("range", [0, 0])
+            if not low < high or not control.get("step", 0) > 0:
+                raise ValueError(f"{menu}: slider {name} needs a range [low, high] and a step")
+    _check_corners(menu, mapping)
     return mapping

@@ -96,7 +96,8 @@ python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export fold
 one mask per clickable object, the objects' rectangles and, for objects with lamps, a render with
 those lamps on. `misc/plus-pk3/legacy/<menu>.json` says which objects are clickable, what they do,
 the name the sign shows and which lamps light up when the pointer is on them (the room is dark
-otherwise). The field telephone in the options room opens the Plus options (every tab, the fork's own settings
+otherwise). The video unit in the options room opens a close-up of it with working controls, as the original
+video options did. The field telephone in the options room opens the Plus options (every tab, the fork's own settings
 included). The chalkboard in the main room opens the credits of the 3D models in the scenes
 (`misc/plus-pk3/legacy/credits/models.json`, all CC BY 4.0). The game writes the sign
 with the Plus serif font `plussign-32`, sized to its board, and translates it with `cl_language`

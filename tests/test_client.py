@@ -1818,6 +1818,73 @@ class LegacyMenu(GameTestCase):
         except subprocess.TimeoutExpired:
             self.fail("a click on Quit did not quit: " + c.log()[-1500:])
 
+    def test_option_screen_values_on_their_plates(self):
+        # a pulldown under cover draws its value in its child menu, which must sit in the container:
+        # it was placed from the screen's origin and clipped away, so the plates stayed blank
+        c = self.start(1920, 1080)
+        screen = self.widgets(c, "pushmenu video_options")
+        containers = [w for w in screen["widgets"].values() if w["class"] == "UIPulldownMenuContainer"]
+        self.assertEqual(len(containers), len(screen["pulldowns"]))
+        for box, pull in zip(containers, screen["pulldowns"]):
+            x0, y0, x1, y1 = box["rect"]
+            px0, py0, px1, py1 = pull["rect"]
+            self.assertTrue(x0 - 1 <= px0 <= x1 and y0 - 1 <= py0 <= y1, (box, pull))
+        self.assertEqual(c.quit(), 0)
+
+    def test_option_screen_check_toggles(self):
+        # a click on a lamp's checkbox sets its cvar (the original screen's behaviour)
+        c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "r_ext_compressed_textures", "0")
+        screen = self.widgets(c, "pushmenu video_options")
+        x0, y0, x1, y1 = screen["widgets"]["texture compression"]["rect"]
+        x, y = round((x0 + x1) / 2), round((y0 + y1) / 2)
+        for buttons in (0, 1, 0):
+            c.send(f"ui_testmouse {x} {y} {buttons}")
+            time.sleep(1)
+        mark = len(c.log())
+        c.send("r_ext_compressed_textures")
+        # a renderer cvar: the click latches it until Apply restarts the renderer
+        c.wait_for(r'"r_ext_compressed_textures" is:"1|latched: "1"', start=mark, timeout=10)
+        self.assertEqual(c.quit(), 0)
+
+    def test_option_screen_apply_returns_to_options(self):
+        # Apply restarts the renderer for a latched change and goes back to the options room (with
+        # ui_checkrestart the restart brought the video screen back)
+        c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "r_ext_compressed_textures", "0")
+        self.widgets(c, "pushmenu options_main")
+        screen = self.widgets(c, "ui_marklatched", "pushmenu video_options")
+        self.assertEqual(screen["menu"], "video_options")
+
+        def click(name):
+            x0, y0, x1, y1 = screen["widgets"][name]["rect"]
+            for buttons in (0, 1, 0):
+                c.send(f"ui_testmouse {round((x0 + x1) / 2)} {round((y0 + y1) / 2)} {buttons}")
+                time.sleep(1)
+
+        click("texture compression")
+        mark = len(c.log())
+        click("Apply")
+        c.wait_for(r"----- R_Init -----|vid_restart|Renderer", start=mark, timeout=60)
+        time.sleep(8)
+        self.assertEqual(self.top_menu(c, "options_main", timeout=30), "options_main")
+        mark = len(c.log())
+        c.send("r_ext_compressed_textures")
+        c.wait_for(r'"r_ext_compressed_textures" is:"1"', start=mark, timeout=10)  # applied, no longer latched
+        self.assertEqual(c.quit(), 0)
+
+    def test_option_screen_values_follow_the_picture(self):
+        # an option screen's values are written on the units' plates: under cover they keep their size
+        # against the plate at any screen shape (in menu units they shrank on screens wider than 16:9)
+        ratios = []
+        for w, h in ((1920, 1080), (2560, 1080)):
+            c = self.start(w, h)
+            screen = self.widgets(c, "pushmenu video_options")
+            self.assertEqual(screen["menu"], "video_options")
+            plate = screen["widgets"]["resolution"]["rect"]
+            value = next(p for p in screen["pulldowns"] if p["value"])  # the plate's (the knob's has no value)
+            ratios.append(value["width"] / (plate[2] - plate[0]))
+            self.assertEqual(c.quit(), 0)
+        self.assertAlmostEqual(ratios[0], ratios[1], delta=0.03, msg=ratios)
+
     def sign(self, c, value):
         """The options_main sign widget after its cvar is set to value."""
         return self.widgets(c, "pushmenu options_main", "set ui_optionshader " + value)["widgets"]["sign"]

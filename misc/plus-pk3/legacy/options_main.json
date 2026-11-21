@@ -51,7 +51,7 @@
    "objects": [
     "Unit_Mouse*"
    ],
-   "command": "pushmenu video_options",
+   "command": "ui_marklatched; pushmenu video_options",
    "sign": "video_sign",
    "text": "Video",
    "lights": [

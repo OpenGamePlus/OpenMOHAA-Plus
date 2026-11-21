@@ -1,0 +1,221 @@
+{
+ "menu": "video_options",
+ "screen": true,
+ "camera": "Cam_Video",
+ "controls": [
+  {
+   "name": "resolution",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_148_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_RESOLUTION"
+   ],
+   "cvar": "r_mode",
+   "items": [
+    [
+     "Desktop",
+     "set r_mode -2"
+    ],
+    [
+     "1280x720",
+     "set r_mode -1; set r_customwidth 1280; set r_customheight 720"
+    ],
+    [
+     "1600x900",
+     "set r_mode -1; set r_customwidth 1600; set r_customheight 900"
+    ],
+    [
+     "1920x1080",
+     "set r_mode -1; set r_customwidth 1920; set r_customheight 1080"
+    ],
+    [
+     "2560x1440",
+     "set r_mode -1; set r_customwidth 2560; set r_customheight 1440"
+    ],
+    [
+     "3840x2160",
+     "set r_mode -1; set r_customwidth 3840; set r_customheight 2160"
+    ],
+    [
+     "2560x1080",
+     "set r_mode -1; set r_customwidth 2560; set r_customheight 1080"
+    ],
+    [
+     "3440x1440",
+     "set r_mode -1; set r_customwidth 3440; set r_customheight 1440"
+    ],
+    [
+     "1024x768",
+     "set r_mode -1; set r_customwidth 1024; set r_customheight 768"
+    ],
+    [
+     "1280x1024",
+     "set r_mode -1; set r_customwidth 1280; set r_customheight 1024"
+    ]
+   ]
+  },
+  {
+   "name": "color depth",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_285_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_COLOR DEPTH"
+   ],
+   "cvar": "r_colorbits",
+   "items": [
+    [
+     "Default",
+     "set r_colorbits 0"
+    ],
+    [
+     "16 bit",
+     "set r_colorbits 16"
+    ],
+    [
+     "32 bit",
+     "set r_colorbits 32"
+    ]
+   ]
+  },
+  {
+   "name": "texture detail",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_420_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_TEXTURE DETAIL"
+   ],
+   "cvar": "r_picmip",
+   "items": [
+    [
+     "Low",
+     "set r_picmip 2"
+    ],
+    [
+     "Medium",
+     "set r_picmip 1"
+    ],
+    [
+     "High",
+     "set r_picmip 0"
+    ]
+   ]
+  },
+  {
+   "name": "texture color depth",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_555_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_TEXTURE COLOR "
+   ],
+   "cvar": "r_texturebits",
+   "items": [
+    [
+     "Default",
+     "set r_texturebits 0"
+    ],
+    [
+     "16 bit",
+     "set r_texturebits 16"
+    ],
+    [
+     "32 bit",
+     "set r_texturebits 32"
+    ]
+   ]
+  },
+  {
+   "name": "texture filter",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_690_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_TEXTURE FILTER"
+   ],
+   "cvar": "r_texturemode",
+   "items": [
+    [
+     "Bilinear",
+     "set r_texturemode gl_linear_mipmap_nearest"
+    ],
+    [
+     "Trilinear",
+     "set r_texturemode gl_linear_mipmap_linear"
+    ]
+   ]
+  },
+  {
+   "name": "brightness",
+   "kind": "slider",
+   "plate": [
+    "Unit_Mouse_lbl_BRIGHTNESS"
+   ],
+   "cvar": "r_gamma",
+   "range": [
+    0.5,
+    3.0
+   ],
+   "step": 0.1,
+   "format": "%.1f"
+  },
+  {
+   "name": "wall decals",
+   "kind": "check",
+   "lamp": [
+    "VidLamp_Decals_Bezel"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_WALL DECALS"
+   ],
+   "cvar": "cg_marks_add"
+  },
+  {
+   "name": "weather effects",
+   "kind": "check",
+   "lamp": [
+    "VidLamp_Weather_Bezel"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_WEATHER EFFECT"
+   ],
+   "cvar": "cg_rain"
+  },
+  {
+   "name": "texture compression",
+   "kind": "check",
+   "lamp": [
+    "VidLamp_Compress_Bezel"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_TEXTURE COMPRE"
+   ],
+   "cvar": "r_ext_compressed_textures"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "ui_discardlatched; popmenu 0"
+  },
+  {
+   "title": "Apply",
+   "side": "right",
+   "command": "popmenu 0; wait; wait; ui_applylatched"
+  },
+  {
+   "title": "Defaults",
+   "side": "right",
+   "slot": 1,
+   "command": "ui_resetcvars"
+  }
+ ]
+}

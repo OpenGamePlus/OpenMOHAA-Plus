@@ -111,6 +111,78 @@ class Hotspots(unittest.TestCase):
             self.load(data)
 
 
+class Screens(unittest.TestCase):
+    """Option screens: a close-up with working controls (spec 2026-11-21-legacy-option-screens-design.md)."""
+    SCREEN = {"menu": "video_options", "screen": True, "camera": "Cam_Video", "controls": [
+        {"name": "resolution", "kind": "list", "knob": ["K"], "plate": ["P"], "cvar": "r_mode",
+         "items": [["Desktop", "set r_mode -2"], ["1920x1080", "set r_mode -1; set r_customwidth 1920"]]},
+        {"name": "brightness", "kind": "slider", "plate": ["B"], "cvar": "r_gamma", "range": [0.5, 3.0],
+         "step": 0.1, "format": "%.1f"},
+        {"name": "wall decals", "kind": "check", "lamp": ["L"], "plate": ["W"], "cvar": "cg_marks_add"}],
+        "corners": [{"title": "Back", "side": "left", "command": "popmenu 0"},
+                    {"title": "Apply", "side": "right", "command": "ui_checkrestart; popmenu 0"},
+                    {"title": "Defaults", "side": "right", "slot": 1, "command": "ui_resetcvars"}]}
+    EXPORT = {"menu": "video_options", "picture": [854, 480], "background": "background.png", "controls": {
+        "resolution": {"knob": [100, 100, 20, 20], "plate": [125, 100, 60, 12]},
+        "brightness": {"plate": [300, 200, 80, 10]},
+        "wall decals": {"lamp": [500, 150, 10, 10], "plate": [512, 150, 70, 10]}}}
+
+    def load(self, data):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_json(tmp, "s.json", data)
+            return hotspots.load_mapping(os.path.join(tmp, "s.json"))
+
+    def test_load_screen(self):
+        self.assertTrue(self.load(self.SCREEN)["screen"])
+        for bad in ({"kind": "dial"}, {"cvar": ""}, {"items": []}, {"plate": []}):
+            screen = json.loads(json.dumps(self.SCREEN))
+            screen["controls"][0].update(bad)
+            with self.assertRaises(ValueError, msg=bad):
+                self.load(screen)
+
+    def test_real_video_screen(self):
+        screen = hotspots.load_mapping(os.path.join(HERE, "legacy", "video_options.json"))
+        self.assertEqual(screen["menu"], "video_options")
+        cvars = {c["cvar"] for c in screen["controls"]}
+        self.assertEqual(cvars, {"r_mode", "r_colorbits", "r_picmip", "r_texturebits", "r_texturemode", "r_gamma",
+                                 "cg_marks_add", "cg_rain", "r_ext_compressed_textures"})  # the original's
+
+    def block(self, text, name):
+        return text[text.index(f'name "{name}"'):].split("\n}", 1)[0]
+
+    def test_screen_urc(self):
+        from legacy import pak
+        text = pak.screen_urc(self.load(self.SCREEN), self.EXPORT)
+        self.assertIn('menu "video_options"', text)
+        self.assertIn("cover 854 480", text)
+        knob, plate = self.block(text, "resolution knob"), self.block(text, "resolution")
+        for block in (knob, plate):  # both open the same list
+            self.assertIn("PulldownMenuContainer", text)
+            self.assertIn('addpopup "MENU" "1920x1080" command "set r_mode -1; set r_customwidth 1920"', block)
+        self.assertIn("rect 100 100 20 20", knob)
+        self.assertNotIn("linkcvar", knob)
+        self.assertIn("rect 125 100 60 12", plate)
+        self.assertIn('linkcvar "r_mode"', plate)  # the plate shows the value
+        slider = self.block(text, "brightness")
+        for line in ("rect 302 202 76 6", 'linkcvar "r_gamma"', "setrange 0.5 3.0", "stepsize 0.1", 'showvalue "%.1f"'):
+            self.assertIn("\n" + line + "\n", slider + "\n", line)
+        check = self.block(text, "wall decals")
+        for line in ("rect 500 150 82 10", "fgcolor 1 1 1 1", 'linkcvar "cg_marks_add"', 'checked_shader "textures/menu_plus/legacy/lamp_on"',
+                     'unchecked_shader "textures/menu_plus/clear"'):
+            self.assertIn("\n" + line + "\n", check + "\n", line)
+        self.assertIn("anchor -1 -1 152 20", self.block(text, "Defaults"))  # next to Apply
+        self.assertIn("anchor -1 -1 12 20", self.block(text, "Apply"))
+
+    def test_lamp_on_art(self):
+        from legacy import pak
+        lamp = pak.lamp_on()
+        self.assertEqual(lamp.size, (64, 64))
+        self.assertEqual(lamp.mode, "RGBA")
+        self.assertEqual(lamp.getpixel((0, 0))[3], 0)  # a glow on transparency
+        r, g, b, a = lamp.getpixel((32, 32))
+        self.assertTrue(a > 200 and r > g > b, (r, g, b, a))  # amber, lit
+
+
 class Mappings(unittest.TestCase):
     """The hotspots agreed with the maintainer (spec 2026-11-17-legacy-menu-design.md)."""
     AGREED = {
@@ -126,7 +198,7 @@ class Mappings(unittest.TestCase):
                          "advanced": ("pushmenu advancedoptions", "advanced_sign", "Advanced"),
                          "audio": ("pushmenu audio_options", "audio_sign", "Audio"),
                          "controls": ("pushmenu controls", "controls_sign", "Controls"),
-                         "video": ("pushmenu video_options", "video_sign", "Video"),
+                         "video": ("ui_marklatched; pushmenu video_options", "video_sign", "Video"),
                          "plus": ("pushmenu plus_options", "plus_sign", "Plus Options")},
         "war_records": {"sign": (None, None, None),
                         "personal records": ("pushmenu medals", "personalrecords_sign", "Personal Records"),
@@ -165,6 +237,7 @@ class BuildLegacy(unittest.TestCase):
         os.makedirs(mappings)
         write_json(mappings, "main.json", cls.MAPPING)
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
+        write_json(mappings, "video_options.json", Screens.SCREEN)
         os.makedirs(os.path.join(mappings, "credits"))
         write_json(os.path.join(mappings, "credits"), "models.json", {"license_url": "https://example.org/by", "models": [
             {"title": "Old Phone", "author": "gorzi", "url": "https://example.org/phone", "license": "CC BY 4.0"},
@@ -198,7 +271,9 @@ class BuildLegacy(unittest.TestCase):
             "ui/main.urc", "textures/menu_plus/legacy/main_l.jpg", "textures/menu_plus/legacy/main_r.jpg",
             "textures/menu_plus/legacy/main_a_b_h.jpg", "textures/menu_plus/legacy/main_c_h.jpg",
             "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga", "ui/legacy_credits.urc",
-            "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg"})
+            "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg",
+            "ui/video_options.urc", "textures/menu_plus/legacy/video_options_l.jpg",
+            "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga"})
 
     def test_green_button_plates(self):
         # the classic green plates, drawn here (not the game's art): the hover one lighter, no text on them

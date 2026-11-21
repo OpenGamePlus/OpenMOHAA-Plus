@@ -253,6 +253,35 @@ def export_hotspot(mapping_path, out_root, name):
     return entry
 
 
+def export_screen(mapping_path, out_root):
+    """An option screen (a mapping with "screen"): renders the background from the screen's camera and
+    writes <menu>.json with the rect of every control's parts (knob, plate, lamp) in picture units:
+    {"menu", "picture", "background", "controls": {name: {part: [x, y, w, h]}}}. Every rect is
+    measured before anything is written; the scene's camera is restored afterwards."""
+    mapping, folder, json_path = _paths(mapping_path, out_root)
+    scene = bpy.context.scene
+    camera = scene.objects.get(mapping["camera"])
+    if camera is None or camera.type != "CAMERA":
+        raise ValueError(f"{mapping['menu']}: no camera {mapping['camera']}")
+    saved = scene.camera
+    try:
+        scene.camera = camera
+        bpy.context.view_layer.update()
+        controls = {}
+        for control in mapping["controls"]:
+            controls[control["name"]] = {
+                part: list(_rect({"name": f"{control['name']} {part}", "objects": control[part]}, mapping["menu"]))
+                for part in hotspots.CONTROL_PARTS[control["kind"]]}
+        path = os.path.join(folder, "background.png")
+        _render(path)
+        with open(json_path, "w") as f:
+            json.dump({"menu": mapping["menu"], "picture": list(_picture()), "background": "background.png",
+                       "controls": controls}, f, indent=1)
+    finally:
+        scene.camera = saved
+    return path
+
+
 def export_all(mapping_path, out_root):
     """A fresh export of the screen: every hotspot is measured first, so a mapping error stops the
     run before anything is written; <menu>.json then starts over with no hotspots, so a run that
@@ -261,6 +290,8 @@ def export_all(mapping_path, out_root):
     a file again right after deleting it.) export_background and export_hotspot alone update an
     existing export."""
     mapping, folder, json_path = _paths(mapping_path, out_root)
+    if mapping.get("screen"):
+        return export_screen(mapping_path, out_root)
     for spot in mapping["hotspots"]:
         _rect(spot, mapping["menu"])
     with open(json_path, "w") as f:

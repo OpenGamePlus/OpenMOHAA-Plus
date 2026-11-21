@@ -812,9 +812,10 @@ void UIWidget::PropogateCoordinateSystem(void)
         m_screenframe   = m_frame;
         m_clippedframe  = m_frame;
 
-        // Fixed in OpenMOHAA Plus: the children of an anchored widget (the scroll bar of the Plus
-        //  browser's list) are placed in it, not from the screen origin
-        if (m_flags & WF_ANCHORED) {
+        // Fixed in OpenMOHAA Plus: the children of an anchored or covering widget (the scroll bar of the
+        //  Plus browser's list, a legacy option screen's pulldown) are placed in it, not from the screen
+        //  origin, where the widget's clipping hid them
+        if (m_flags & (WF_ANCHORED | WF_COVER)) {
             m_screenorigin.x = m_frame.pos.x - m_origin.x;
             m_screenorigin.y = m_frame.pos.y - m_origin.y;
         }

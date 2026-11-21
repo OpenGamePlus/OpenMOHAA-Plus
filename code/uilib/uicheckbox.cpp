@@ -98,9 +98,14 @@ void UICheckBox::Draw()
     float height = m_check_height * m_vVirtualScale[1];
     float x      = m_vVirtualScale[0] * m_indent;
     // Added in OpenMOHAA Plus: an anchored checkbox sizes its box to its rect (2 units margin), at
-    //  the left, so it matches the other Plus controls; the original ones keep 14 units
+    //  the left, so it matches the other Plus controls; a covering one (a legacy option screen's
+    //  lamp) fills its rect's height; the original ones keep 14 units
     if (m_flags & WF_ANCHORED) {
         height = m_frame.size.height - 4.0f * m_vVirtualScale[1];
+        width  = height;
+        x      = 0.0f;
+    } else if (m_flags & WF_COVER) {
+        height = m_frame.size.height;
         width  = height;
         x      = 0.0f;
     }

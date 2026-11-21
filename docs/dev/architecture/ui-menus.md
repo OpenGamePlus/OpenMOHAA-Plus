@@ -38,7 +38,10 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   background (`zone_lit`: the light falls off from the object inside a rect padded 8% by the export,
   so it never meets the tile's edge; `"glow": "frame"` keeps a short falloff at a door or board); a hotspot without lamps gets the
   background lit through its object mask. `legacy_credits.urc` (model credits) is generated from
-  `legacy/credits/models.json`. Hotspot buttons go from the largest rect to the smallest, so where
+  `legacy/credits/models.json`. Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
+  close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
+  over the plate (which shows the value), a check lights its lamp (`lamp_on`), a slider sits on its
+  plate. Hotspot buttons go from the largest rect to the smallest, so where
   rects overlap the smaller one (on top) takes the pointer. Corner buttons are green plates drawn by the pak build (`green_plate`,
   not the game's art) with the engine's text over them. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
   texts (font `plussign-32`); text under `cover` follows the picture (`UIWidget::getTextScale`).
