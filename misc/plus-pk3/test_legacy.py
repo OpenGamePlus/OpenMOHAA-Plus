@@ -240,10 +240,12 @@ class Screens(unittest.TestCase):
         self.assertIn("FakkLoadGameClass", text)
         self.assertIn("\nrect 100 200 500 150\n", lst + "\n")
         for line in ("rect 300 60 100 20", 'title "Load"', "font courier-20", 'stuffcommand "widgetcommand LoadSaveList loadgame"',
-                     'hovershader "textures/menu_plus/legacy/slip_h"', 'shader "textures/menu_plus/clear"'):
+                     'hovershader "textures/menu_plus/legacy/stamp_h"', 'shader "textures/menu_plus/clear"'):
             self.assertIn("\n" + line + "\n", act + "\n", line)
         stamp = json.loads(json.dumps(self.LOADSAVE)); del stamp["controls"][1]["title"]  # text in the picture
-        self.assertNotIn("title", self.block(pak.screen_urc(self.load(stamp), self.LOADSAVE_EXPORT), "Load Game"))
+        stamped = self.block(pak.screen_urc(self.load(stamp), self.LOADSAVE_EXPORT), "Load Game")
+        self.assertNotIn("title", stamped)
+        self.assertIn("\nfgcolor 1 1 1 1\n", stamped)  # the button tints its hover picture with it
         with self.assertRaises(ValueError):  # an action needs a command
             bad = json.loads(json.dumps(self.LOADSAVE)); del bad["controls"][1]["command"]
             self.load(bad)
@@ -294,12 +296,13 @@ class Screens(unittest.TestCase):
         self.assertIn("anchor -1 -1 152 20", self.block(text, "Defaults"))  # next to Apply
         self.assertIn("anchor -1 -1 12 20", self.block(text, "Apply"))
 
-    def test_slip_highlight_art(self):
+    def test_stamp_highlight_art(self):
         from legacy import pak
-        img = pak.slip_h()
+        img = pak.stamp_h()
         self.assertEqual(img.mode, "RGBA")
         self.assertEqual(img.getpixel((0, 0))[3], 0)  # soft: clear at its edge
-        self.assertTrue(0 < img.getpixel((img.width // 2, img.height // 2))[3] < 200)  # the slip still shows
+        r, g, b, a = img.getpixel((img.width // 2, img.height // 2))
+        self.assertTrue(0 < a < 255 and r > 200 and g < 60 and b < 60)  # deepens the stamp's red ink
 
     def test_lamp_on_art(self):
         from legacy import pak
@@ -403,7 +406,7 @@ class BuildLegacy(unittest.TestCase):
             "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg",
             "ui/video_options.urc", "textures/menu_plus/legacy/video_options_l.jpg",
             "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga",
-            "textures/menu_plus/legacy/slip_h.tga",
+            "textures/menu_plus/legacy/stamp_h.tga",
             "ui/medals.urc", "textures/menu_plus/legacy/medals_l.jpg", "textures/menu_plus/legacy/medals_r.jpg",
             "textures/menu_plus/legacy/medals_silver_star.jpg"})
 

@@ -177,15 +177,15 @@ def lamp_on():
     return img
 
 
-def slip_h():
-    """The glow over a slip under the pointer, 128x32 on transparency: warm, soft, the slip readable."""
+def stamp_h():
+    """The glow over a stamp under the pointer, 128x32 on transparency: a soft, deep red over its ink."""
     img = Image.new("RGBA", (128, 32), (0, 0, 0, 0))
     px = img.load()
     for y in range(32):
         for x in range(128):
             d = max(abs(x - 63.5) / 64, abs(y - 15.5) / 16)
             if d < 1:
-                px[x, y] = (255, 200, 110, round(120 * max(0.0, min(1.0, (1 - d) * 3.2 - 0.1))))
+                px[x, y] = (230, 20, 20, round(150 * max(0.0, min(1.0, (1 - d) * 3.2 - 0.1))))
     return img
 
 
@@ -276,10 +276,14 @@ def screen_urc(mapping, export):
         elif control["kind"] == "shot":  # the game puts the selected save's picture in it (by name)
             widget("Label", common(name, rects["plate"])[:2] + [
                 "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover])
-        elif control["kind"] == "action":  # a typed slip or a stamp: a soft glow under the pointer
-            title = [f'title "{control["title"]}"', "font courier-20", "textalign center"] if control.get("title") else []
-            widget("Button", common(name, rects["plate"]) + title + [
-                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/slip_h"',
+        elif control["kind"] == "action":  # a typed slip or a stamp: a red glow under the pointer
+            lines = common(name, rects["plate"])
+            if control.get("title"):
+                lines += [f'title "{control["title"]}"', "font courier-20", "textalign center"]
+            else:
+                lines[2] = "fgcolor 1 1 1 1"  # no text: the button tints its hover picture with it
+            widget("Button", lines + [
+                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/stamp_h"',
                 'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"'])
         elif control["kind"] == "saves":  # the game's save list, by name
             lines = common(name, rects["plate"])
@@ -394,7 +398,7 @@ def files(mapping_dir, export_root):
                     raise ValueError(f"{menu}: control {control['name']} missing in {json_path}")
             if not lamp_done:
                 lamp_done = True
-                for art, name in ((lamp_on(), "lamp_on"), (slip_h(), "slip_h")):
+                for art, name in ((lamp_on(), "lamp_on"), (stamp_h(), "stamp_h")):
                     out = io.BytesIO()
                     art.save(out, "TGA")  # glows need their alpha: TGA, not JPEG
                     yield f"{TEXTURES}/{name}.tga", out.getvalue()
