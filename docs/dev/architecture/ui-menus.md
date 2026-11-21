@@ -11,7 +11,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | Part | Location |
 |---|---|
 | Widgets (labels, lists, pulldowns, bind list), layout, menu stack | `code/uilib` (`uiwidget.cpp`, `uimenu.cpp`, `uipulldownmenu*.cpp`, `uibindlist.cpp`) |
-| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
+| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`; `ui_testmouse` in `cl_input.cpp`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
 | Server list widget (columns, favourites) | `code/client/cl_uiserverlist.cpp` |
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
@@ -35,7 +35,11 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   the Blender scene and build again. Their widgets sit in picture units with `cover` (exact at any
   shape and `ui_plusscale`); the background is rendered with the hotspots' lamps (`lights` in the
   mapping) off, and a hotspot's hover is its rect rendered with its own lamps on, faded into the
-  background (`zone_lit`); a hotspot without lamps gets the background lit through its object mask. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
+  background (`zone_lit`: the light falls off from the object inside a rect padded 8% by the export,
+  so it never meets the tile's edge; `"glow": "frame"` keeps a short falloff at a door or board); a hotspot without lamps gets the
+  background lit through its object mask. `legacy_credits.urc` (model credits) is generated from
+  `legacy/credits/models.json`. Corner buttons are green plates drawn by the pak build (`green_plate`,
+  not the game's art) with the engine's text over them. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
   texts (font `plussign-32`); text under `cover` follows the picture (`UIWidget::getTextScale`).
 
 ## Pitfalls (each cost a debugging round)
@@ -48,6 +52,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | The game's `ui/bind.scr` gives bind-list columns in fixed units; rows are 16 units (`commandheight`) | Columns are narrowed to fit scaled lists; a list height must be whole rows |
 | Children of a `WF_NOPARENTADJUST` widget were placed from the screen origin | Fixed for anchored widgets only (the server list's scroll bar) |
 | `CVAR_SOUND_LATCH` / `CVAR_TERRAIN_LATCH` never latch in `cvar.c` | `ui_marklatched` snapshots their values; Apply and Back compare against it |
+| Legacy render width not whole in picture units (2560x1440 is 853.33) | Background tiles and hovers drift ~1.5 px apart; `picture_size` refuses it: use e.g. 2562x1440 (854 units) |
+| `ui_plusscale` below 1 shrinks the menu frame | A widget placed on the screen (`anchor`, `cover`) can lie outside it; `FindResponder` now checks those children too, else they take no hover or click (legacy corner buttons at 0.85) |
 | `.gitignore` ignores `build*` | A new `build_*.py` is silently left out of commits (`legacy/build_legacy.py` was; now `legacy/pak.py`) |
 | A font with no `.shader` script got a lit world shader and crashed the GL renderers on its first text | `R_LoadFontShader` falls back to the 2D shader; fork fonts need no script (and `scripts/` is not read from fork paks on pure servers) |
 | `UIWidget::InitFrame` sets the font again (default `verdana-12`) | A popup that sizes its rows with another font must pass it to `InitFrame` too |

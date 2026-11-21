@@ -1533,6 +1533,7 @@ end.
             self.assertRegex(label["text"], r"^OpenMOHAA-Plus \d+\.\d+\.\d+-plus\.\d+\S*( \([0-9a-f]{7,}\))?$")
             x0, y0, x1, y1 = label["rect"]
             self.assertTrue(1600 * 0.6 < x0 < x1 <= 1600 and 900 * 0.9 < y0 < y1 <= 900, label)
+            self.assertLessEqual(y1 - y0, 900 * 0.022, label)  # small: it was 22 px here, the maintainer found it too big
             for name, w in screen["widgets"].items():
                 if w["shown"] and "text" in w and w["title"].strip():
                     self.assertFalse(self.overlap(w["text"], label["rect"]), (command, name, w, label))
@@ -1788,6 +1789,34 @@ class LegacyMenu(GameTestCase):
                 self.assertAlmostEqual(g, round(g), delta=0.01, msg=(name, got, want))
                 self.assertLessEqual(abs(g - e), 0.5, (name, got, want))
         self.assertEqual(c.quit(), 0)
+
+    def test_buttons_respond_to_the_mouse(self):
+        # ui_testmouse stands in for the mouse: a hotspot's hover sets the sign, a click on the Quit
+        # corner quits. At ui_plusscale 0.85 the menu frame ends above the corner buttons, which then
+        # took neither hover nor click. No floating console: the headless client opens it over the
+        # menu and it takes the pointer
+        c = self.start(1920, 1080, "+set", "ui_console", "0", "+set", "ui_plusscale", "0.85")
+        screen = self.widgets(c)
+
+        def centre(name):
+            x0, y0, x1, y1 = screen["widgets"][name]["rect"]
+            return round((x0 + x1) / 2), round((y0 + y1) / 2)
+
+        spot = next(s for s in self.mappings["main"]["hotspots"] if not s.get("board"))
+        x, y = centre(spot["name"])
+        c.send(f"ui_testmouse {x} {y} 0")
+        time.sleep(1)
+        mark = len(c.log())
+        c.send("ui_signshader")
+        c.wait_for(rf'"ui_signshader" is:"{spot["sign"]}', start=mark, timeout=10)
+        x, y = centre("Quit")
+        for buttons in (0, 1, 0):
+            c.send(f"ui_testmouse {x} {y} {buttons}")
+            time.sleep(1)
+        try:
+            c.proc.wait(30)
+        except subprocess.TimeoutExpired:
+            self.fail("a click on Quit did not quit: " + c.log()[-1500:])
 
     def sign(self, c, value):
         """The options_main sign widget after its cvar is set to value."""

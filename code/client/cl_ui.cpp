@@ -1837,7 +1837,7 @@ static const char *UI_BuildLabel(void)
 ====================
 UI_BuildLabelFont
 
-Added in OpenMOHAA Plus: the label's font, its scale (the 640x480 height) and its screen rect
+Added in OpenMOHAA Plus: the label's font, its scale (0.65 of the 640x480 height) and its screen rect
 in pixels, bottom right with a margin
 ====================
 */
@@ -1848,7 +1848,8 @@ static UIFont *UI_BuildLabelFont(vec2_t scale, UIRect2D& rect)
     if (!font) {
         font = new UIFont("verdana-12");
     }
-    scale[0] = scale[1] = uid.vidHeight / 480.0f;
+    // two thirds of the 640x480 size: at full size the maintainer found it too big
+    scale[0] = scale[1] = uid.vidHeight / 480.0f * 0.65f;
 
     const float w = font->getWidth(UI_BuildLabel(), -1) * scale[0];
     const float h = font->getHeight(scale);

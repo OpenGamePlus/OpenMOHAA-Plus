@@ -1701,7 +1701,22 @@ UIWidget *UIWidget::FindResponder(const UIPoint2D& pos)
     UIWidget *responder;
     int       i;
 
-    if (!m_visible || !m_clippedframe.contains(pos)) {
+    if (!m_visible) {
+        return NULL;
+    }
+
+    if (!m_clippedframe.contains(pos)) {
+        // Added in OpenMOHAA Plus: children placed on the screen (anchor, cover) can lie outside a
+        //  menu frame shrunk by ui_plusscale; the legacy menu's corner buttons took no click at 0.85
+        for (i = m_children.NumObjects(); i >= 1; i--) {
+            subview = m_children.ObjectAt(i);
+            if (subview->m_flags & (WF_ANCHORED | WF_COVER)) {
+                responder = subview->FindResponder(pos);
+                if (responder) {
+                    return responder;
+                }
+            }
+        }
         return NULL;
     }
 
