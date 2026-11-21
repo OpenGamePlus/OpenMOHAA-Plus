@@ -104,6 +104,13 @@ class Hotspots(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "a"):
             self.load(self.mapping([self.BOARD, self.SPOT, self.SPOT]))
 
+    def test_load_mapping_off(self):
+        # "off": lamps a room copied from another keeps dark in every render (a list of patterns)
+        room = self.mapping([self.BOARD, self.SPOT])
+        self.assertEqual(self.load(dict(room, off=["Map_Spot", "Pend_*"]))["off"], ["Map_Spot", "Pend_*"])
+        with self.assertRaises(ValueError):
+            self.load(dict(room, off="Map_Spot"))
+
     def test_load_mapping_rejects_bad_corner(self):
         data = self.mapping([self.BOARD, self.SPOT])
         data["corners"] = [{"title": "Quit", "side": "up", "command": "quit"}]

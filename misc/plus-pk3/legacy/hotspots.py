@@ -113,6 +113,9 @@ def load_mapping(path):
             raise ValueError(f"{menu}: hotspot {name}: glow can only be \"frame\"")
     if boards != 1:
         raise ValueError(f"{menu}: needs exactly one board hotspot, has {boards}")
+    off = mapping.get("off", [])
+    if not isinstance(off, list) or not all(isinstance(p, str) and p for p in off):
+        raise ValueError(f"{menu}: off is a list of object names or prefixes")
     _check_corners(menu, mapping)
     return mapping
 

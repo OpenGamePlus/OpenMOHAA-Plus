@@ -101,19 +101,24 @@ def _objects(spot):
     return list(found.values())
 
 
-def _zone_lights(mapping):
-    """{hotspot name: objects} of every hotspot's "lights": lamps and the meshes whose emission
-    shows a lamp lit (bulbs, shades), with their children."""
+def _lamps(patterns):
+    """Lamps and the meshes whose emission shows a lamp lit (bulbs, shades) matching the patterns,
+    with their children."""
     scene = bpy.context.scene
-    zones = {}
-    for spot in mapping["hotspots"]:
-        names = hotspots.match_objects([o.name for o in scene.objects], spot.get("lights", [])) if spot.get("lights") else []
-        found = {}
-        for name in names:
-            for ob in [scene.objects[name], *scene.objects[name].children_recursive]:
-                if ob.type in ("LIGHT", "MESH", "CURVE", "FONT"):
-                    found[ob.name] = ob
-        zones[spot["name"]] = list(found.values())
+    names = hotspots.match_objects([o.name for o in scene.objects], patterns) if patterns else []
+    found = {}
+    for name in names:
+        for ob in [scene.objects[name], *scene.objects[name].children_recursive]:
+            if ob.type in ("LIGHT", "MESH", "CURVE", "FONT"):
+                found[ob.name] = ob
+    return list(found.values())
+
+
+def _zone_lights(mapping):
+    """{hotspot name: objects} of every hotspot's "lights"; the mapping's "off" (lamps of a room this
+    one was copied from) are off in every render, so they join every zone's list of lamps to turn off."""
+    zones = {spot["name"]: _lamps(spot.get("lights", [])) for spot in mapping["hotspots"]}
+    zones[None] = _lamps(mapping.get("off", []))
     return zones
 
 
