@@ -2566,10 +2566,14 @@ void UIWidget::ApplyCover(void)
     const float k = Q_max(uid.vidWidth / m_coverSize[0], uid.vidHeight / m_coverSize[1]);
     VectorSet2D(m_coverTextScale, k, k);
 
-    m_frame.pos.x       = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
-    m_frame.pos.y       = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
-    m_frame.size.width  = m_coverRect.size.width * k;
-    m_frame.size.height = m_coverRect.size.height * k;
+    // edges on whole pixels: the 2D viewport (Set2DWindow) takes ints and cut a fractional frame, so
+    //  a hover drew up to 1.5 pixels up and left of the background under it
+    const float x = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
+    const float y = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
+    m_frame.pos.x       = roundf(x);
+    m_frame.pos.y       = roundf(y);
+    m_frame.size.width  = roundf(x + m_coverRect.size.width * k) - m_frame.pos.x;
+    m_frame.size.height = roundf(y + m_coverRect.size.height * k) - m_frame.pos.y;
 }
 
 void UIWidget::SetVirtualScale(vec2_t out)
@@ -2810,7 +2814,8 @@ void UIWidgetContainer::SetLastActiveWidgetOrderNum(void)
 }
 
 // Added in OpenMOHAA Plus: "ui_printwidgets" prints the screen geometry of a menu, in pixels, for
-//  the tests. One line per widget: depth, name, class, shown, rect "x y w h", and for a widget with text
+//  the tests. One line per widget: depth, name, class, shown, rect "x y w h" (two decimals: a frame off
+//  the pixel grid shows), and for a widget with text
 //  (a label: the text it draws) the rect the text is drawn in.
 void UIWidget::PrintGeometry(int depth)
 {
@@ -2823,7 +2828,7 @@ void UIWidget::PrintGeometry(int depth)
     ctext = text.c_str();
 
     uii.Sys_Printf(
-        "widget %d \"%s\" %s shown %d rect %.0f %.0f %.0f %.0f",
+        "widget %d \"%s\" %s shown %d rect %.2f %.2f %.2f %.2f",
         depth,
         m_name.c_str(),
         getClassname(),

@@ -1773,6 +1773,22 @@ class LegacyMenu(GameTestCase):
             for error in self.UI_ERRORS:
                 self.assertNotIn(error, log, (w, h))
 
+    def test_cover_frames_on_whole_pixels(self):
+        # the renderer's 2D viewport takes whole pixels (Set2DWindow): a frame off the grid was cut,
+        # which drew the hovers up to 1.5 pixels up and left of the background under them
+        w, h = 1920, 1080                  # k = 2.25: the fake rects fall on quarter pixels
+        c = self.start(w, h)
+        k = max(w / 1152, h / 480)
+        screen = self.widgets(c, "pushmenu options_main")
+        for name, (x, y, bw, bh) in self.rects["options_main"].items():
+            got = screen["widgets"][name]["rect"]
+            want = ((w - 1152 * k) / 2 + x * k, (h - 480 * k) / 2 + y * k,
+                    (w - 1152 * k) / 2 + (x + bw) * k, (h - 480 * k) / 2 + (y + bh) * k)
+            for g, e in zip(got, want):
+                self.assertAlmostEqual(g, round(g), delta=0.01, msg=(name, got, want))
+                self.assertLessEqual(abs(g - e), 0.5, (name, got, want))
+        self.assertEqual(c.quit(), 0)
+
     def sign(self, c, value):
         """The options_main sign widget after its cvar is set to value."""
         return self.widgets(c, "pushmenu options_main", "set ui_optionshader " + value)["widgets"]["sign"]
