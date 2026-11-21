@@ -115,7 +115,10 @@ class Screens(unittest.TestCase):
     """Option screens: a close-up with working controls (spec 2026-11-21-legacy-option-screens-design.md)."""
     SCREEN = {"menu": "video_options", "screen": True, "camera": "Cam_Video", "controls": [
         {"name": "resolution", "kind": "list", "knob": ["K"], "plate": ["P"], "cvar": "r_mode",
-         "items": [["Desktop", "set r_mode -2"], ["1920x1080", "set r_mode -1; set r_customwidth 1920"]]},
+         "items": [["Desktop", "set r_mode -2"], ["1920x1080", "set r_mode -1; set r_customwidth 1920"],
+                   ["1280x720", "set r_mode -1; set r_customwidth 1280"]]},
+        {"name": "model detail", "kind": "list", "knob": ["K2"], "plate": ["P2"], "cvar": "r_lodscale",
+         "items": [["Low", "set r_lodscale 0.35; set r_lodcap 0.35"], ["Highest", "set r_lodscale 1.1; set r_lodcap 1.0"]]},
         {"name": "brightness", "kind": "slider", "plate": ["B"], "cvar": "r_gamma", "range": [0.5, 3.0],
          "step": 0.1, "format": "%.1f"},
         {"name": "wall decals", "kind": "check", "lamp": ["L"], "plate": ["W"], "cvar": "cg_marks_add"}],
@@ -124,6 +127,7 @@ class Screens(unittest.TestCase):
                     {"title": "Defaults", "side": "right", "slot": 1, "command": "ui_resetcvars"}]}
     EXPORT = {"menu": "video_options", "picture": [854, 480], "background": "background.png", "controls": {
         "resolution": {"knob": [100, 100, 20, 20], "plate": [125, 100, 60, 12]},
+        "model detail": {"knob": [100, 130, 20, 20], "plate": [125, 130, 60, 12]},
         "brightness": {"plate": [300, 200, 80, 10]},
         "wall decals": {"lamp": [500, 150, 10, 10], "plate": [512, 150, 70, 10]}}}
 
@@ -152,11 +156,17 @@ class Screens(unittest.TestCase):
         self.assertEqual(screen["menu"], "audio_options")
         self.assertEqual({c["cvar"] for c in screen["controls"]}, {"s_volume", "s_musicvolume", "s_speaker_type", "s_khz"})
 
+    def test_real_advanced_screen(self):
+        screen = hotspots.load_mapping(os.path.join(HERE, "legacy", "advancedoptions.json"))
+        self.assertEqual({c["cvar"] for c in screen["controls"]}, {  # the original's
+            "cg_drawviewmodel", "cg_shadows", "ter_error", "r_lodscale", "cg_effectdetail", "r_subdivisions", "g_subtitle",
+            "ui_console", "r_drawstaticdecals", "r_fastdlights", "r_fastentlight", "vss_draw", "ui_weaponsbar", "ui_crosshair"})
+
     def test_slider_multiplier(self):
         # a volume shows as a percentage: showvalue's multiplier, as in the Plus audio tab
         from legacy import pak
         screen = json.loads(json.dumps(self.SCREEN))
-        screen["controls"][1].update(format="%.0f%%", multiplier=100)
+        next(c for c in screen["controls"] if c["kind"] == "slider").update(format="%.0f%%", multiplier=100)
         self.assertIn('\nshowvalue "%.0f%%" 100\n', pak.screen_urc(self.load(screen), self.EXPORT))
 
     def block(self, text, name):
@@ -174,7 +184,15 @@ class Screens(unittest.TestCase):
         self.assertIn("rect 100 100 20 20", knob)
         self.assertNotIn("linkcvar", knob)
         self.assertIn("rect 125 100 60 12", plate)
-        self.assertIn('linkcvar "r_mode"', plate)  # the plate shows the value
+        self.assertIn('linkcvar "r_mode"', plate)  # the plate shows the value: every set must match
+        # each item gives its own value of the cvar: a label maps it, as the original did (the other
+        # sets need not match), under a pulldown without a value
+        label, pull = self.block(text, "model detail value"), self.block(text, "model detail")
+        # its text as big and as far in as a pulldown's: 6 units in, a rect 28% taller (labels fit 50% of it)
+        for line in ("rect 131 128 54 16", 'linkcvar "r_lodscale"', 'linkstring "0.35" "Low"', 'linkstring "1.1" "Highest"'):
+            self.assertIn("\n" + line + "\n", label + "\n", line)
+        self.assertNotIn("linkcvar", pull)
+        self.assertLess(text.index('name "model detail value"'), text.index('name "model detail"\n'))  # under it
         slider = self.block(text, "brightness")
         for line in ("rect 302 202 76 6", 'linkcvar "r_gamma"', "setrange 0.5 3.0", "stepsize 0.1", 'showvalue "%.1f"'):
             self.assertIn("\n" + line + "\n", slider + "\n", line)
@@ -207,7 +225,7 @@ class Mappings(unittest.TestCase):
                  "credits": ("spmap credits", "credits_sign", "Credits"),
                  "model credits": ("pushmenu legacy_credits", "modelcredits_sign", "Model Credits")},
         "options_main": {"sign": (None, None, None),
-                         "advanced": ("pushmenu advancedoptions", "advanced_sign", "Advanced"),
+                         "advanced": ("ui_marklatched; pushmenu advancedoptions", "advanced_sign", "Advanced"),
                          "audio": ("ui_marklatched; pushmenu audio_options", "audio_sign", "Audio"),
                          "controls": ("pushmenu controls", "controls_sign", "Controls"),
                          "video": ("ui_marklatched; pushmenu video_options", "video_sign", "Video"),

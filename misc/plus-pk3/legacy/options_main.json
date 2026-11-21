@@ -15,7 +15,7 @@
    "objects": [
     "Unit_TopPanel*"
    ],
-   "command": "pushmenu advancedoptions",
+   "command": "ui_marklatched; pushmenu advancedoptions",
    "sign": "advanced_sign",
    "text": "Advanced",
    "lights": [

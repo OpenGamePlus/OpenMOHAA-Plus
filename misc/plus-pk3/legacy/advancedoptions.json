@@ -1,0 +1,299 @@
+{
+ "menu": "advancedoptions",
+ "screen": true,
+ "camera": "Cam_Advanced",
+ "controls": [
+  {
+   "name": "view model",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial70_268_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_VIEW MODEL"
+   ],
+   "cvar": "cg_drawviewmodel",
+   "items": [
+    [
+     "None",
+     "set cg_drawviewmodel 0"
+    ],
+    [
+     "Gun Only",
+     "set cg_drawviewmodel 1"
+    ],
+    [
+     "Full",
+     "set cg_drawviewmodel 2"
+    ]
+   ]
+  },
+  {
+   "name": "shadows",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial70_410_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_SHADOWS"
+   ],
+   "cvar": "cg_shadows",
+   "items": [
+    [
+     "None",
+     "set cg_shadows 0"
+    ],
+    [
+     "Simple",
+     "set cg_shadows 1"
+    ],
+    [
+     "Complex",
+     "set cg_shadows 2"
+    ]
+   ]
+  },
+  {
+   "name": "terrain detail",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial70_555_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_TERRAIN DETAIL"
+   ],
+   "cvar": "ter_error",
+   "items": [
+    [
+     "Low",
+     "set ter_error 10; set ter_maxlod 3; set ter_maxtris 16384"
+    ],
+    [
+     "Medium",
+     "set ter_error 9; set ter_maxlod 4; set ter_maxtris 16384"
+    ],
+    [
+     "High",
+     "set ter_error 7; set ter_maxlod 5; set ter_maxtris 16384"
+    ],
+    [
+     "Max",
+     "set ter_error 4; set ter_maxlod 6; set ter_maxtris 24576"
+    ]
+   ]
+  },
+  {
+   "name": "model detail",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial70_698_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_MODEL DETAIL"
+   ],
+   "cvar": "r_lodscale",
+   "items": [
+    [
+     "Lowest",
+     "set r_lodscale 0.25; set r_lodcap 0.25; set r_lodviewmodelcap 0.25"
+    ],
+    [
+     "Low",
+     "set r_lodscale 0.35; set r_lodcap 0.35; set r_lodviewmodelcap 0.25"
+    ],
+    [
+     "Medium",
+     "set r_lodscale 0.45; set r_lodcap 0.35; set r_lodviewmodelcap 0.45"
+    ],
+    [
+     "High",
+     "set r_lodscale 0.55; set r_lodcap 0.5; set r_lodviewmodelcap 0.55"
+    ],
+    [
+     "Higher",
+     "set r_lodscale 0.9; set r_lodcap 0.9; set r_lodviewmodelcap 0.9"
+    ],
+    [
+     "Highest",
+     "set r_lodscale 1.1; set r_lodcap 1.0; set r_lodviewmodelcap 1.0"
+    ]
+   ]
+  },
+  {
+   "name": "effects detail",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial540_265_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_EFFECTS DETAIL"
+   ],
+   "cvar": "cg_effectdetail",
+   "items": [
+    [
+     "Minimum",
+     "set cg_effectdetail 0.2; set vss_maxcount 25"
+    ],
+    [
+     "Lower",
+     "set cg_effectdetail 0.3; set vss_maxcount 23"
+    ],
+    [
+     "Low",
+     "set cg_effectdetail 0.5; set vss_maxcount 22"
+    ],
+    [
+     "Medium",
+     "set cg_effectdetail 0.7; set vss_maxcount 20"
+    ],
+    [
+     "High",
+     "set cg_effectdetail 0.8; set vss_maxcount 18"
+    ],
+    [
+     "Higher",
+     "set cg_effectdetail 0.95; set vss_maxcount 15"
+    ],
+    [
+     "Max",
+     "set cg_effectdetail 1.0; set vss_maxcount 10"
+    ]
+   ]
+  },
+  {
+   "name": "curve detail",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial540_407_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_CURVE DETAIL"
+   ],
+   "cvar": "r_subdivisions",
+   "items": [
+    [
+     "Lowest",
+     "set r_subdivisions 20"
+    ],
+    [
+     "Low",
+     "set r_subdivisions 10"
+    ],
+    [
+     "Medium",
+     "set r_subdivisions 4"
+    ],
+    [
+     "High",
+     "set r_subdivisions 3"
+    ]
+   ]
+  },
+  {
+   "name": "subtitles",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_SUBTITLES_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_SUBTITLES"
+   ],
+   "cvar": "g_subtitle"
+  },
+  {
+   "name": "console",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_CONSOLE_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_CONSOLE"
+   ],
+   "cvar": "ui_console"
+  },
+  {
+   "name": "static decals",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_STATIC_DECALS_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_STATIC DECALS"
+   ],
+   "cvar": "r_drawstaticdecals"
+  },
+  {
+   "name": "real dynamic lighting",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_REAL_DYNAMIC_L_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_REAL DYNAMIC L"
+   ],
+   "cvar": "r_fastdlights"
+  },
+  {
+   "name": "full entity lighting",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_FULL_ENTITY_LI_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_FULL ENTITY LI"
+   ],
+   "cvar": "r_fastentlight"
+  },
+  {
+   "name": "volumetric smoke",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_VOLUMETRIC_SMO_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_VOLUMETRIC SMO"
+   ],
+   "cvar": "vss_draw"
+  },
+  {
+   "name": "weapons bar",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_WEAPONS_BAR_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_WEAPONS BAR"
+   ],
+   "cvar": "ui_weaponsbar"
+  },
+  {
+   "name": "crosshair",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_CROSSHAIR_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_CROSSHAIR"
+   ],
+   "cvar": "ui_crosshair"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "ui_discardlatched; popmenu 0"
+  },
+  {
+   "title": "Apply",
+   "side": "right",
+   "command": "popmenu 0; wait; wait; ui_applylatched"
+  },
+  {
+   "title": "Defaults",
+   "side": "right",
+   "slot": 1,
+   "command": "ui_resetcvars"
+  }
+ ]
+}

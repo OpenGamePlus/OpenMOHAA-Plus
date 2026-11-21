@@ -186,6 +186,18 @@ def _union(*rects):
     return [x0, y0, x1 - x0, y1 - y0]
 
 
+def _item_values(control):
+    """[(value, title)] when every item of a list sets the list's cvar to a value of its own, else None."""
+    values = []
+    for title, command in control["items"]:
+        sets = [part.split() for part in command.split(";")]
+        found = [s[2] for s in sets if len(s) == 3 and s[0].lower() == "set" and s[1] == control["cvar"]]
+        if len(found) != 1:
+            return None
+        values.append((found[0], title))
+    return values if len({v for v, _ in values}) == len(values) else None
+
+
 def screen_urc(mapping, export):
     """ui/<menu>.urc of an option screen: the close-up and, on its units, the controls: a list is a
     pulldown over the knob and one over the plate, which shows the value; a check lights its lamp; a
@@ -220,7 +232,18 @@ def screen_urc(mapping, export):
             pull = ['font verdana-14', 'menushader "MENU" "textures/menu_plus/clear"',
                     'selmenushader "MENU" "textures/menu_plus/clear"']
             widget("PulldownMenuContainer", common(name + " knob", rects["knob"]) + pull + items)
-            widget("PulldownMenuContainer", common(name, rects["plate"]) + [f'linkcvar "{control["cvar"]}"'] + pull + items)
+            values = _item_values(control)
+            if values:  # a label maps the cvar's value (the original's way), under a pulldown without one
+                # its text as big and as far in as a pulldown's (6 units in, about 64% of the plate's
+                #  height): a label fits its text into 50% of its rect, so the rect is 28% taller
+                x, y, w, h = rects["plate"]
+                grow = round(h * 0.14)
+                widget("Label", common(name + " value", [x + 6, y - grow, w - 6, h + 2 * grow]) + [
+                    "font verdana-14", "textalign left", f'linkcvar "{control["cvar"]}"',
+                    *(f'linkstring "{value}" "{title}"' for value, title in values)])
+                widget("PulldownMenuContainer", common(name, rects["plate"]) + pull + items)
+            else:  # the pulldown names the item whose every set matches (several items share the cvar's value)
+                widget("PulldownMenuContainer", common(name, rects["plate"]) + [f'linkcvar "{control["cvar"]}"'] + pull + items)
         elif control["kind"] == "slider":
             low, high = control["range"]
             x, y, w, h = rects["plate"]  # inside the plate: the thumb is as tall as the slider
