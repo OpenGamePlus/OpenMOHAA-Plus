@@ -1,8 +1,10 @@
 # Copyright (C) 2026 the OpenMOHAA Plus contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Blender side of the Legacy menu: renders a screen's background and one object mask per hotspot
-from the open scene, and writes the hotspot rects in picture units. The pak build lights the masked
-part of the background for the hover (legacy/pak.py), so hovers match the background exactly.
+from the open scene, and writes the hotspot rects in picture units. A hotspot with "lights" (lamps
+and lit shades in the mapping) gets a render of its rect with only its own lamps on, and the
+background is rendered with every such lamp off, so the room is dark until a hotspot is pointed at.
+Without lights, the pak build lights the masked part of the background for the hover (legacy/pak.py).
 
 Run inside Blender (Blender MCP or the text editor), with the screen's .blend open:
 
@@ -13,15 +15,17 @@ Run inside Blender (Blender MCP or the text editor), with the screen's .blend op
 Export the background and the masks from one scene state. Writes <export root>/<menu>/background.png,
 mask_<slug>.png and <menu>.json:
 {"menu", "picture": [W, 480], "background": "background.png",
- "hotspots": {name: {"rect": [x, y, w, h], "mask": "mask_<slug>.png"}}} (the board has no mask).
+ "hotspots": {name: {"rect": [x, y, w, h], "mask": "mask_<slug>.png", "lit": "lit_<slug>.png"}}}
+(the board has no mask, a hotspot without lights no lit render).
 A mask is a Workbench render of the hotspot's rect: its objects white, every other object black, so
 what stands in front of it stays dark (under a second). The background is a full render with the
-scene's own engine (minutes). The .blend is never saved; object colours, the engine and the render
-settings are restored after each render.
+scene's own engine (minutes), a lit render the same for its rect. The .blend is never saved; object
+colours, lamps, materials, the engine and the render settings are restored after each render.
 """
 import json
 import os
 import sys
+from contextlib import contextmanager
 
 import bpy
 from bpy_extras.object_utils import world_to_camera_view
@@ -88,6 +92,66 @@ def _objects(spot):
     return list(found.values())
 
 
+def _zone_lights(mapping):
+    """{hotspot name: objects} of every hotspot's "lights": lamps and the meshes whose emission
+    shows a lamp lit (bulbs, shades), with their children."""
+    scene = bpy.context.scene
+    zones = {}
+    for spot in mapping["hotspots"]:
+        names = hotspots.match_objects([o.name for o in scene.objects], spot.get("lights", [])) if spot.get("lights") else []
+        found = {}
+        for name in names:
+            for ob in [scene.objects[name], *scene.objects[name].children_recursive]:
+                if ob.type in ("LIGHT", "MESH", "CURVE", "FONT"):
+                    found[ob.name] = ob
+        zones[spot["name"]] = list(found.values())
+    return zones
+
+
+def _emission_off(mat):
+    """A copy of the material with no emission (shared lamp materials stay as they are)."""
+    off = mat.copy()
+    off.name = mat.name + ".legacy_off"
+    for node in off.node_tree.nodes if off.use_nodes else []:
+        if node.type == "EMISSION":
+            node.inputs["Strength"].default_value = 0
+        elif node.type == "BSDF_PRINCIPLED":
+            node.inputs["Emission Strength"].default_value = 0
+    return off
+
+
+@contextmanager
+def _lights_off(objects):
+    """Turns the lamps off for the render: lights hidden, meshes' materials swapped for copies
+    without emission; everything restored and the copies removed afterwards."""
+    hidden = [(ob, ob.hide_render) for ob in objects if ob.type == "LIGHT"]
+    slots, copies = [], {}
+    try:
+        for ob, _ in hidden:
+            ob.hide_render = True
+        for ob in objects:
+            if ob.type == "LIGHT":
+                continue
+            for slot in ob.material_slots:
+                if slot.material is None:
+                    continue
+                mat, link = slot.material, slot.link
+                if mat.name not in copies:
+                    copies[mat.name] = _emission_off(mat)
+                slot.link = "OBJECT"  # the swap stays on this object, even for mesh-linked slots
+                slots.append((slot, link, slot.material))  # the object's own material, often None
+                slot.material = copies[mat.name]
+        yield
+    finally:
+        for slot, link, mat in reversed(slots):
+            slot.material = mat
+            slot.link = link
+        for ob, value in hidden:
+            ob.hide_render = value
+        for mat in copies.values():
+            bpy.data.materials.remove(mat)
+
+
 def _rect(spot, menu):
     scene, depsgraph = bpy.context.scene, bpy.context.evaluated_depsgraph_get()
     points = []
@@ -152,7 +216,8 @@ def export_background(mapping_path, out_root):
     """Renders <out_root>/<menu>/background.png; returns its path."""
     mapping, folder, json_path = _paths(mapping_path, out_root)
     path = os.path.join(folder, "background.png")
-    _render(path)
+    with _lights_off([ob for objects in _zone_lights(mapping).values() for ob in objects]):
+        _render(path)
     _update_json(json_path, mapping["menu"], lambda d: d.update(picture=list(_picture())))
     return path
 
@@ -167,6 +232,11 @@ def export_hotspot(mapping_path, out_root, name):
     if not spot.get("board"):
         entry["mask"] = f"mask_{hotspots.slug(name)}.png"
         _render_mask(os.path.join(folder, entry["mask"]), entry["rect"], _objects(spot))
+    if spot.get("lights"):  # the rect with only this hotspot's lamps on: its hover
+        zones = _zone_lights(mapping)
+        entry["lit"] = f"lit_{hotspots.slug(name)}.png"
+        with _lights_off([ob for zone, objects in zones.items() if zone != name for ob in objects]):
+            _render(os.path.join(folder, entry["lit"]), border=entry["rect"])
     _update_json(json_path, mapping["menu"], lambda d: d["hotspots"].__setitem__(name, entry))
     return entry
 

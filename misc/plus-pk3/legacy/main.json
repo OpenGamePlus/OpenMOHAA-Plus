@@ -25,7 +25,12 @@
    ],
    "command": "pushmenu briefingroom",
    "sign": "newgame_sign",
-   "text": "New Game"
+   "text": "New Game",
+   "lights": [
+    "Map_Spot",
+    "Pend_Metal_Map",
+    "Board_Accent"
+   ]
   },
   {
    "name": "briefing",
@@ -35,7 +40,13 @@
    ],
    "command": "pushmenu briefingroom",
    "sign": "briefingroom_sign",
-   "text": "Briefing"
+   "text": "Briefing",
+   "lights": [
+    "BackRoom_Light",
+    "Pend_A_Light",
+    "Pend_Metal_A",
+    "Hover_Briefing"
+   ]
   },
   {
    "name": "multiplayer",
@@ -44,7 +55,13 @@
    ],
    "command": "pushmenu multiplayer",
    "sign": "multiplayer_sign",
-   "text": "Multiplayer"
+   "text": "Multiplayer",
+   "lights": [
+    "SideRoom_Light",
+    "Wall_Lamp_R0*",
+    "Wall_Lamp_R1*",
+    "Hover_Multiplayer"
+   ]
   },
   {
    "name": "options",
@@ -53,7 +70,13 @@
    ],
    "command": "pushmenu options_main",
    "sign": "options_sign",
-   "text": "Options"
+   "text": "Options",
+   "lights": [
+    "Wall_Lamp_L",
+    "Wall_Lamp_L_Light",
+    "SideLamp_Light",
+    "Unit_Speaker_l0.34-0.12"
+   ]
   },
   {
    "name": "records",
@@ -62,7 +85,14 @@
    ],
    "command": "pushmenu war_records",
    "sign": "warrecords_sign",
-   "text": "War Records"
+   "text": "War Records",
+   "lights": [
+    "Lamp_L_*",
+    "Lamp_R_*",
+    "Lamp_F_*",
+    "Pend_Green_*",
+    "Hover_Records"
+   ]
   },
   {
    "name": "credits",
@@ -71,7 +101,13 @@
    ],
    "command": "spmap credits",
    "sign": "credits_sign",
-   "text": "Credits"
+   "text": "Credits",
+   "lights": [
+    "Bench_Soft",
+    "Lamp_Mid_Light",
+    "DeskLamp_Light",
+    "Hover_Credits"
+   ]
   }
  ],
  "corners": [

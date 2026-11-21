@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Builds the Legacy menu pak files from the mapping files (misc/plus-pk3/legacy/<menu>.json) and a
 Blender export (export_hotspots.py): per exported screen a generated ui/<menu>.urc, its background
-as two 2048x2048 JPEG tiles and one power-of-two JPEG per hotspot hover: the background under the
-hotspot with the object (its mask from the export) lit, all under
+as two 2048x2048 JPEG tiles and one power-of-two JPEG per hotspot hover: the export's render of the
+hotspot with its own lamps on (zone_lit), or for a hotspot without lamps the background under it with
+the object (its mask from the export) lit, all under
 textures/menu_plus/legacy/ (read on pure servers too). The pak needs zzz-plus.pk3 (font, clear.tga).
 """
 import glob
@@ -44,6 +45,21 @@ def lit(background, mask, gain=1.2, color=(255, 214, 150)):
     out = Image.composite(bright, background, mask.filter(ImageFilter.GaussianBlur(1.5)))
     rim = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(9)), mask).filter(ImageFilter.GaussianBlur(4))
     return Image.composite(tint, out, rim.point(lambda v: v // 2))
+
+
+def zone_lit(background, lit_render, mask, feather=0.15):
+    """The hotspot's own render with its lamps on, over the background (lamps off): the object
+    (mask, a little widened) fully lit, the lamp light around it fading out towards the rect's edges,
+    so the hover shows no seam."""
+    lit_render = lit_render.convert("RGB").resize(background.size, LANCZOS)
+    mask = mask.convert("L").resize(background.size, LANCZOS)
+    w, h = background.size
+    inset = max(1, round(min(w, h) * feather))
+    edge = Image.new("L", background.size, 0)
+    edge.paste(255, (inset, inset, max(inset, w - inset), max(inset, h - inset)))
+    alpha = ImageChops.lighter(mask.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(3)),
+                               edge.filter(ImageFilter.GaussianBlur(inset / 2)))
+    return Image.composite(lit_render, background, alpha)
 
 
 def _mappings(mapping_dir):
@@ -115,7 +131,8 @@ def files(mapping_dir, export_root):
             export = json.load(f)
         for spot in mapping["hotspots"]:
             entry = export["hotspots"].get(spot["name"])
-            if entry is None or (not spot.get("board") and "mask" not in entry):
+            if (entry is None or (not spot.get("board") and "mask" not in entry)
+                    or (spot.get("lights") and "lit" not in entry)):  # an export from before the lamps
                 raise ValueError(f"{menu}: hotspot {spot['name']} missing in {json_path}")
         yield f"ui/{menu}.urc", urc(mapping, export).encode("cp1252")
         background = Image.open(os.path.join(folder, export["background"])).convert("RGB")
@@ -130,8 +147,11 @@ def files(mapping_dir, export_root):
             entry = export["hotspots"][spot["name"]]
             x, y, w, h = entry["rect"]
             under = background.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
-            crop = lit(under, Image.open(os.path.join(folder, entry["mask"])),
-                       light.get("gain", 1.2), light.get("color", (255, 214, 150)))
+            mask = Image.open(os.path.join(folder, entry["mask"]))
+            if "lit" in entry:
+                crop = zone_lit(under, Image.open(os.path.join(folder, entry["lit"])), mask)
+            else:
+                crop = lit(under, mask, light.get("gain", 1.2), light.get("color", (255, 214, 150)))
             crop = crop.resize((_pow2(crop.width), _pow2(crop.height)), LANCZOS)
             yield f"{TEXTURES}/{menu}_{hotspots.slug(spot['name'])}_h.jpg", _jpeg(crop)
 
@@ -154,6 +174,9 @@ def fake_export(mapping_dir, out_root, rects=None):
                 mask = Image.new("L", size, 0)
                 mask.paste(255, (0, 0, size[0] // 2, size[1]))
                 mask.save(os.path.join(folder, entry["mask"]))
+            if spot.get("lights"):  # the lit render: solid (200, 180, 150)
+                entry["lit"] = f"lit_{hotspots.slug(spot['name'])}.png"
+                Image.new("RGB", size, (200, 180, 150)).save(os.path.join(folder, entry["lit"]))
             export["hotspots"][spot["name"]] = entry
         with open(os.path.join(folder, menu + ".json"), "w") as f:
             json.dump(export, f, indent=1)

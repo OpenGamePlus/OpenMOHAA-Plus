@@ -139,7 +139,8 @@ class BuildLegacy(unittest.TestCase):
     MAPPING = {"menu": "main", "sign_cvar": "ui_signshader", "hotspots": [
         {"name": "sign", "board": True, "objects": ["Board"]},
         {"name": "a b", "objects": ["A"], "command": "pushmenu a", "sign": "a_sign", "text": "A B"},
-        {"name": "c", "objects": ["C"], "command": "pushmenu c;set x 1", "sign": "c_sign", "text": "Ç"}],
+        {"name": "c", "objects": ["C"], "command": "pushmenu c;set x 1", "sign": "c_sign", "text": "Ç",
+         "lights": ["C_Lamp"]}],
         "corners": [{"title": "Back to game", "side": "left", "command": "popmenu 0"},
                     {"title": "Quit", "side": "right", "command": "quit"}]}
     RECTS = {"main": {"sign": [681, 38, 144, 72], "a b": [336, 304, 386, 145], "c": [823, 276, 3, 183]}}
@@ -227,6 +228,21 @@ class BuildLegacy(unittest.TestCase):
             self.assertAlmostEqual(got, base, delta=4)
         self.assertGreater(sum(lit), sum((40, 60, 80)) * 1.15)
         self.assertGreater(lit[0] - lit[2], (40 - 80) + 4)  # warmer than the background (+7 expected)
+
+    def test_hover_with_lights_is_the_lit_render(self):
+        # fake_export: the lit render of "c" (a hotspot with lights) is (200, 180, 150)
+        crop = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/main_c_h.jpg"))).convert("RGB")
+        for got, want in zip(crop.getpixel((crop.width // 4, crop.height // 2)), (200, 180, 150)):
+            self.assertAlmostEqual(got, want, delta=6)
+
+    def test_zone_lit_fades_to_the_background_at_the_edges(self):
+        background, lamp = Image.new("RGB", (200, 100), (10, 10, 10)), Image.new("RGB", (200, 100), (210, 210, 210))
+        mask = Image.new("L", (200, 100), 0)
+        mask.paste(255, (80, 30, 120, 70))
+        out = build_legacy.zone_lit(background, lamp, mask)
+        self.assertEqual(out.getpixel((100, 50)), (210, 210, 210))  # the object: fully lit
+        self.assertLess(out.getpixel((0, 0))[0], 30)  # the rect's corner: the background
+        self.assertGreater(out.getpixel((40, 50))[0], 150)  # lamp light around the object stays
 
     def test_missing_hotspot_raises(self):
         mappings, export = os.path.join(self.tmp.name, "mappings"), os.path.join(self.tmp.name, "export")

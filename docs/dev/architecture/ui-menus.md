@@ -33,8 +33,9 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 - New user-visible behaviour is documented on the user page in the same commit.
 - Legacy menu `.urc` files are generated: change the mapping (`misc/plus-pk3/legacy/<menu>.json`) or
   the Blender scene and build again. Their widgets sit in picture units with `cover` (exact at any
-  shape and `ui_plusscale`); hovers are the background lit through an object mask, so they cannot
-  drift from it. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
+  shape and `ui_plusscale`); the background is rendered with the hotspots' lamps (`lights` in the
+  mapping) off, and a hotspot's hover is its rect rendered with its own lamps on, faded into the
+  background (`zone_lit`); a hotspot without lamps gets the background lit through its object mask. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's
   texts (font `plussign-32`); text under `cover` follows the picture (`UIWidget::getTextScale`).
 
 ## Pitfalls (each cost a debugging round)

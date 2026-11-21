@@ -93,8 +93,10 @@ python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export fold
 ```
 
 `misc/plus-pk3/legacy/export_hotspots.py` (run inside Blender) writes the export: the background,
-one mask per clickable object and the objects' rectangles. `misc/plus-pk3/legacy/<menu>.json` says
-which objects are clickable, what they do and the name the sign shows. The game writes the sign
+one mask per clickable object, the objects' rectangles and, for objects with lamps, a render with
+those lamps on. `misc/plus-pk3/legacy/<menu>.json` says which objects are clickable, what they do,
+the name the sign shows and which lamps light up when the pointer is on them (the room is dark
+otherwise). The game writes the sign
 with the Plus serif font `plussign-32`, sized to its board, and translates it with `cl_language`
 like other menu text.
 

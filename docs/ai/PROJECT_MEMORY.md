@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-20 — Legacy menu: dark room, lamps per hotspot, 4:3 framing
+- The main room is dim and cool like the original (teal fill, maintainer's pick against a screenshot): a hotspot's `lights` (lamps, lit shades) are off in the background, and its hover is its rect rendered with only its own lamps on, faded in (`zone_lit`); lamp meshes lose their emission through per-object material copies. A stale export without lit renders is refused.
+- Hovers drew up to 1.5 px up and left of the background: `Set2DWindow` takes whole pixels and cut fractional `cover` frames. `ApplyCover` now puts the edges on whole pixels; `ui_printwidgets` prints two decimals so a test sees it.
+- Framing: camera 1.4 m back, 2.5° turned (`principal_1940_v3.blend`), every hotspot in x 284..867 of 1152 (4:3 and 5:4); `Hover_<zone>` spots light the doors and film box. Open: the room reads far away, options and war records rooms still lit the old way.
+
 ## 2026-11-18 — Legacy menu: engine-drawn signs
 - The signs were the original 128x32 `*_sign` images stretched over the rendered boards. Now the sign label maps each sign value to the mapping's text with `linkstring`, in a new `plussign-32` serif font (DejaVu Serif Bold, 3x: 4x would be a 16 MB atlas). Linked texts now go through the localization, and text under `cover` scales with the picture, shrunk to 90% x 50% of its widget (the real main board cut "Multiplayer").
 - The new font crashed the GL renderers: game fonts have a `.shader` script, and without one `R_FindShader` built a lit world shader. A script would not fix pure servers (`scripts/` is not exempt), so scriptless fonts get the 2D shader.
