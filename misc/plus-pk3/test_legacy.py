@@ -147,6 +147,18 @@ class Screens(unittest.TestCase):
         self.assertEqual(cvars, {"r_mode", "r_colorbits", "r_picmip", "r_texturebits", "r_texturemode", "r_gamma",
                                  "cg_marks_add", "cg_rain", "r_ext_compressed_textures"})  # the original's
 
+    def test_real_audio_screen(self):
+        screen = hotspots.load_mapping(os.path.join(HERE, "legacy", "audio_options.json"))
+        self.assertEqual(screen["menu"], "audio_options")
+        self.assertEqual({c["cvar"] for c in screen["controls"]}, {"s_volume", "s_musicvolume", "s_speaker_type", "s_khz"})
+
+    def test_slider_multiplier(self):
+        # a volume shows as a percentage: showvalue's multiplier, as in the Plus audio tab
+        from legacy import pak
+        screen = json.loads(json.dumps(self.SCREEN))
+        screen["controls"][1].update(format="%.0f%%", multiplier=100)
+        self.assertIn('\nshowvalue "%.0f%%" 100\n', pak.screen_urc(self.load(screen), self.EXPORT))
+
     def block(self, text, name):
         return text[text.index(f'name "{name}"'):].split("\n}", 1)[0]
 
@@ -196,7 +208,7 @@ class Mappings(unittest.TestCase):
                  "model credits": ("pushmenu legacy_credits", "modelcredits_sign", "Model Credits")},
         "options_main": {"sign": (None, None, None),
                          "advanced": ("pushmenu advancedoptions", "advanced_sign", "Advanced"),
-                         "audio": ("pushmenu audio_options", "audio_sign", "Audio"),
+                         "audio": ("ui_marklatched; pushmenu audio_options", "audio_sign", "Audio"),
                          "controls": ("pushmenu controls", "controls_sign", "Controls"),
                          "video": ("ui_marklatched; pushmenu video_options", "video_sign", "Video"),
                          "plus": ("pushmenu plus_options", "plus_sign", "Plus Options")},

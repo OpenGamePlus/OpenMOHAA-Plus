@@ -1,0 +1,109 @@
+{
+ "menu": "audio_options",
+ "screen": true,
+ "camera": "Cam_Audio",
+ "controls": [
+  {
+   "name": "master volume",
+   "kind": "slider",
+   "plate": [
+    "Unit_Middle_lbl_MASTER VOLUME"
+   ],
+   "cvar": "s_volume",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "step": 0.05,
+   "format": "%.0f%%",
+   "multiplier": 100
+  },
+  {
+   "name": "music volume",
+   "kind": "slider",
+   "plate": [
+    "Unit_Middle_lbl_MUSIC VOLUME"
+   ],
+   "cvar": "s_musicvolume",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "step": 0.05,
+   "format": "%.0f%%",
+   "multiplier": 100
+  },
+  {
+   "name": "speaker setup",
+   "kind": "list",
+   "knob": [
+    "Unit_Middle_dial735_275_fluted"
+   ],
+   "plate": [
+    "Unit_Middle_lbl_SPEAKER SETUP"
+   ],
+   "cvar": "s_speaker_type",
+   "items": [
+    [
+     "Two Speakers",
+     "set s_speaker_type 0"
+    ],
+    [
+     "Quad Speakers",
+     "set s_speaker_type 3"
+    ],
+    [
+     "Headphones",
+     "set s_speaker_type 1"
+    ],
+    [
+     "Surround",
+     "set s_speaker_type 2"
+    ]
+   ]
+  },
+  {
+   "name": "sound quality",
+   "kind": "list",
+   "knob": [
+    "Unit_Middle_dial735_435_fluted"
+   ],
+   "plate": [
+    "Unit_Middle_lbl_SOUND QUALITY"
+   ],
+   "cvar": "s_khz",
+   "items": [
+    [
+     "Low",
+     "set s_khz 11"
+    ],
+    [
+     "Medium",
+     "set s_khz 22"
+    ],
+    [
+     "High",
+     "set s_khz 44"
+    ]
+   ]
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "ui_discardlatched; popmenu 0"
+  },
+  {
+   "title": "Apply",
+   "side": "right",
+   "command": "popmenu 0; wait; wait; ui_applylatched"
+  },
+  {
+   "title": "Defaults",
+   "side": "right",
+   "slot": 1,
+   "command": "ui_resetcvars"
+  }
+ ]
+}

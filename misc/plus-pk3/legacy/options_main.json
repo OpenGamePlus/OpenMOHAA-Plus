@@ -27,7 +27,7 @@
    "objects": [
     "Unit_Middle*"
    ],
-   "command": "pushmenu audio_options",
+   "command": "ui_marklatched; pushmenu audio_options",
    "sign": "audio_sign",
    "text": "Audio",
    "lights": [

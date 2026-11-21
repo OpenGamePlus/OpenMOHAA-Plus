@@ -226,7 +226,9 @@ def screen_urc(mapping, export):
             x, y, w, h = rects["plate"]  # inside the plate: the thumb is as tall as the slider
             dx, dy = round(w * 0.03), round(h * 0.18)
             widget("Slider", common(name, [x + dx, y + dy, w - 2 * dx, h - 2 * dy]) + [
-                "font verdana-12", f'showvalue "{control.get("format", "%.1f")}"', f'linkcvar "{control["cvar"]}"',
+                "font verdana-12",
+                f'showvalue "{control.get("format", "%.1f")}"' + (f' {control["multiplier"]}' if "multiplier" in control else ""),
+                f'linkcvar "{control["cvar"]}"',
                 "slidertype float", f"setrange {low} {high}", f"stepsize {control['step']}"])
         else:
             lines = common(name, _union(rects["lamp"], rects["plate"]))
