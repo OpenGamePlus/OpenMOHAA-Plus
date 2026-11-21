@@ -220,6 +220,18 @@ class BuildLegacy(unittest.TestCase):
         order = re.findall(r'^name "([^"]+)"', self.read("ui/main.urc"), re.M)
         self.assertEqual(order, ["background left", "background right", "sign", "a b", "c", "Back to game", "Quit"])
 
+    def test_smaller_hotspots_on_top(self):
+        # where two rects overlap the smaller one takes the pointer (a door in front of a big desk's
+        # rect): buttons go from the largest to the smallest, later ones on top
+        mapping = dict(self.MAPPING, hotspots=[self.MAPPING["hotspots"][0],
+                                               dict(self.MAPPING["hotspots"][2], name="small"),
+                                               dict(self.MAPPING["hotspots"][1], name="big")])
+        export = {"picture": [1152, 480], "hotspots": {"sign": {"rect": [1, 1, 10, 10]},
+                                                       "small": {"rect": [100, 100, 20, 20]},
+                                                       "big": {"rect": [50, 50, 300, 300]}}}
+        order = re.findall(r'^name "([^"]+)"', build_legacy.urc(mapping, export), re.M)
+        self.assertLess(order.index("big"), order.index("small"), order)
+
     def test_urc_hotspot(self):
         block = self.block("c")
         for line in ("rect 823 276 3 183", "scalecvar ui_plusscale", "cover 1152 480",

@@ -194,9 +194,12 @@ def urc(mapping, export):
                      "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
                      "font plussign-32", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
                      *(f'linkstring "{s["sign"]}" "{s["text"]}"' for s in mapping["hotspots"] if not s.get("board"))])
-    for spot in mapping["hotspots"]:
-        if spot.get("board"):
-            continue
+    # largest first: where rects overlap, the smaller hotspot (drawn later, on top) takes the pointer
+    def area(spot):
+        _, _, w, h = export["hotspots"][spot["name"]]["rect"]
+        return -w * h
+
+    for spot in sorted((s for s in mapping["hotspots"] if not s.get("board")), key=area):
         widget("Button", [f'name "{spot["name"]}"', f"rect {rects[spot['name']]}", "fgcolor 1 1 1 1",
                           "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
                           'shader "textures/menu_plus/clear"',
