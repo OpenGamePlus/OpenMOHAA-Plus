@@ -253,6 +253,14 @@ def screen_urc(mapping, export):
                 f'showvalue "{control.get("format", "%.1f")}"' + (f' {control["multiplier"]}' if "multiplier" in control else ""),
                 f'linkcvar "{control["cvar"]}"',
                 "slidertype float", f"setrange {low} {high}", f"stepsize {control['step']}"])
+        elif control["kind"] == "medal":  # shown when earned; pointing at it names it on the plates
+            key = hotspots.slug(name)
+            widget("Label", common(name, rects["medal"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                f'shader "{TEXTURES}/{menu}_{key}"', f'enabledcvar "{control["cvar"]}"'])
+            widget("Button", common(name + " button", rects["medal"]) + [
+                'shader "textures/menu_plus/clear"', f'enabledcvar "{control["cvar"]}"',
+                f'hovercommand "set {mapping["sign_cvar"]} {key}"'])
         elif control["kind"] == "binds":  # the game's key list, black on the card like the original
             lines = common(name, rects["plate"])
             lines[2] = "fgcolor 0 0 0 1"
@@ -264,6 +272,12 @@ def screen_urc(mapping, export):
                 f'linkcvar "{control["cvar"]}"', f'checked_shader "{TEXTURES}/lamp_on"',
                 'unchecked_shader "textures/menu_plus/clear"',
                 *(f'{k} "{control[k]}"' for k in ("checked_command", "unchecked_command") if k in control)])
+    medals = [c for c in mapping["controls"] if c["kind"] == "medal"]
+    if medals:  # the name on its plate (the case's serif), the description on its card
+        for plate, field, font in (("name", "title", "plussign-32"), ("desc", "desc", "verdana-14")):
+            widget("Label", common("medal name" if plate == "name" else "medal description", export["plates"][plate]) + [
+                f"font {font}", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
+                *(f'linkstring "{hotspots.slug(c["name"])}" "{c[field]}"' for c in medals)])
     for corner in mapping.get("corners", []):
         widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0)))
     out.append("end.")
@@ -351,7 +365,8 @@ def files(mapping_dir, export_root):
         if mapping.get("screen"):
             for control in mapping["controls"]:
                 parts = export.get("controls", {}).get(control["name"], {})
-                if any(part not in parts for part in hotspots.CONTROL_PARTS[control["kind"]]):
+                if (any(part not in parts for part in hotspots.CONTROL_PARTS[control["kind"]])
+                        or (control["kind"] == "medal" and ("image" not in parts or "plates" not in export))):
                     raise ValueError(f"{menu}: control {control['name']} missing in {json_path}")
             if not lamp_done:
                 lamp_done = True
@@ -359,7 +374,15 @@ def files(mapping_dir, export_root):
                 lamp_on().save(out, "TGA")  # the glow needs its alpha: TGA, not JPEG
                 yield f"{TEXTURES}/lamp_on.tga", out.getvalue()
             yield f"ui/{menu}.urc", screen_urc(mapping, export).encode("cp1252")
-            yield from _background_tiles(folder, export, menu)
+            background = yield from _background_tiles(folder, export, menu)
+            k = background.width / export["picture"][0]
+            for control in mapping["controls"]:
+                if control["kind"] == "medal":  # its rect cut from the full render with it, drawn when earned
+                    x, y, w, h = export["controls"][control["name"]]["medal"]
+                    full = Image.open(os.path.join(folder, export["controls"][control["name"]]["image"])).convert("RGB")
+                    img = full.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+                    img = img.resize((_pow2(img.width), _pow2(img.height)), LANCZOS)
+                    yield f"{TEXTURES}/{menu}_{hotspots.slug(control['name'])}.jpg", _jpeg(img)
             continue
         for spot in mapping["hotspots"]:
             entry = export["hotspots"].get(spot["name"])
@@ -399,6 +422,16 @@ def fake_export(mapping_dir, out_root, rects=None):
                 c["name"]: {part: [300 + 44 * j, 60 + 40 * i, 40, 20]
                             for j, part in enumerate(hotspots.CONTROL_PARTS[c["kind"]])}
                 for i, c in enumerate(mapping["controls"])}}
+            if any(c["kind"] == "medal" for c in mapping["controls"]):  # the case's plates and medal pictures
+                export["plates"] = {"name": [300, 440, 300, 20], "desc": [300, 20, 300, 30]}
+                for c in mapping["controls"]:
+                    if c["kind"] == "medal":
+                        entry = export["controls"][c["name"]]
+                        entry["image"] = f"medal_{hotspots.slug(c['name'])}.png"
+                        x, y, w, h = entry["medal"]  # a full render: white, the medal's rect black
+                        full = Image.new("RGB", (3840, 1600), (255, 255, 255))
+                        full.paste((0, 0, 0), (round(x * 10 / 3), round(y * 10 / 3), round((x + w) * 10 / 3), round((y + h) * 10 / 3)))
+                        full.save(os.path.join(folder, entry["image"]))
             with open(os.path.join(folder, menu + ".json"), "w") as f:
                 json.dump(export, f, indent=1)
             continue

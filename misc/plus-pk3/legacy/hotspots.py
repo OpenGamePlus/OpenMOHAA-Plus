@@ -128,7 +128,8 @@ def _check_corners(menu, mapping):
             raise ValueError(f"{menu}: corner {corner['title']}: slot is a count from the corner (0, 1, ...)")
 
 
-CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",)}
+CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",),
+                 "medal": ("medal",)}
 
 
 def _check_screen(path, mapping):
@@ -155,6 +156,13 @@ def _check_screen(path, mapping):
             items = control.get("items") or []
             if not items or any(len(i) != 2 or '"' in "".join(i) for i in items):
                 raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
+        if kind == "medal":
+            for key in ("title", "desc"):
+                text = control.get(key, "")
+                if not text or '"' in text:
+                    raise ValueError(f"{menu}: medal {name} needs a {key} without quotes")
+            if not mapping.get("sign_cvar") or not mapping.get("name_plate") or not mapping.get("desc_plate"):
+                raise ValueError(f"{menu}: a medal case needs sign_cvar, name_plate and desc_plate")
         if kind == "slider":
             low, high = control.get("range", [0, 0])
             if not low < high or not control.get("step", 0) > 0:

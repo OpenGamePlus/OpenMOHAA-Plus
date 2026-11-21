@@ -135,6 +135,19 @@ def _emission_off(mat):
 
 
 @contextmanager
+def _hidden(objects):
+    """Hides the objects from the render; their visibility is restored afterwards."""
+    saved = [(ob, ob.hide_render) for ob in objects]
+    try:
+        for ob, _ in saved:
+            ob.hide_render = True
+        yield
+    finally:
+        for ob, value in saved:
+            ob.hide_render = value
+
+
+@contextmanager
 def _lights_off(objects):
     """Turns the lamps off for the render: lights hidden, meshes' materials swapped for copies
     without emission; everything restored and the copies removed afterwards."""
@@ -277,11 +290,22 @@ def export_screen(mapping_path, out_root):
             controls[control["name"]] = {
                 part: list(_rect({"name": f"{control['name']} {part}", "objects": control[part]}, mapping["menu"]))
                 for part in hotspots.CONTROL_PARTS[control["kind"]]}
+        data = {"menu": mapping["menu"], "picture": list(_picture()), "background": "background.png",
+                "controls": controls}
+        medals = {c["name"]: _objects({"objects": c["medal"]}) for c in mapping["controls"] if c["kind"] == "medal"}
+        if medals:  # a medal case: the plates the engine writes on, then the case empty, then each medal alone
+            data["plates"] = {plate: list(_rect({"name": plate, "objects": mapping[plate + "_plate"]}, mapping["menu"]))
+                              for plate in ("name", "desc")}
         path = os.path.join(folder, "background.png")
-        _render(path)
+        with _hidden([ob for objects in medals.values() for ob in objects]):
+            _render(path)
+        for name, objects in medals.items():
+            controls[name]["image"] = f"medal_{hotspots.slug(name)}.png"
+            # the whole frame (a border render lights the velvet differently); the pak cuts the rect
+            with _hidden([ob for other, obs in medals.items() if other != name for ob in obs]):
+                _render(os.path.join(folder, controls[name]["image"]))
         with open(json_path, "w") as f:
-            json.dump({"menu": mapping["menu"], "picture": list(_picture()), "background": "background.png",
-                       "controls": controls}, f, indent=1)
+            json.dump(data, f, indent=1)
     finally:
         scene.camera = saved
     return path

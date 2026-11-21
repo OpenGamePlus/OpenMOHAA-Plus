@@ -42,7 +42,9 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
   over the plate (which shows the value; when every item sets the list's cvar to a value of its
   own, a label maps that value as the original did, so the item's other cvars need not match), a check lights its lamp (`lamp_on`), a slider sits on its
-  plate; `binds` puts the game's key list (`FakkBindList`) on a card. A room copied from another (war records is the main room's desk up close) lists the
+  plate; `binds` puts the game's key list (`FakkBindList`) on a card; `medal` shows its own render
+  (cut by the pak from a full-frame render: a border render lights differently) when its cvar is
+  set, and pointing at it writes its name and description on the case's plates (`sign_cvar`). A room copied from another (war records is the main room's desk up close) lists the
   other room's lamps in `"off"`: dark in every render. Hotspot buttons go from the largest rect to the smallest, so where
   rects overlap the smaller one (on top) takes the pointer. Corner buttons are green plates drawn by the pak build (`green_plate`,
   not the game's art) with the engine's text over them. The sign is a label whose `linkstring`s map the sign cvar's values to the mapping's

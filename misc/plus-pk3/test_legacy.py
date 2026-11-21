@@ -193,6 +193,39 @@ class Screens(unittest.TestCase):
         self.assertEqual(next(c for c in screen["corners"] if c["title"] == "Defaults")["command"],
                          "ui_resetcvars; exec default.cfg")  # the original's
 
+    MEDALS = {"menu": "medals", "screen": True, "camera": "Cam_Medals", "sign_cvar": "ui_medalsign",
+              "name_plate": ["N"], "desc_plate": ["D"], "controls": [
+                  {"name": "silver star", "kind": "medal", "medal": ["Medal_silverstar"], "cvar": "g_eogmedal1",
+                   "title": "Silver Star", "desc": "For gallantry in action."}],
+              "corners": [{"title": "Back", "side": "left", "command": "popmenu 0"}]}
+    MEDALS_EXPORT = {"menu": "medals", "picture": [854, 480], "background": "background.png",
+                     "plates": {"name": [100, 400, 300, 20], "desc": [100, 20, 300, 30]},
+                     "controls": {"silver star": {"medal": [500, 200, 60, 120], "image": "medal_silver_star.png"}}}
+
+    def test_medal_case(self):
+        # the medal case: a medal shows only when earned (its cvar), and pointing at it writes its name
+        # on the name plate and its description on the card (the original's ui_medalsign)
+        from legacy import pak
+        text = pak.screen_urc(self.load(self.MEDALS), self.MEDALS_EXPORT)
+        pic, hot = self.block(text, "silver star"), self.block(text, "silver star button")
+        for line in ("rect 500 200 60 120", 'shader "textures/menu_plus/legacy/medals_silver_star"', 'enabledcvar "g_eogmedal1"'):
+            self.assertIn("\n" + line + "\n", pic + "\n", line)
+        for line in ("rect 500 200 60 120", 'enabledcvar "g_eogmedal1"', 'hovercommand "set ui_medalsign silver_star"'):
+            self.assertIn("\n" + line + "\n", hot + "\n", line)
+        name, desc = self.block(text, "medal name"), self.block(text, "medal description")
+        self.assertIn('\nlinkstring "silver_star" "Silver Star"\n', name + "\n")
+        self.assertIn('\nlinkstring "silver_star" "For gallantry in action."\n', desc + "\n")
+        for block in (name, desc):
+            self.assertIn('\nlinkcvar "ui_medalsign"\n', block + "\n")
+        with self.assertRaises(ValueError):  # a medal needs its title and description
+            bad = json.loads(json.dumps(self.MEDALS)); del bad["controls"][0]["desc"]
+            self.load(bad)
+
+    def test_real_medal_case(self):
+        case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
+        self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
+                         {f"g_medal{i}" for i in range(6)} | {f"g_eogmedal{i}" for i in range(3)})
+
     def test_slider_multiplier(self):
         # a volume shows as a percentage: showvalue's multiplier, as in the Plus audio tab
         from legacy import pak
@@ -299,6 +332,7 @@ class BuildLegacy(unittest.TestCase):
         write_json(mappings, "main.json", cls.MAPPING)
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
         write_json(mappings, "video_options.json", Screens.SCREEN)
+        write_json(mappings, "medals.json", Screens.MEDALS)
         os.makedirs(os.path.join(mappings, "credits"))
         write_json(os.path.join(mappings, "credits"), "models.json", {"license_url": "https://example.org/by", "models": [
             {"title": "Old Phone", "author": "gorzi", "url": "https://example.org/phone", "license": "CC BY 4.0"},
@@ -334,7 +368,15 @@ class BuildLegacy(unittest.TestCase):
             "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga", "ui/legacy_credits.urc",
             "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg",
             "ui/video_options.urc", "textures/menu_plus/legacy/video_options_l.jpg",
-            "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga"})
+            "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga",
+            "ui/medals.urc", "textures/menu_plus/legacy/medals_l.jpg", "textures/menu_plus/legacy/medals_r.jpg",
+            "textures/menu_plus/legacy/medals_silver_star.jpg"})
+
+    def test_medal_picture_is_cut_from_a_full_render(self):
+        # a medal is rendered over the whole frame (a border render lit the velvet differently) and the
+        # pak cuts its rect: fake_export's medal renders are white with a black rect
+        img = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/medals_silver_star.jpg"))).convert("RGB")
+        self.assertLess(sum(img.getpixel((img.width // 2, img.height // 2))), 60)
 
     def test_green_button_plates(self):
         # the classic green plates, drawn here (not the game's art): the hover one lighter, no text on them
