@@ -25,6 +25,7 @@ colours, lamps, materials, the engine and the render settings are restored after
 import json
 import os
 import sys
+import time
 from contextlib import contextmanager
 
 import bpy
@@ -74,7 +75,15 @@ def _render(path, border=None):
             r.border_min_y, r.border_max_y = 1 - (y + h) / height, 1 - y / height
         else:
             r.use_border = False
-        bpy.ops.render.render(write_still=True)
+        for attempt in range(3):
+            try:
+                bpy.ops.render.render(write_still=True)
+                break
+            except RuntimeError as error:
+                # over the WSL share Windows now and then refuses the write ("cannot save")
+                if "cannot save" not in str(error) or attempt == 2:
+                    raise
+                time.sleep(2)
     finally:
         (r.filepath, r.use_border, r.use_crop_to_border, r.border_min_x, r.border_max_x,
          r.border_min_y, r.border_max_y, r.image_settings.file_format) = saved
@@ -228,7 +237,10 @@ def export_hotspot(mapping_path, out_root, name):
     spot = next((s for s in mapping["hotspots"] if s["name"] == name), None)
     if spot is None:
         raise ValueError(f"{mapping['menu']}: no hotspot {name}")
-    entry = {"rect": list(_rect(spot, mapping["menu"]))}
+    rect = _rect(spot, mapping["menu"])
+    if not spot.get("board"):  # room for the hover's light to fade out (the sign's text keeps the board)
+        rect = hotspots.pad_rect(rect, _picture())
+    entry = {"rect": list(rect)}
     if not spot.get("board"):
         entry["mask"] = f"mask_{hotspots.slug(name)}.png"
         _render_mask(os.path.join(folder, entry["mask"]), entry["rect"], _objects(spot))

@@ -55,6 +55,17 @@ def write_legacy(out, export_root, mapping_dir):
     from legacy import pak as build_legacy
     sys.path.insert(0, os.path.join(HERE, "..", "fonts"))
     import make_fonts
+    tmp = out + ".tmp"  # a failed build (broken export) must not leave a truncated pak over the old one
+    try:
+        _write_legacy_zip(tmp, build_legacy, make_fonts, export_root, mapping_dir)
+        os.replace(tmp, out)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    print(f"wrote {out}")
+
+
+def _write_legacy_zip(out, build_legacy, make_fonts, export_root, mapping_dir):
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for name, data in build_legacy.files(mapping_dir, export_root):
             z.writestr(name, data)
@@ -65,7 +76,6 @@ def write_legacy(out, export_root, mapping_dir):
                                         make_fonts.FONT_SCALES[font])
         z.writestr(f"fonts/{font}.RitualFont", text.encode("ascii"))
         z.writestr(f"gfx/fonts/{font}.tga", tga)
-    print(f"wrote {out}")
 
 
 def bar_alpha(x):

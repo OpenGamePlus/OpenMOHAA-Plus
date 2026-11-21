@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy menu: model credits, green buttons, exact picture units
+- A 16:9 render (2560x1440) is 853.33 picture units: rounded, the background tiles and hovers sat ~1.5 px apart. `picture_size` now refuses a width that is not whole (the room renders 2562x1440, 854 units) and the pak splits the background on the urc's unit. A broken export used to leave an empty pak over the working one: `write_legacy` now writes a temp file.
+- The chalkboard opens `legacy_credits` (from `legacy/credits/models.json`: 7 Sketchfab models, all CC BY 4.0, title, author, source, licence); credits moved to the projector like the original; `"glow": "frame"` keeps a door's or a board's hover inside its outline.
+- Green corner plates (`green_plate`) took no hover or click at `ui_plusscale` 0.85: the scaled menu frame ended above them and `FindResponder` skipped children outside it; screen-placed children (anchor, cover) are now checked, proven with a new `ui_testmouse` (headless clients have no mouse; the floating console takes the pointer unless `ui_console 0`). Hovers fade from the object inside an 8% padded rect (no straight cuts); build label at 0.65 size. Scene v4: sign one beam closer, larger, parallel to the image; fan on the room side.
+
 ## 2026-11-20 — Legacy menu: dark room, lamps per hotspot, 4:3 framing
 - The main room is dim and cool like the original (teal fill, maintainer's pick against a screenshot): a hotspot's `lights` (lamps, lit shades) are off in the background, and its hover is its rect rendered with only its own lamps on, faded in (`zone_lit`); lamp meshes lose their emission through per-object material copies. A stale export without lit renders is refused.
 - Hovers drew up to 1.5 px up and left of the background: `Set2DWindow` takes whole pixels and cut fractional `cover` frames. `ApplyCover` now puts the edges on whole pixels; `ui_printwidgets` prints two decimals so a test sees it.

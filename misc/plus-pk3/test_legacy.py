@@ -32,7 +32,15 @@ def write_json(folder, name, data):
 class Hotspots(unittest.TestCase):
     def test_picture_size(self):
         self.assertEqual(hotspots.picture_size(3840, 1600), (1152, 480))
-        self.assertEqual(hotspots.picture_size(1920, 1080), (853, 480))
+        self.assertEqual(hotspots.picture_size(2562, 1440), (854, 480))
+        # 1920x1080 is 853.33 units wide: rounded, the background and the hovers drifted apart
+        with self.assertRaisesRegex(ValueError, "1920x1080"):
+            hotspots.picture_size(1920, 1080)
+
+    def test_padded_rect(self):
+        # room for the hover's light to fade out: 8% of the longer side each way, clamped to the picture
+        self.assertEqual(hotspots.pad_rect((100, 100, 50, 25), (854, 480)), (96, 96, 58, 33))
+        self.assertEqual(hotspots.pad_rect((0, 470, 100, 10), (854, 480)), (0, 462, 108, 18))
 
     def test_rect_rounds_outwards(self):
         pts = [(0.25, 0.5, 1), (0.5004, 0.25, 2)]
@@ -112,7 +120,8 @@ class Mappings(unittest.TestCase):
                  "multiplayer": ("pushmenu multiplayer", "multiplayer_sign", "Multiplayer"),
                  "options": ("pushmenu options_main", "options_sign", "Options"),
                  "records": ("pushmenu war_records", "warrecords_sign", "War Records"),
-                 "credits": ("spmap credits", "credits_sign", "Credits")},
+                 "credits": ("spmap credits", "credits_sign", "Credits"),
+                 "model credits": ("pushmenu legacy_credits", "modelcredits_sign", "Model Credits")},
         "options_main": {"sign": (None, None, None),
                          "advanced": ("pushmenu advancedoptions", "advanced_sign", "Advanced"),
                          "audio": ("pushmenu audio_options", "audio_sign", "Audio"),
@@ -155,6 +164,10 @@ class BuildLegacy(unittest.TestCase):
         os.makedirs(mappings)
         write_json(mappings, "main.json", cls.MAPPING)
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
+        os.makedirs(os.path.join(mappings, "credits"))
+        write_json(os.path.join(mappings, "credits"), "models.json", {"license_url": "https://example.org/by", "models": [
+            {"title": "Old Phone", "author": "gorzi", "url": "https://example.org/phone", "license": "CC BY 4.0"},
+            {"title": "Fan", "author": "cody", "url": "https://example.org/fan", "license": "CC BY 4.0"}]})
         export = os.path.join(cls.tmp.name, "export")
         build_legacy.fake_export(mappings, export, cls.RECTS)
         os.remove(os.path.join(export, "options_main", "options_main.json"))  # a screen not exported yet
@@ -183,7 +196,17 @@ class BuildLegacy(unittest.TestCase):
         self.assertEqual(set(self.zip.namelist()), {
             "ui/main.urc", "textures/menu_plus/legacy/main_l.jpg", "textures/menu_plus/legacy/main_r.jpg",
             "textures/menu_plus/legacy/main_a_b_h.jpg", "textures/menu_plus/legacy/main_c_h.jpg",
-            "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga"})
+            "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga", "ui/legacy_credits.urc",
+            "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg"})
+
+    def test_green_button_plates(self):
+        # the classic green plates, drawn here (not the game's art): the hover one lighter, no text on them
+        plain, hover = (Image.open(io.BytesIO(self.zip.read(f"textures/menu_plus/legacy/{n}.jpg"))).convert("RGB")
+                        for n in ("button", "button_h"))
+        self.assertEqual(plain.size, (256, 64))
+        r, g, b = plain.getpixel((128, 32))
+        self.assertTrue(g > r + 15 and g > b + 5, (r, g, b))  # green
+        self.assertGreater(sum(hover.getpixel((128, 32))), sum(plain.getpixel((128, 32))) + 60)
 
     def test_crops_power_of_two(self):
         sides = {2 ** n for n in range(4, 12)}
@@ -211,9 +234,22 @@ class BuildLegacy(unittest.TestCase):
                      'linkstring "a_sign" "A B"\nlinkstring "c_sign" "Ç"'):
             self.assertIn("\n" + line + "\n", sign + "\n", line)
         self.assertNotIn("linkcvartoshader", sign)
-        self.assertIn("anchor 30 -1 -1 40", self.block("Back to game"))
-        self.assertIn("anchor -1 -1 30 40", self.block("Quit"))
+        for name, anchor in (("Back to game", "anchor 12 -1 -1 20"), ("Quit", "anchor -1 -1 12 20")):
+            block = self.block(name)
+            for line in (anchor, "rect 0 0 128 30", 'shader "textures/menu_plus/legacy/button"',
+                         'hovershader "textures/menu_plus/legacy/button_h"', "textalign center", "font facfont-20",
+                         "fgcolor 1 1 1 1", f'title "{name}"'):
+                self.assertIn("\n" + line + "\n", block + "\n", (name, line))
         self.assertIn('stuffcommand "quit"', self.block("Quit"))
+
+    def test_model_credits_menu(self):
+        # CC BY: each model's title, author, source and licence, and a way back
+        text = self.read("ui/legacy_credits.urc")
+        self.assertIn('menu "legacy_credits"', text)
+        for line in ('title "Old Phone - gorzi"', 'title "CC BY 4.0  https://example.org/phone"',
+                     'title "Fan - cody"', 'stuffcommand "popmenu 0"', 'shader "textures/menu_plus/legacy/button"'):
+            self.assertIn("\n" + line + "\n", text, line)
+        self.assertIn("https://example.org/by", text)
 
     def test_missing_screen_skipped(self):
         self.assertNotIn("ui/options_main.urc", self.zip.namelist())
@@ -232,17 +268,25 @@ class BuildLegacy(unittest.TestCase):
     def test_hover_with_lights_is_the_lit_render(self):
         # fake_export: the lit render of "c" (a hotspot with lights) is (200, 180, 150)
         crop = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/main_c_h.jpg"))).convert("RGB")
-        for got, want in zip(crop.getpixel((crop.width // 4, crop.height // 2)), (200, 180, 150)):
-            self.assertAlmostEqual(got, want, delta=6)
+        # mostly the lit render (the tile is 10 px wide: its edge fade reaches the middle)
+        got = crop.getpixel((crop.width // 4, crop.height // 2))
+        for g, lit, dark in zip(got, (200, 180, 150), (40, 60, 80)):
+            self.assertGreater(abs(g - dark), 2 * abs(g - lit), got)
 
     def test_zone_lit_fades_to_the_background_at_the_edges(self):
+        # the light falls off with the distance to the object and is gone before the tile's edge:
+        # no straight cut along the rect, no rectangular plateau inside it
         background, lamp = Image.new("RGB", (200, 100), (10, 10, 10)), Image.new("RGB", (200, 100), (210, 210, 210))
         mask = Image.new("L", (200, 100), 0)
         mask.paste(255, (80, 30, 120, 70))
         out = build_legacy.zone_lit(background, lamp, mask)
+        row = [out.getpixel((x, 50))[0] for x in range(0, 81, 4)]
         self.assertEqual(out.getpixel((100, 50)), (210, 210, 210))  # the object: fully lit
-        self.assertLess(out.getpixel((0, 0))[0], 30)  # the rect's corner: the background
-        self.assertGreater(out.getpixel((40, 50))[0], 150)  # lamp light around the object stays
+        self.assertTrue(all(a <= b for a, b in zip(row, row[1:])), row)  # brighter towards the object
+        self.assertLess(row[0], 15)  # the tile's edge: the background
+        self.assertTrue(15 < out.getpixel((72, 50))[0] < 200)  # just beside the object: a soft glow
+        for corner in ((0, 0), (199, 0), (0, 99), (199, 99), (100, 0), (100, 99)):
+            self.assertLess(out.getpixel(corner)[0], 15, corner)
 
     def test_missing_hotspot_raises(self):
         mappings, export = os.path.join(self.tmp.name, "mappings"), os.path.join(self.tmp.name, "export")
@@ -254,6 +298,46 @@ class BuildLegacy(unittest.TestCase):
         write_json(os.path.join(broken, "main"), "main.json", data)
         with self.assertRaisesRegex(ValueError, "main.*c"):
             list(build_legacy.files(mappings, broken))
+
+    def test_zone_lit_frame_stops_at_the_frame(self):
+        # "glow": "frame" (a door): the frame and the opening it encloses lit, no light on the wall
+        background, lamp = Image.new("RGB", (200, 100), (10, 10, 10)), Image.new("RGB", (200, 100), (210, 210, 210))
+        mask = Image.new("L", (200, 100), 0)
+        mask.paste(255, (60, 10, 140, 20))   # head
+        mask.paste(255, (60, 10, 70, 100))   # left jamb
+        mask.paste(255, (130, 10, 140, 100))  # right jamb
+        out = build_legacy.zone_lit(background, lamp, mask, frame=True)
+        self.assertEqual(out.getpixel((100, 60)), (210, 210, 210))  # the opening: lit
+        self.assertEqual(out.getpixel((65, 60)), (210, 210, 210))   # the jamb: lit
+        # the wall: a short soft edge right at the frame, nothing further out
+        self.assertTrue(15 < out.getpixel((58, 60))[0] < 200)
+        self.assertLess(out.getpixel((56, 60))[0], 120)
+        self.assertLess(out.getpixel((40, 60))[0], 15)
+        self.assertLess(out.getpixel((100, 2))[0], 15)
+
+    def test_background_split_on_a_unit(self):
+        # an odd picture width: the left tile holds the urc's 427 left units (1281 px at 3 px a unit)
+        self.assertEqual(build_legacy.halves(2565, 1440, 855), ((0, 0, 1281, 1440), (1281, 0, 2565, 1440)))
+        with self.assertRaisesRegex(ValueError, "2560x1440"):
+            build_legacy.halves(2560, 1440, 853)
+
+    def test_failed_build_keeps_the_old_pak(self):
+        # a broken export used to leave an empty 22-byte zip over the working pak
+        mappings, export = os.path.join(self.tmp.name, "mappings"), os.path.join(self.tmp.name, "export")
+        with open(os.path.join(export, "main", "main.json")) as f:
+            data = json.load(f)
+        del data["hotspots"]["c"]
+        broken = os.path.join(self.tmp.name, "broken_keep")
+        os.makedirs(os.path.join(broken, "main"))
+        write_json(os.path.join(broken, "main"), "main.json", data)
+        out = os.path.join(self.tmp.name, "keep.pk3")
+        with open(out, "wb") as f:
+            f.write(b"old pak")
+        with self.assertRaises(ValueError):
+            build_pk3.write_legacy(out, broken, mappings)
+        with open(out, "rb") as f:
+            self.assertEqual(f.read(), b"old pak")
+        self.assertEqual([n for n in os.listdir(self.tmp.name) if n.startswith("keep.pk3")], ["keep.pk3"])
 
     def test_modern_pak_unchanged(self):
         with zipfile.ZipFile(os.path.join(self.tmp.name, "zzz-plus.pk3")) as modern:

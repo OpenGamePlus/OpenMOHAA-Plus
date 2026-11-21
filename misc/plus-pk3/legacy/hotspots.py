@@ -13,8 +13,13 @@ PICTURE_HEIGHT = 480
 
 
 def picture_size(res_x, res_y):
-    """Size of a res_x x res_y render in picture units."""
-    return round(PICTURE_HEIGHT * res_x / res_y), PICTURE_HEIGHT
+    """Size of a res_x x res_y render in picture units. The width must come out whole (3840x1600,
+    2562x1440): a rounded one puts the widgets and the background tiles a fraction of a unit apart."""
+    if PICTURE_HEIGHT * res_x % res_y:
+        raise ValueError(f"render {res_x}x{res_y} is {PICTURE_HEIGHT * res_x / res_y:.2f} picture units wide; "
+                         f"pick a width that makes it whole (e.g. {res_y * round(PICTURE_HEIGHT * res_x / res_y) // PICTURE_HEIGHT}"
+                         f"x{res_y} if that is whole)")
+    return PICTURE_HEIGHT * res_x // res_y, PICTURE_HEIGHT
 
 
 def rect_from_points(points, picture):
@@ -36,6 +41,16 @@ def rect_from_points(points, picture):
     left, right = math.floor(clamp(x0) * width), math.ceil(clamp(x1) * width)
     top, bottom = math.floor((1 - clamp(y1)) * height), math.ceil((1 - clamp(y0)) * height)
     return left, top, right - left, bottom - top
+
+
+def pad_rect(rect, picture, frac=0.08):
+    """The rect grown by frac of its longer side each way (at least one unit), clamped to the
+    picture: room for a hover's light to fade out before the tile's edge."""
+    x, y, w, h = rect
+    pad = max(1, math.ceil(max(w, h) * frac))
+    x0, y0 = max(0, x - pad), max(0, y - pad)
+    x1, y1 = min(picture[0], x + w + pad), min(picture[1], y + h + pad)
+    return x0, y0, x1 - x0, y1 - y0
 
 
 def match_objects(names, patterns):
@@ -92,6 +107,8 @@ def load_mapping(path):
                 text = '"'
             if not text or '"' in text:
                 raise ValueError(f"{menu}: hotspot {name} needs a text for the sign, in Windows-1252, without quotes")
+        if spot.get("glow", "frame") != "frame":
+            raise ValueError(f"{menu}: hotspot {name}: glow can only be \"frame\"")
     if boards != 1:
         raise ValueError(f"{menu}: needs exactly one board hotspot, has {boards}")
     for corner in mapping.get("corners", []):
