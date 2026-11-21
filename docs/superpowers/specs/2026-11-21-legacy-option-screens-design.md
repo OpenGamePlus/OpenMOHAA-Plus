@@ -1,7 +1,7 @@
 # Legacy option screens (video first)
 
-Status: agreed with the maintainer on 2026-11-21; video is the prototype, then audio, advanced and
-controls the same way.
+Status: done on 2026-11-21 for video, audio, advanced and controls (the key list is a `binds`
+control on the controls unit's card).
 
 ## Goal
 

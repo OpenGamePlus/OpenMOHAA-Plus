@@ -162,6 +162,30 @@ class Screens(unittest.TestCase):
             "cg_drawviewmodel", "cg_shadows", "ter_error", "r_lodscale", "cg_effectdetail", "r_subdivisions", "g_subtitle",
             "ui_console", "r_drawstaticdecals", "r_fastdlights", "r_fastentlight", "vss_draw", "ui_weaponsbar", "ui_crosshair"})
 
+    def test_binds_and_check_commands(self):
+        # the controls screen: the game's key list on the card, and a check that runs a command each
+        # way (invert mouse flips m_pitch, as the original's did)
+        from legacy import pak
+        screen = json.loads(json.dumps(self.SCREEN))
+        screen["controls"].append({"name": "keys", "kind": "binds", "plate": ["C"]})
+        screen["controls"][-2].update(checked_command="set m_pitch -0.022", unchecked_command="set m_pitch 0.022")
+        export = json.loads(json.dumps(self.EXPORT))
+        export["controls"]["keys"] = {"plate": [50, 300, 200, 120]}
+        text = pak.screen_urc(self.load(screen), export)
+        binds = self.block(text, "keys")
+        for line in ("rect 50 300 200 120", "filename ui/bind.scr", "fgcolor 0 0 0 1", "cover 854 480"):
+            self.assertIn("\n" + line + "\n", binds + "\n", line)
+        self.assertIn("FakkBindList", text)
+        check = self.block(text, "wall decals")
+        self.assertIn('\nchecked_command "set m_pitch -0.022"\n', check + "\n")
+        self.assertIn('\nunchecked_command "set m_pitch 0.022"\n', check + "\n")
+
+    def test_real_controls_screen(self):
+        screen = hotspots.load_mapping(os.path.join(HERE, "legacy", "controls.json"))
+        self.assertEqual({c.get("cvar") for c in screen["controls"]}, {None, "sensitivity", "m_invert_pitch", "m_filter", "cl_run"})
+        self.assertEqual(next(c for c in screen["corners"] if c["title"] == "Defaults")["command"],
+                         "ui_resetcvars; exec default.cfg")  # the original's
+
     def test_slider_multiplier(self):
         # a volume shows as a percentage: showvalue's multiplier, as in the Plus audio tab
         from legacy import pak

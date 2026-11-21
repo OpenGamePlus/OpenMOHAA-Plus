@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy option screens (video, audio, advanced, controls)
+- The options room's units open close-ups (`opciones_detalle_1940.blend`, one camera each) with the original screens' controls on them: `"screen"` mappings, `export_screen`, `screen_urc`; a list is a transparent pulldown over knob and plate, a check lights a lamp (`lamp_on`), a slider sits on a plate, `binds` puts the key list on a card. Plates went blank with their titles painted under them.
+- Engine: a widget under `cover` now places its children in it (a pulldown's value is a child: it sat at the screen's origin, clipped away) and a covering checkbox's box fills its rect. A list whose items each give the cvar its own value shows it with a label, as the original did (multi-cvar items rarely all match).
+- Apply is `popmenu 0; wait; wait; ui_applylatched`: with ui_checkrestart the renderer restart brought the screen back on the maintainer's Windows (not reproducible headless). Open: Windows check of Apply; cgame cvars (wall decals, view model) are blank until a game loaded, as in the original.
+
 ## 2026-11-21 — Legacy menu: model credits, green buttons, exact picture units
 - A 16:9 render (2560x1440) is 853.33 picture units: rounded, the background tiles and hovers sat ~1.5 px apart. `picture_size` now refuses a width that is not whole (the room renders 2562x1440, 854 units) and the pak splits the background on the urc's unit. A broken export used to leave an empty pak over the working one: `write_legacy` now writes a temp file.
 - The chalkboard opens `legacy_credits` (from `legacy/credits/models.json`: 7 Sketchfab models, all CC BY 4.0, title, author, source, licence); credits moved to the projector like the original; `"glow": "frame"` keeps a door's or a board's hover inside its outline.

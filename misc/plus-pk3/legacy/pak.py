@@ -253,12 +253,17 @@ def screen_urc(mapping, export):
                 f'showvalue "{control.get("format", "%.1f")}"' + (f' {control["multiplier"]}' if "multiplier" in control else ""),
                 f'linkcvar "{control["cvar"]}"',
                 "slidertype float", f"setrange {low} {high}", f"stepsize {control['step']}"])
+        elif control["kind"] == "binds":  # the game's key list, black on the card like the original
+            lines = common(name, rects["plate"])
+            lines[2] = "fgcolor 0 0 0 1"
+            widget("FakkBindList", lines + ["filename ui/bind.scr"])
         else:
             lines = common(name, _union(rects["lamp"], rects["plate"]))
             lines[2] = "fgcolor 1 1 1 1"  # the lamp art keeps its colours (fgcolor tints a checkbox's shader)
             widget("CheckBox", lines + [
                 f'linkcvar "{control["cvar"]}"', f'checked_shader "{TEXTURES}/lamp_on"',
-                'unchecked_shader "textures/menu_plus/clear"'])
+                'unchecked_shader "textures/menu_plus/clear"',
+                *(f'{k} "{control[k]}"' for k in ("checked_command", "unchecked_command") if k in control)])
     for corner in mapping.get("corners", []):
         widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0)))
     out.append("end.")

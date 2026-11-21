@@ -125,7 +125,7 @@ def _check_corners(menu, mapping):
             raise ValueError(f"{menu}: corner {corner['title']}: slot is a count from the corner (0, 1, ...)")
 
 
-CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",)}
+CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",)}
 
 
 def _check_screen(path, mapping):
@@ -141,8 +141,10 @@ def _check_screen(path, mapping):
         names.add(name)
         if kind not in CONTROL_PARTS:
             raise ValueError(f"{menu}: control {name}: kind is one of {', '.join(CONTROL_PARTS)}")
-        if not control.get("cvar"):
+        if kind != "binds" and not control.get("cvar"):  # the key list reads the game's ui/bind.scr
             raise ValueError(f"{menu}: control {name} needs a cvar")
+        if any('"' in control.get(k, "") for k in ("checked_command", "unchecked_command")):
+            raise ValueError(f"{menu}: check {name}: no quotes in its commands")
         for part in CONTROL_PARTS[kind]:
             if not control.get(part):
                 raise ValueError(f"{menu}: control {name} needs the objects of its {part}")
