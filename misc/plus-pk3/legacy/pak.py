@@ -282,8 +282,9 @@ def screen_urc(mapping, export):
                 lines += [f'title "{control["title"]}"', "font courier-20", "textalign center"]
             else:
                 lines[2] = "fgcolor 1 1 1 1"  # no text: the button tints its hover picture with it
+            hover = f"{menu}_{hotspots.slug(name)}" if control.get("lit") else "stamp_h"
             widget("Button", lines + [
-                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/stamp_h"',
+                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/{hover}"',
                 'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"'])
         elif control["kind"] == "saves":  # the game's save list, by name
             lines = common(name, rects["plate"])
@@ -394,7 +395,8 @@ def files(mapping_dir, export_root):
             for control in mapping["controls"]:
                 parts = export.get("controls", {}).get(control["name"], {})
                 if (any(part not in parts for part in hotspots.CONTROL_PARTS[control["kind"]])
-                        or (control["kind"] == "medal" and ("image" not in parts or "plates" not in export))):
+                        or (hotspots.picture(control) and "image" not in parts)
+                        or (control["kind"] == "medal" and "plates" not in export)):
                     raise ValueError(f"{menu}: control {control['name']} missing in {json_path}")
             if not lamp_done:
                 lamp_done = True
@@ -406,8 +408,8 @@ def files(mapping_dir, export_root):
             background = yield from _background_tiles(folder, export, menu)
             k = background.width / export["picture"][0]
             for control in mapping["controls"]:
-                if control["kind"] == "medal":  # its rect cut from the full render with it, drawn when earned
-                    x, y, w, h = export["controls"][control["name"]]["medal"]
+                if hotspots.picture(control):  # its rect cut from the full render with it
+                    x, y, w, h = export["controls"][control["name"]][hotspots.picture(control)[1]]
                     full = Image.open(os.path.join(folder, export["controls"][control["name"]]["image"])).convert("RGB")
                     img = full.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
                     img = img.resize((_pow2(img.width), _pow2(img.height)), LANCZOS)
@@ -451,16 +453,16 @@ def fake_export(mapping_dir, out_root, rects=None):
                 c["name"]: {part: [300 + 44 * j, 60 + 40 * i, 40, 20]
                             for j, part in enumerate(hotspots.CONTROL_PARTS[c["kind"]])}
                 for i, c in enumerate(mapping["controls"])}}
-            if any(c["kind"] == "medal" for c in mapping["controls"]):  # the case's plates and medal pictures
+            if any(c["kind"] == "medal" for c in mapping["controls"]):  # the case's plates
                 export["plates"] = {"name": [300, 440, 300, 20], "desc": [300, 20, 300, 30]}
-                for c in mapping["controls"]:
-                    if c["kind"] == "medal":
-                        entry = export["controls"][c["name"]]
-                        entry["image"] = f"medal_{hotspots.slug(c['name'])}.png"
-                        x, y, w, h = entry["medal"]  # a full render: white, the medal's rect black
-                        full = Image.new("RGB", (3840, 1600), (255, 255, 255))
-                        full.paste((0, 0, 0), (round(x * 10 / 3), round(y * 10 / 3), round((x + w) * 10 / 3), round((y + h) * 10 / 3)))
-                        full.save(os.path.join(folder, entry["image"]))
+            for c in mapping["controls"]:
+                if hotspots.picture(c):
+                    entry = export["controls"][c["name"]]
+                    entry["image"] = f"picture_{hotspots.slug(c['name'])}.png"
+                    x, y, w, h = entry[hotspots.picture(c)[1]]  # a full render: white, the control's rect black
+                    full = Image.new("RGB", (3840, 1600), (255, 255, 255))
+                    full.paste((0, 0, 0), (round(x * 10 / 3), round(y * 10 / 3), round((x + w) * 10 / 3), round((y + h) * 10 / 3)))
+                    full.save(os.path.join(folder, entry["image"]))
             with open(os.path.join(folder, menu + ".json"), "w") as f:
                 json.dump(export, f, indent=1)
             continue

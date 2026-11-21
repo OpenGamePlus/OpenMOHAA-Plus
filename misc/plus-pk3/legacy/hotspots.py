@@ -133,6 +133,16 @@ CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider"
 NO_CVAR = ("binds", "shot", "action", "saves")  # controls the game drives by name or by command
 
 
+def picture(control):
+    """A control drawn from its own render: the objects shown only in it, and the part whose rect
+    is cut from it (a medal; a stamp's lit look). None for the others."""
+    if control["kind"] == "medal":
+        return control["medal"], "medal"
+    if control["kind"] == "action" and control.get("lit"):
+        return control["lit"], "plate"
+    return None
+
+
 def _check_screen(path, mapping):
     """An option screen: a close-up whose controls (list, check, slider) sit on Blender objects."""
     for key in ("menu", "camera", "controls"):
@@ -157,6 +167,8 @@ def _check_screen(path, mapping):
             items = control.get("items") or []
             if not items or any(len(i) != 2 or '"' in "".join(i) for i in items):
                 raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
+        if "lit" in control and (kind != "action" or not isinstance(control["lit"], list)):
+            raise ValueError(f"{menu}: {name}: lit is a list of objects, for an action")
         if kind == "action" and (not control.get("command")
                                  or '"' in control.get("title", "") + control.get("command", "")):
             raise ValueError(f"{menu}: action {name} needs a command, and no quotes in it or its title")

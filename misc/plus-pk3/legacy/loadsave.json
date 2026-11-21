@@ -16,7 +16,10 @@
    "plate": [
     "LS_SlipLoad"
    ],
-   "command": "widgetcommand LoadSaveList loadgame"
+   "command": "widgetcommand LoadSaveList loadgame",
+   "lit": [
+    "LS_StampLit_Load"
+   ]
   },
   {
    "name": "Save Game",
@@ -24,7 +27,10 @@
    "plate": [
     "LS_SlipSave"
    ],
-   "command": "widgetcommand LoadSaveList savegame"
+   "command": "widgetcommand LoadSaveList savegame",
+   "lit": [
+    "LS_StampLit_Save"
+   ]
   },
   {
    "name": "Delete Game",
@@ -32,7 +38,10 @@
    "plate": [
     "LS_SlipDelete"
    ],
-   "command": "widgetcommand LoadSaveList removegame"
+   "command": "widgetcommand LoadSaveList removegame",
+   "lit": [
+    "LS_StampLit_Delete"
+   ]
   },
   {
    "name": "LoadSaveList",

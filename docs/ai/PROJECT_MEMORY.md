@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy war records, medal case, load/save folder
+- War records is the main room's desk up close (`off` lists the room's zone lamps); its box opens the medal case and its trays a load/save folder, both close-ups built from copies of that scene.
+- Medal case: the original's nine medals, modelled, ComfyUI reliefs; each shows when earned and names itself on the case's strips. Folder: built in 3D (ComfyUI paper textures, DejaVu stamps), seen straight down so the game's save list (`LoadSaveList`, fixed `facfont-20` column titles) is not distorted.
+- A control's own render (medal, a stamp's `lit` look) is the whole frame, cut by the pak: a border render lit the velvet differently. A button tints its hover picture with `fgcolor`; textless buttons use white (the glow came out brown). A first folder from a 4:3 picture cut every paper at the frame and was rebuilt in 3D. Not checked: load, save and delete with real saves.
+
 ## 2026-11-21 — Legacy option screens (video, audio, advanced, controls)
 - The options room's units open close-ups (`opciones_detalle_1940.blend`, one camera each) with the original screens' controls on them: `"screen"` mappings, `export_screen`, `screen_urc`; a list is a transparent pulldown over knob and plate, a check lights a lamp (`lamp_on`), a slider sits on a plate, `binds` puts the key list on a card. Plates went blank with their titles painted under them.
 - Engine: a widget under `cover` now places its children in it (a pulldown's value is a child: it sat at the screen's origin, clipped away) and a covering checkbox's box fills its rect. A list whose items each give the cvar its own value shows it with a label, as the original did (multi-cvar items rarely all match).

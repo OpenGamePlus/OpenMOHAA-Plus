@@ -45,7 +45,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   plate; `binds` puts the game's key list (`FakkBindList`) on a card; `medal` shows its own render
   (cut by the pak from a full-frame render: a border render lights differently) when its cvar is
   set, and pointing at it writes its name and description on the case's plates (`sign_cvar`);
-  `shot`, `action` and `saves` make the load/save folder (the game finds `LoadSaveShot` and
+  `shot`, `action` and `saves` make the load/save folder (an action's `lit` objects show only in its
+  own full-frame render, cut by the pak as its hover picture, like a medal) (the game finds `LoadSaveShot` and
   `LoadSaveList` by name; its list's column titles are `facfont-20`, so the sheet must be wide). A room copied from another (war records is the main room's desk up close) lists the
   other room's lamps in `"off"`: dark in every render. Hotspot buttons go from the largest rect to the smallest, so where
   rects overlap the smaller one (on top) takes the pointer. Corner buttons are green plates drawn by the pak build (`green_plate`,

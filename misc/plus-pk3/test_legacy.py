@@ -246,6 +246,9 @@ class Screens(unittest.TestCase):
         stamped = self.block(pak.screen_urc(self.load(stamp), self.LOADSAVE_EXPORT), "Load Game")
         self.assertNotIn("title", stamped)
         self.assertIn("\nfgcolor 1 1 1 1\n", stamped)  # the button tints its hover picture with it
+        stamp["controls"][1]["lit"] = ["SL"]  # its lit look rendered in Blender, cut by the pak
+        lit = self.block(pak.screen_urc(self.load(stamp), self.LOADSAVE_EXPORT), "Load Game")
+        self.assertIn('\nhovershader "textures/menu_plus/legacy/loadsave_load_game"\n', lit)
         with self.assertRaises(ValueError):  # an action needs a command
             bad = json.loads(json.dumps(self.LOADSAVE)); del bad["controls"][1]["command"]
             self.load(bad)
@@ -370,6 +373,8 @@ class BuildLegacy(unittest.TestCase):
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
         write_json(mappings, "video_options.json", Screens.SCREEN)
         write_json(mappings, "medals.json", Screens.MEDALS)
+        stamped = json.loads(json.dumps(Screens.LOADSAVE)); stamped["controls"][1]["lit"] = ["SL"]
+        write_json(mappings, "loadsave.json", stamped)
         os.makedirs(os.path.join(mappings, "credits"))
         write_json(os.path.join(mappings, "credits"), "models.json", {"license_url": "https://example.org/by", "models": [
             {"title": "Old Phone", "author": "gorzi", "url": "https://example.org/phone", "license": "CC BY 4.0"},
@@ -408,12 +413,18 @@ class BuildLegacy(unittest.TestCase):
             "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga",
             "textures/menu_plus/legacy/stamp_h.tga",
             "ui/medals.urc", "textures/menu_plus/legacy/medals_l.jpg", "textures/menu_plus/legacy/medals_r.jpg",
-            "textures/menu_plus/legacy/medals_silver_star.jpg"})
+            "textures/menu_plus/legacy/medals_silver_star.jpg",
+            "ui/loadsave.urc", "textures/menu_plus/legacy/loadsave_l.jpg", "textures/menu_plus/legacy/loadsave_r.jpg",
+            "textures/menu_plus/legacy/loadsave_load_game.jpg"})
 
     def test_medal_picture_is_cut_from_a_full_render(self):
         # a medal is rendered over the whole frame (a border render lit the velvet differently) and the
         # pak cuts its rect: fake_export's medal renders are white with a black rect
         img = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/medals_silver_star.jpg"))).convert("RGB")
+        self.assertLess(sum(img.getpixel((img.width // 2, img.height // 2))), 60)
+
+    def test_lit_stamp_is_cut_from_a_full_render(self):
+        img = Image.open(io.BytesIO(self.zip.read("textures/menu_plus/legacy/loadsave_load_game.jpg"))).convert("RGB")
         self.assertLess(sum(img.getpixel((img.width // 2, img.height // 2))), 60)
 
     def test_green_button_plates(self):
