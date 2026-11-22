@@ -40,7 +40,9 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   background lit through its object mask. A hotspot's button is named after it and a corner may
   give `widget`, its name apart from its title: the multiplayer room keeps the original's names
   (`startnew`, `changemap`, `joinlan`, `disconnect`), which the game enables by name, case-sensitive
-  (`UI_MultiplayerMenuWidgetsUpdate`). `legacy_credits.urc` (model credits) is generated from
+  (`UI_MultiplayerMenuWidgetsUpdate`). `dm_ffamodelselect.urc` (the free-for-all model dialog) is the original's on a backdrop the pak
+  composes from `selectmodel/frame.png` in the export and the multiplayer room's render.
+  `legacy_credits.urc` (model credits) is generated from
   `legacy/credits/models.json` (ten fit the board; more is a build error). Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
   close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
   over the plate (which shows the value; when every item sets the list's cvar to a value of its
@@ -48,6 +50,9 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   plate; `binds` puts the game's key list (`FakkBindList`) on a card; `medal` shows its own render
   (cut by the pak from a full-frame render: a border render lights differently) when its cvar is
   set, and pointing at it writes its name and description on the case's plates (`sign_cvar`);
+  `field` (typed into), `text` (a cvar's text) and `model` (the engine draws a model standing in the
+  picture; its rect is made square, as `CL_Draw3DModel`'s view is 30 by 30 degrees) make the player options; an action with a `lit` render has its text in the picture, as
+  a title's label over the button would take the pointer (`FindResponder` picks the topmost widget);
   `shot`, `action` and `saves` make the load/save folder (an action's `lit` objects show only in its
   own full-frame render, cut by the pak as its hover picture, like a medal) (the game finds `LoadSaveShot` and
   `LoadSaveList` by name; its list's column titles are `facfont-20`, so the sheet must be wide). A room copied from another (war records is the main room's desk up close) lists the

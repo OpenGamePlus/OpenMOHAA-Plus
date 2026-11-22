@@ -129,7 +129,8 @@ def _check_corners(menu, mapping):
 
 
 CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",),
-                 "medal": ("medal",), "shot": ("plate",), "action": ("plate",), "saves": ("plate",)}
+                 "medal": ("medal",), "shot": ("plate",), "action": ("plate",), "saves": ("plate",),
+                 "field": ("plate",), "text": ("plate",), "model": ("plate",)}
 NO_CVAR = ("binds", "shot", "action", "saves")  # controls the game drives by name or by command
 
 
@@ -169,9 +170,14 @@ def _check_screen(path, mapping):
                 raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
         if "lit" in control and (kind != "action" or not isinstance(control["lit"], list)):
             raise ValueError(f"{menu}: {name}: lit is a list of objects, for an action")
+        if control.get("lit") and control.get("title"):  # the button's ink would tint its lit picture dark
+            raise ValueError(f"{menu}: {name}: a lit action has its text in the picture, not a title")
         if kind == "action" and (not control.get("command")
                                  or '"' in control.get("title", "") + control.get("command", "")):
             raise ValueError(f"{menu}: action {name} needs a command, and no quotes in it or its title")
+        if kind == "model" and (not control.get("anim") or '"' in "".join(str(control.get(k, "")) for k in
+                                                                     ("anim", "offset", "angles"))):
+            raise ValueError(f"{menu}: model {name} needs an anim, and no quotes in anim, offset or angles")
         if kind == "medal":
             for key in ("title", "desc"):
                 text = control.get(key, "")

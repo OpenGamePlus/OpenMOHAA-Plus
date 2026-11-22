@@ -271,6 +271,68 @@ class Screens(unittest.TestCase):
         with open(os.path.join(HERE, "legacy", "credits", "models.json"), encoding="utf-8") as f:
             pak.credits_urc(json.load(f))
 
+    MPOPTIONS = {"menu": "mpoptions", "screen": True, "camera": "Cam_MPOptions", "controls": [
+        {"name": "player name", "kind": "field", "plate": ["N"], "cvar": "ui_name"},
+        {"name": "allies model name", "kind": "text", "plate": ["A"], "cvar": "ui_dm_playermodel"},
+        {"name": "allies button", "kind": "action", "plate": ["B"], "title": "Allies Player Model",
+         "command": "playermodel 0", "font": "verdana-14"},
+        {"name": "allies model", "kind": "model", "plate": ["S"], "cvar": "ui_disp_playermodel",
+         "anim": "americanselectionidle", "offset": "60 8 0", "angles": "10 180 0", "scale": 1.0}],
+        "corners": [{"title": "Back", "side": "left", "command": "popmenu 0"}]}
+    MPOPTIONS_EXPORT = {"menu": "mpoptions", "picture": [854, 480], "background": "background.png", "controls": {
+        "player name": {"plate": [300, 20, 200, 24]}, "allies model name": {"plate": [100, 90, 200, 24]},
+        "allies model": {"plate": [60, 150, 250, 300]}, "allies button": {"plate": [100, 60, 200, 20]}}}
+
+    def test_player_options_controls(self):
+        # the original's mpoptions: a name field, the model's name, the model itself drawn by the engine
+        from legacy import pak
+        text = pak.screen_urc(self.load(self.MPOPTIONS), self.MPOPTIONS_EXPORT)
+        field, name, model = (self.block(text, n) for n in ("player name", "allies model name", "allies model"))
+        self.assertIn("Field", text.split('name "player name"')[0].rsplit("resource", 1)[1])
+        for block, lines in ((field, ("rect 300 20 200 24", 'linkcvar "ui_name"')),
+                             (name, ("rect 100 90 200 24", 'linkcvar "ui_dm_playermodel"')),
+                             # the engine's model view is 30 by 30 degrees: a square rect, its height, same middle
+                             (model, ("rect 35 150 300 300", 'linkcvar "ui_disp_playermodel"', "rendermodel 1",
+                                      "modelanim americanselectionidle", 'modeloffset "60 8 0"',
+                                      'modelangles "10 180 0"', "modelscale 1.0", "fgcolor 1 1 1 1"))):
+            for line in lines:
+                self.assertIn("\n" + line + "\n", block + "\n", line)
+        self.assertIn("\nfont verdana-14\n", self.block(text, "allies button") + "\n")  # a smaller title fits
+        # a lit render with an engine title cannot work: the title's label would sit over the button and
+        #  take the pointer (FindResponder picks the topmost widget), under it the hover hides the text
+        lit = json.loads(json.dumps(self.MPOPTIONS)); lit["controls"][2]["lit"] = ["BL"]
+        with self.assertRaises(ValueError):
+            self.load(lit)
+        with self.assertRaises(ValueError):  # a model needs its animation
+            bad = json.loads(json.dumps(self.MPOPTIONS)); del bad["controls"][3]["anim"]
+            self.load(bad)
+
+    def test_select_model_art(self):
+        # the frame's window shows the room's photo; around the frame stays clear
+        from legacy import pak
+        frame = Image.new("RGBA", (200, 160), (0, 0, 0, 0))
+        frame.paste((120, 60, 30, 255), (10, 10, 190, 130))       # the frame's body
+        frame.paste((0, 0, 0, 0), (25, 25, 175, 115))            # its window
+        room = Image.new("RGB", (854, 480), (200, 30, 30))
+        art = pak.select_model_art(frame, room)
+        self.assertEqual(art.size, (512, 512))
+        self.assertEqual(art.getpixel((256, 180)), (200, 30, 30, 255))   # the window: the room
+        self.assertEqual(art.getpixel((5, 5))[3], 0)                      # outside the frame: clear
+        self.assertEqual(art.getpixel((256, 56))[:3], (120, 60, 30))      # the frame itself
+
+    def test_select_model_urc(self):
+        # the original's dialog (join a team in free-for-all), our backdrop, the engine's titles
+        from legacy import pak
+        text = pak.select_model_urc()
+        self.assertIn('menu "SelectFFAModel" 640 480 NONE 0', text)
+        self.assertIn('shader "textures/menu_plus/legacy/selectmodel"', text)
+        for title, command in (("Allies", "join_team allies;popmenu 0"), ("Axis", "join_team axis;popmenu 0"),
+                               ("Cancel", "popmenu 0")):
+            block = text[text.index(f'title "{title}"') - 400:text.index(f'title "{title}"') + 400]
+            self.assertIn(f'stuffcommand "{command}"', block, title)
+        self.assertIn('title "Select Model"', text)
+        self.assertEqual(text.count("rendermodel 1"), 2)
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
@@ -391,7 +453,7 @@ class BuildLegacy(unittest.TestCase):
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
         write_json(mappings, "video_options.json", Screens.SCREEN)
         write_json(mappings, "medals.json", Screens.MEDALS)
-        stamped = json.loads(json.dumps(Screens.LOADSAVE)); stamped["controls"][1]["lit"] = ["SL"]
+        stamped = json.loads(json.dumps(Screens.LOADSAVE)); stamped["controls"][1]["lit"] = ["SL"]; del stamped["controls"][1]["title"]
         write_json(mappings, "loadsave.json", stamped)
         os.makedirs(os.path.join(mappings, "credits"))
         write_json(os.path.join(mappings, "credits"), "models.json", {"license_url": "https://example.org/by", "models": [
