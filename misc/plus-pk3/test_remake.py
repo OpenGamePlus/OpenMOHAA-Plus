@@ -521,8 +521,7 @@ class Mappings(unittest.TestCase):
                          "advanced": ("ui_marklatched; pushmenu advancedoptions", "advanced_sign", "Advanced"),
                          "audio": ("ui_marklatched; pushmenu audio_options", "audio_sign", "Audio"),
                          "controls": ("pushmenu controls", "controls_sign", "Controls"),
-                         "video": ("ui_marklatched; pushmenu video_options", "video_sign", "Video"),
-                         "plus": ("pushmenu plus_options", "plus_sign", "Plus Options")},
+                         "video": ("ui_marklatched; pushmenu video_options", "video_sign", "Video")},  # the field telephone is set dressing (it opened the Plus options)
         "war_records": {"sign": (None, None, None),
                         "personal records": ("pushmenu medals", "personalrecords_sign", "Personal Records"),
                         "loadsave": ("pushmenu_sp loadsave;pushmenu_dm loadsave_mp", "loadsave_sign", "Load / Save")},
