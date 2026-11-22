@@ -115,7 +115,7 @@
    "objects": [
     "Chalkboard"
    ],
-   "command": "pushmenu legacy_credits",
+   "command": "pushmenu remake_credits",
    "sign": "modelcredits_sign",
    "text": "Model Credits",
    "lights": [

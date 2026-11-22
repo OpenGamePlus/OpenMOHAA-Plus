@@ -78,9 +78,9 @@ The script packs the fonts, the menu files in `misc/plus-pk3/data/` and the back
 `textures/menu_plus/bg_l`/`bg_r` and `opt_l`/`opt_r`) into `zzz-plus.pk3`. The art is AI-generated and under CC BY-SA 4.0
 (`misc/plus-pk3/ART-LICENSE.md`).
 
-## Legacy menu (prototype)
+## Remake menu (prototype)
 
-A second, optional pak, `plus/zzzz-plus-legacy.pk3`, replaces the main menu with rooms rendered in
+A second, optional pak, `plus/zzzz-plus-remake.pk3`, replaces the main menu with rooms rendered in
 Blender that work like the original game's menus: click an object, the object lights up under the
 pointer and a sign names it. The main room, the options room and war records come from the pak;
 every other screen is the original menu from the game files. It needs `zzz-plus.pk3` next to it.
@@ -89,18 +89,18 @@ Remove the file to get the Plus menu back.
 The renders are not in the repository yet, so the pak is built locally from a Blender export:
 
 ```
-python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export folder>
+python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --remake <export folder>
 ```
 
-`misc/plus-pk3/legacy/export_hotspots.py` (run inside Blender) writes the export: the background,
+`misc/plus-pk3/remake/export_hotspots.py` (run inside Blender) writes the export: the background,
 one mask per clickable object, the objects' rectangles and, for objects with lamps, a render with
-those lamps on. `misc/plus-pk3/legacy/<menu>.json` says which objects are clickable, what they do,
+those lamps on. `misc/plus-pk3/remake/<menu>.json` says which objects are clickable, what they do,
 the name the sign shows and which lamps light up when the pointer is on them (the room is dark
 otherwise). The video, audio, advanced and controls units in the options room open close-ups of them with
 working controls, as the original option screens did (the key list on the controls unit's card). In war records the box opens the medal case: each medal
 earned shows in it, and pointing at one names it. The trays open a folder with the saved games. The field telephone in the options room opens the Plus options (every tab, the fork's own settings
 included). New Game and Briefing open a briefing room: a wall map from Norway to Algeria where each mission shows once unlocked and names itself on the sign, the Basic Training clipboard, a difficulty board, and the briefing slides over the darkened room. The multiplayer door opens a corridor like the original's: the dark doorway goes back, the locker opens the player options (a board hung in the corridor, the two soldiers standing in it; joining a free-for-all game shows them in a framed photo of the room), the red door joins a game (a board for LAN or internet, the server lists on a big board, an address to connect to, and the Plus server browser where GameSpy used to be) and the board starts one (its start board seen close up: the game type, then the map, limits, rotation, server name). The chalkboard in the main room opens the credits of the 3D models in the scenes, written in chalk on that board up close
-(`misc/plus-pk3/legacy/credits/models.json`, CC BY 4.0 or CC0). The game writes the sign
+(`misc/plus-pk3/remake/credits/models.json`, CC BY 4.0 or CC0). The game writes the sign
 with the Plus serif font `plussign-32`, sized to its board, and translates it with `cl_language`
 like other menu text.
 

@@ -10,7 +10,7 @@ Uses the war records scene (Board_Frame, Board_Felt, Box_* objects); never saves
 """
 import sys, os, json, bpy
 script, root = sys.argv[sys.argv.index("--") + 1:]
-g = {"__file__": script, "__name__": "legacy_export"}
+g = {"__file__": script, "__name__": "remake_export"}
 exec(compile(open(script).read(), script, "exec"), g)
 def mapping(name, spots):
     p = os.path.join(root, name + ".json")

@@ -13,11 +13,11 @@ menu, server browser), opt_l.jpg and opt_r.jpg from art/background_options.jpg (
 entry), and the pulldown field, textures/menu_plus/field.tga (see pulldown_field), with clear.tga, the
 transparent pulldown arrow that only sets the clickable area, and checkbox_off.tga / checkbox_on.tga. Requires Pillow (python3 -m pip install pillow).
 
-  python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --legacy <export root> [--legacy-out PATH]
+  python3 misc/plus-pk3/build_pk3.py --out plus/zzz-plus.pk3 --remake <export root> [--remake-out PATH]
 
-also writes the Legacy menu pak (default zzzz-plus-legacy.pk3 next to --out, so it loads after
-zzz-plus.pk3) from misc/plus-pk3/legacy/*.json and a Blender export (legacy/export_hotspots.py);
-see legacy/pak.py.
+also writes the Remake menu pak (default zzzz-plus-remake.pk3 next to --out, so it loads after
+zzz-plus.pk3) from misc/plus-pk3/remake/*.json and a Blender export (remake/export_hotspots.py);
+see remake/pak.py.
 """
 import argparse
 import io
@@ -50,14 +50,14 @@ def tiles():
             yield f"textures/menu_plus/{prefix}_{side}.jpg", out.getvalue()
 
 
-def write_legacy(out, export_root, mapping_dir):
-    """Writes the Legacy menu pak (see legacy/pak.py)."""
-    from legacy import pak as build_legacy
+def write_remake(out, export_root, mapping_dir):
+    """Writes the Remake menu pak (see remake/pak.py)."""
+    from remake import pak as build_remake
     sys.path.insert(0, os.path.join(HERE, "..", "fonts"))
     import make_fonts
     tmp = out + ".tmp"  # a failed build (broken export) must not leave a truncated pak over the old one
     try:
-        _write_legacy_zip(tmp, build_legacy, make_fonts, export_root, mapping_dir)
+        _write_remake_zip(tmp, build_remake, make_fonts, export_root, mapping_dir)
         os.replace(tmp, out)
     finally:
         if os.path.exists(tmp):
@@ -65,9 +65,9 @@ def write_legacy(out, export_root, mapping_dir):
     print(f"wrote {out}")
 
 
-def _write_legacy_zip(out, build_legacy, make_fonts, export_root, mapping_dir):
+def _write_remake_zip(out, build_remake, make_fonts, export_root, mapping_dir):
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for name, data in build_legacy.files(mapping_dir, export_root):
+        for name, data in build_remake.files(mapping_dir, export_root):
             z.writestr(name, data)
         # the sign font ships here too: it is not in the game, and without it next to an older or
         # --skip-fonts zzz-plus.pk3 the menu stops with "Couldn't load font"
@@ -149,9 +149,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, help="the .pk3 file to write")
     ap.add_argument("--skip-fonts", action="store_true", help="do not run misc/fonts/make_fonts.py")
-    ap.add_argument("--legacy", metavar="EXPORT_ROOT", help="also write the Legacy menu pak from this Blender export")
-    ap.add_argument("--legacy-out", help="the Legacy pak (default: zzzz-plus-legacy.pk3 next to --out)")
-    ap.add_argument("--legacy-mappings", default=os.path.join(HERE, "legacy"), help=argparse.SUPPRESS)
+    ap.add_argument("--remake", metavar="EXPORT_ROOT", help="also write the Remake menu pak from this Blender export")
+    ap.add_argument("--remake-out", help="the Remake pak (default: zzzz-plus-remake.pk3 next to --out)")
+    ap.add_argument("--remake-mappings", default=os.path.join(HERE, "remake"), help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
     with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as z:
         add_tree(z, os.path.join(HERE, "data"))
@@ -164,9 +164,9 @@ def main(argv=None):
             z.writestr(name, data)
         z.write(os.path.join(HERE, "ART-LICENSE.md"), "ART-LICENSE.md")
     print(f"wrote {args.out}")
-    if args.legacy:
-        write_legacy(args.legacy_out or os.path.join(os.path.dirname(os.path.abspath(args.out)), "zzzz-plus-legacy.pk3"),
-                     args.legacy, args.legacy_mappings)
+    if args.remake:
+        write_remake(args.remake_out or os.path.join(os.path.dirname(os.path.abspath(args.out)), "zzzz-plus-remake.pk3"),
+                     args.remake, args.remake_mappings)
     return 0
 
 

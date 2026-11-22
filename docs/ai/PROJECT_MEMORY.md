@@ -3,6 +3,10 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Legacy menu renamed Remake
+- The 3D rebuild of the original menus is the Remake menu: `misc/plus-pk3/remake/`, `zzzz-plus-remake.pk3`, `build_pk3.py --remake`, textures under `textures/menu_plus/remake/`, the credits menu `remake_credits`, the client tests `RemakeMenu`. Earlier stages and design specs keep the old name as history.
+- Only friends had tried it, so no migration: an old `zzzz-plus-legacy.pk3` left installed would load beside the new one and must be deleted by hand.
+
 ## 2026-11-22 — Legacy credits chalkboard
 - The model credits are written in chalk on the main room's chalkboard up close (ComfyUI slate, wooden frame and chalk tray), with the CC BY licence's link; the chalk font `pluschalk-32` is made from Cabin Sketch (OFL, in `misc/fonts/ofl/`, its licence shipped beside it; "Cabin Sketch" is a reserved name).
 - The client tests build the pak from the fake export, whose default plate was too small for a board: the build stopped with "do not fit". The pak fixture now has the chalkboard. A label draws its text at about half its rect's height, so the board's rects overlap.

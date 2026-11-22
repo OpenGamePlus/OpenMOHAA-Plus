@@ -1694,8 +1694,8 @@ end.
 # Mesa's software Vulkan driver, when installed: same pictures on every machine, no GPU needed
 @require_game
 @unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
-class LegacyMenu(GameTestCase):
-    """The Legacy menu pak (misc/plus-pk3/legacy/), built from a fake Blender export of the real
+class RemakeMenu(GameTestCase):
+    """The Remake menu pak (misc/plus-pk3/remake/), built from a fake Blender export of the real
     mapping files: solid pictures, hotspot i at (300 + 40 i, 100 + 30 i, 60, 40) in 1152x480."""
 
     widgets = PlusMenu.widgets
@@ -1706,14 +1706,14 @@ class LegacyMenu(GameTestCase):
     @classmethod
     def setUpClass(cls):
         sys.path.insert(0, os.path.dirname(PLUS_PK3))
-        from legacy import pak as build_legacy, hotspots
+        from remake import pak as build_remake, hotspots
         cls.plus_dir = tempfile.mkdtemp()
         export = os.path.join(cls.plus_dir, "export")
-        mappings = os.path.join(os.path.dirname(PLUS_PK3), "legacy")
-        build_legacy.fake_export(mappings, export)
+        mappings = os.path.join(os.path.dirname(PLUS_PK3), "remake")
+        build_remake.fake_export(mappings, export)
         os.makedirs(os.path.join(cls.plus_dir, "plus"))
         subprocess.run([sys.executable, PLUS_PK3, "--out", os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"),
-                        "--legacy", export], check=True, capture_output=True)      # fonts: the sign's plussign-32
+                        "--remake", export], check=True, capture_output=True)      # fonts: the sign's plussign-32
         cls.rects = {}
         for menu in cls.MENUS:
             with open(os.path.join(export, menu, menu + ".json")) as f:
@@ -1746,9 +1746,9 @@ class LegacyMenu(GameTestCase):
                 return menu
             time.sleep(1)
 
-    def test_legacy_main_wins(self):
+    def test_remake_main_wins(self):
         c = self.start(1280, 720)
-        self.assertIn("plus/zzzz-plus-legacy.pk3", PlusDataFolder._which(self, c, "ui/main.urc"))
+        self.assertIn("plus/zzzz-plus-remake.pk3", PlusDataFolder._which(self, c, "ui/main.urc"))
         self.assertEqual(c.quit(), 0)
 
     def test_hotspots_follow_the_picture(self):

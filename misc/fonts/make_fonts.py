@@ -13,7 +13,7 @@ size on screen does not change: the game reads glyph sizes in nominal pixels.
 
 Requires Pillow (python3 -m pip install pillow). The default set uses the DejaVu fonts
 (Bitstream Vera license, DejaVu changes in the public domain); handle-* (ornamental) and marlett
-(symbols) are not replaced. It also builds the fork's own plussign-32 (serif, for the Legacy menu's
+(symbols) are not replaced. It also builds the fork's own plussign-32 (serif, for the Remake menu's
 board signs) at 3x.
 """
 import argparse
@@ -41,7 +41,7 @@ DEFAULT_SET = {
     "courier-16": "DejaVuSansMono-Bold.ttf",
     "courier-18": "DejaVuSansMono-Bold.ttf",
     "courier-20": "DejaVuSansMono-Bold.ttf",
-    "plussign-32": "DejaVuSerif-Bold.ttf",  # fork font: the Legacy menu's board signs
+    "plussign-32": "DejaVuSerif-Bold.ttf",  # fork font: the Remake menu's board signs
 }
 # texture scale instead of --scale in the default set: signs are drawn large (k = 3 at 1440p)
 FONT_SCALES = {"plussign-32": 3}

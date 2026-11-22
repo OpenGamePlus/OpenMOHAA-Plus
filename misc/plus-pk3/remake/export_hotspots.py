@@ -1,16 +1,16 @@
 # Copyright (C) 2026 the OpenMOHAA Plus contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Blender side of the Legacy menu: renders a screen's background and one object mask per hotspot
+"""Blender side of the Remake menu: renders a screen's background and one object mask per hotspot
 from the open scene, and writes the hotspot rects in picture units. A hotspot with "lights" (lamps
 and lit shades in the mapping) gets a render of its rect with only its own lamps on, and the
 background is rendered with every such lamp off, so the room is dark until a hotspot is pointed at.
-Without lights, the pak build lights the masked part of the background for the hover (legacy/pak.py).
+Without lights, the pak build lights the masked part of the background for the hover (remake/pak.py).
 
 Run inside Blender (Blender MCP or the text editor), with the screen's .blend open:
 
-    path = r"<repo>/misc/plus-pk3/legacy/export_hotspots.py"
-    exec(compile(open(path).read(), path, "exec"), g := {"__file__": path, "__name__": "legacy_export"})
-    g["export_all"](r"<repo>/misc/plus-pk3/legacy/main.json", r"<export root>")
+    path = r"<repo>/misc/plus-pk3/remake/export_hotspots.py"
+    exec(compile(open(path).read(), path, "exec"), g := {"__file__": path, "__name__": "remake_export"})
+    g["export_all"](r"<repo>/misc/plus-pk3/remake/main.json", r"<export root>")
 
 Export the background and the masks from one scene state. Writes <export root>/<menu>/background.png,
 mask_<slug>.png and <menu>.json:
@@ -125,7 +125,7 @@ def _zone_lights(mapping):
 def _emission_off(mat):
     """A copy of the material with no emission (shared lamp materials stay as they are)."""
     off = mat.copy()
-    off.name = mat.name + ".legacy_off"
+    off.name = mat.name + ".remake_off"
     for node in off.node_tree.nodes if off.use_nodes else []:
         if node.type == "EMISSION":
             node.inputs["Strength"].default_value = 0

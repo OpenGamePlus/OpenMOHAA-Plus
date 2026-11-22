@@ -813,7 +813,7 @@ void UIWidget::PropogateCoordinateSystem(void)
         m_clippedframe  = m_frame;
 
         // Fixed in OpenMOHAA Plus: the children of an anchored or covering widget (the scroll bar of the
-        //  Plus browser's list, a legacy option screen's pulldown) are placed in it, not from the screen
+        //  Plus browser's list, a remake option screen's pulldown) are placed in it, not from the screen
         //  origin, where the widget's clipping hid them
         if (m_flags & (WF_ANCHORED | WF_COVER)) {
             m_screenorigin.x = m_frame.pos.x - m_origin.x;
@@ -1708,7 +1708,7 @@ UIWidget *UIWidget::FindResponder(const UIPoint2D& pos)
 
     if (!m_clippedframe.contains(pos)) {
         // Added in OpenMOHAA Plus: children placed on the screen (anchor, cover) can lie outside a
-        //  menu frame shrunk by ui_plusscale; the legacy menu's corner buttons took no click at 0.85
+        //  menu frame shrunk by ui_plusscale; the remake menu's corner buttons took no click at 0.85
         for (i = m_children.NumObjects(); i >= 1; i--) {
             subview = m_children.ObjectAt(i);
             if (subview->m_flags & (WF_ANCHORED | WF_COVER)) {
