@@ -355,6 +355,20 @@ class Screens(unittest.TestCase):
             bad = json.loads(json.dumps(mapping)); bad["controls"][0]["class"] = "Button"
             self.load(bad)
 
+    def test_real_internet_rooms(self):
+        # the Plus browser's lists live on the internet room's plates (added in OPM): each sets
+        # dm_browser_show and refreshes the big board; the board toggles a server's favourite
+        room = hotspots.load_mapping(os.path.join(HERE, "remake", "joininternetgame.json"))
+        refresh = "pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+        got = {c["name"]: c.get("command") for c in room["controls"] if c["kind"] == "action"}
+        self.assertEqual(got, {"browse internet servers": "set dm_browser_show 0;" + refresh,
+                               "favourite servers": "set dm_browser_show 1;" + refresh,
+                               "recent servers": "set dm_browser_show 3;" + refresh,
+                               "connect to ip address": "menuconnect ui_connectip"})
+        board = hotspots.load_mapping(os.path.join(HERE, "remake", "joinnetgame.json"))
+        toggle = next(c for c in board["controls"] if c["name"] == "toggle favourite")
+        self.assertEqual(toggle["command"], "widgetcommand netgamelist togglefavorite")
+
     BRIEFING = {"menu": "briefingroom", "screen": True, "camera": "Cam_Briefing", "sign_cvar": "ui_briefingsign",
                 "sign_plate": ["Sign"], "signs": {"briefing": "Briefing"}, "controls": [
         {"name": "arzew", "kind": "mission", "plate": ["A"], "shown": ["A_Name"], "lit": ["A_Red"],

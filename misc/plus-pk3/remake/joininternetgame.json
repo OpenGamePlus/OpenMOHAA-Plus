@@ -12,18 +12,29 @@
    "lit": [
     "MPI_P_Browse_Lit"
    ],
-   "command": "pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+   "command": "set dm_browser_show 0;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
   },
   {
-   "name": "plus server browser",
+   "name": "favourite servers",
    "kind": "action",
    "plate": [
-    "MPI_P_Plus"
+    "MPI_P_Favourites"
    ],
    "lit": [
-    "MPI_P_Plus_Lit"
+    "MPI_P_Favourites_Lit"
    ],
-   "command": "pushmenu plus_browser"
+   "command": "set dm_browser_show 1;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "name": "recent servers",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Recent"
+   ],
+   "lit": [
+    "MPI_P_Recent_Lit"
+   ],
+   "command": "set dm_browser_show 3;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
   },
   {
    "name": "connect to ip address",

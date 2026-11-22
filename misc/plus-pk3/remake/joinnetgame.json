@@ -20,6 +20,17 @@
    ],
    "cvar": "dm_serverstatus",
    "ink": "light"
+  },
+  {
+   "name": "toggle favourite",
+   "kind": "action",
+   "plate": [
+    "MPL_P_Favourite"
+   ],
+   "lit": [
+    "MPL_P_Favourite_Lit"
+   ],
+   "command": "widgetcommand netgamelist togglefavorite"
   }
  ],
  "corners": [

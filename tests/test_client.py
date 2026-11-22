@@ -1870,6 +1870,29 @@ class RemakeMenu(GameTestCase):
         self.assertEqual(screen["sliders"]["field of view"]["value"], "100")
         self.assertEqual(c.quit(), 0)
 
+    def test_internet_plates_pick_the_list(self):
+        # favourites and recent on the internet room's board (added in OPM): a click sets dm_browser_show
+        # and opens the big server board; browse sets it back to every server. No floating console:
+        # it takes the pointer
+        c = self.start(1280, 720, "+set", "ui_console", "0")
+        for plate, show in (("favourite servers", "1"), ("recent servers", "3"), ("browse internet servers", "0")):
+            c.send("pushmenu joininternetgame")
+            self.assertEqual(self.top_menu(c, "joininternetgame"), "joininternetgame")
+            x0, y0, x1, y1 = self.widgets(c)["widgets"][plate]["rect"]
+            x, y = round((x0 + x1) / 2), round((y0 + y1) / 2)
+            for buttons in (0, 1, 0):
+                c.send(f"ui_testmouse {x} {y} {buttons}")
+                time.sleep(1)
+            self.assertEqual(self.top_menu(c, "joinnetgame"), "joinnetgame", plate)
+            mark = len(c.log())
+            c.send("dm_browser_show")
+            c.wait_for(rf'"dm_browser_show" is:"{show}', start=mark, timeout=10)
+            c.send("popmenu 0")             # one pop a frame: PopMenu locks the stack until the next
+            self.assertEqual(self.top_menu(c, "joininternetgame"), "joininternetgame")
+            c.send("popmenu 0")
+            self.assertEqual(self.top_menu(c, "main"), "main")
+        self.assertEqual(c.quit(), 0)
+
     def test_option_screen_check_toggles(self):
         # a click on a lamp's checkbox sets its cvar (the original screen's behaviour)
         c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "r_ext_compressed_textures", "0")
