@@ -7,6 +7,8 @@ Run: OMOH_GAME_DIR=<GAME_DIR> python3 -m unittest discover -s tests -v
 """
 
 import glob
+import socket
+import threading
 import json
 import tempfile
 import re
@@ -725,6 +727,120 @@ class ServerBrowser(GameTestCase):
         self.assertEqual(c.quit(), 0)
         self.assertNotIn("127.0.0.1", open(client_home.file("serverfavorites.txt")).read())
 
+    def fake_original_server(self, hostname, gametype, players, maxplayers=32):
+        """A 1.11 server as the real ones answer a GameSpy status query: no gametype_i, sprinton
+        or pure, only the game type's text. Returns its "address queryport" line."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(("127.0.0.1", 0))
+        sock.settimeout(0.5)
+        port = sock.getsockname()[1]
+        stop = threading.Event()
+        self.addCleanup(stop.set)
+
+        def serve():
+            while not stop.is_set():
+                try:
+                    data, peer = sock.recvfrom(2048)
+                except socket.timeout:
+                    continue
+                if b"\\status\\" in data or b"\\info\\" in data or b"\\basic\\" in data:
+                    sock.sendto((f"\\location\\1\\gamever\\1.11\\gamename\\mohaa\\gamemode\\openplaying"
+                                 f"\\maxplayers\\{maxplayers}\\numplayers\\{players}\\gametype\\{gametype}"
+                                 f"\\mapname\\dm/mohdm1\\hostport\\{port}\\hostname\\{hostname}"
+                                 f"\\final\\\\queryid\\1.1").encode(), peer)
+            sock.close()
+
+        threading.Thread(target=serve, daemon=True).start()
+        return f"127.0.0.1:{port} {port}"
+
+    def test_filters_on_original_servers(self):
+        # the original 1.11 servers send no gametype_i: their type comes from the gametype text
+        # (mods name it, e.g. Freeze-Tag-Objective); empty and full come from their own answer, as
+        # the master servers ignore the query's filter
+        servers = [self.fake_original_server("Alpha", "Free-For-All", 0),
+                   self.fake_original_server("Bravo", "Freeze-Tag-Objective", 3),
+                   self.fake_original_server("Charlie", "Team-Match", 32, 32),
+                   self.fake_original_server("Delta", "Gun Game", 5)]
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverhistory.txt", "\n".join(servers) + "\n")
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        listed = self._list(c, r"Server list \(4\):")
+        for name in ("Alpha", "Bravo", "Charlie", "Delta"):
+            self.assertIn(name, listed)
+        for setting, hidden in (("dm_objective_match 0", "Bravo"), ("dm_filter_empty 1", "Alpha"),
+                                ("dm_filter_full 1", "Charlie"), ("dm_max_players 4", "Delta")):
+            c.send(setting)
+            listed = self._list(c, r"Server list \((\d+)\):")
+            self.assertNotIn(hidden, listed, setting)
+        self.assertRegex(listed, r"Server list \(0\):")     # an unknown type (Gun Game) is only kept by type
+        self.assertEqual(c.quit(), 0)
+
+    def test_filter_change_restarts_a_busy_refresh(self):
+        # a filter changed while the list is still querying (a server that never answers keeps it
+        # busy): restartrefresh stops that query and starts again once the list is idle
+        silent = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        silent.bind(("127.0.0.1", 0))
+        self.addCleanup(silent.close)
+        servers = [self.fake_original_server("Alpha", "Free-For-All", 0),
+                   self.fake_original_server("Bravo", "Team-Match", 3),
+                   f"127.0.0.1:{silent.getsockname()[1]} {silent.getsockname()[1]}"]
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverhistory.txt", "\n".join(servers) + "\n")
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("widgetcommand netgamelist refreshserverlist")
+        time.sleep(2)                                   # Alpha and Bravo answered, the silent one not
+        c.send("set dm_filter_empty 1;widgetcommand netgamelist restartrefresh")   # what a filter lamp runs
+        time.sleep(4)
+        mark = len(c.log())
+        c.send("widgetcommand netgamelist printlist")
+        listed = c.wait_for(r"Server list \(\d+\):(\n  .*)*", start=mark, timeout=20)[mark:]
+        time.sleep(1)
+        listed = c.log()[mark:]
+        self.assertIn("Bravo", listed)
+        self.assertNotIn("Alpha", listed)
+        self.assertEqual(c.quit(), 0)
+
+    def test_add_and_remove_favourite_buttons(self):
+        s = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        s.send("net_gamespy_port")
+        qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        client_home.write("serverhistory.txt", f"127.0.0.1:{s.port} {qport}\n")
+        c = omoh.client(client_home, "+set", "developer", "1", *self.NO_MASTERS)
+        self.games.append(c)
+        c.wait_for(r"Opening IP socket", timeout=60)
+        time.sleep(8)
+        c.send("pushmenu joinnetgame")
+        time.sleep(2)
+        c.send("dm_browser_show 2")
+        self._list(c, r"Server list \(1\):\n.*Alpha")
+        c.send("widgetcommand netgamelist selectitem 1")
+        # each plate does one thing: pressing it twice keeps the state (a toggle would undo it)
+        for command, marked in (("addfavorite", True), ("addfavorite", True),
+                                ("removefavorite", False), ("removefavorite", False)):
+            c.send(f"widgetcommand netgamelist {command}")
+            time.sleep(1)
+            mark = len(c.log())
+            c.send("widgetcommand netgamelist printlist")
+            listed = c.wait_for(r"Server list \(\d+\):\n.*Alpha", start=mark, timeout=20)[mark:]
+            self.assertEqual("  * " in listed, marked, (command, listed))
+        self.assertEqual(c.quit(), 0)
+        self.assertNotIn("127.0.0.1", open(client_home.file("serverfavorites.txt")).read())
+
     def test_favorites_history_and_search(self):
         alpha = self.server("+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
         home_b = omoh.Home()
@@ -1033,11 +1149,51 @@ anchor 220 100 20 40
 end.
 """
 
+    # a Remake list on its plate: placed with cover, no value of its own (a label shows it)
+    COVER_PULLDOWN_URC = """menu "plus_cover_pulldown_test" 2048 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+PulldownMenuContainer
+{
+name "detail list"
+rect 300 200 120 20
+scalecvar ui_plusscale
+cover 854 480
+font verdana-14
+menushader "MENU" "textures/menu_plus/clear"
+addpopup "MENU" "Low" command "set r_lodscale 0.35"
+addpopup "MENU" "High" command "set r_lodscale 1.1"
+}
+end.
+"""
+
+    # the Remake's server board: the game's server list placed on the picture with cover
+    SERVERS_URC = """menu "plus_servers_test" 2048 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+FAKKServerList
+{
+name "netgamelist"
+rect 116 37 472 307
+scalecvar ui_plusscale
+cover 854 480
+}
+end.
+"""
+
     @classmethod
     def setUpClass(cls):
         cls.plus_dir = tempfile.mkdtemp()
         os.makedirs(os.path.join(cls.plus_dir, "plus"))
         with zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("ui/plus_servers_test.urc", cls.SERVERS_URC)
+            z.writestr("ui/plus_cover_pulldown_test.urc", cls.COVER_PULLDOWN_URC)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
             z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
             z.writestr("ui/plus_slider_test.urc", cls.SLIDER_URC)
@@ -1127,6 +1283,18 @@ end.
     def overlap(a, b):
         return a[0] < b[2] - 1 and b[0] < a[2] - 1 and a[1] < b[3] - 1 and b[1] < a[3] - 1
 
+    def test_server_list_titles_fit_on_a_covered_list(self):
+        # the original's columns and big header font overlapped on the Remake board (titles wider
+        # than their columns); a placed list (anchor or cover) fits them, at any screen shape
+        for w, h in ((1600, 900), (1280, 1024), (2560, 1080)):
+            home, c = self.start(w, h)
+            got = self.widgets(c, "pushmenu plus_servers_test")
+            self.assertEqual(got["menu"], "plus_servers_test")
+            self.assertGreaterEqual(len(got["columns"]), 6, got["columns"])
+            for column in got["columns"]:
+                self.assertLessEqual(column["text"], column["width"], (w, h, column))
+            self.assertEqual(c.quit(), 0)
+
     def test_anchor_follows_screen_edges(self):
         for w, h in ((1280, 720), (2560, 1080)):
             _, _, rows = self.shot(w, h, "pushmenu plus_anchor_test")
@@ -1172,6 +1340,35 @@ end.
             self.assertLessEqual(sl["track"][1], sl["text"][0], (name, sl))
             self.assertLessEqual(sl["text"][1], sl["rect"][2] + 1, (name, sl))
             self.assertGreater(sl["track"][1] - sl["track"][0], (sl["rect"][2] - sl["rect"][0]) / 2, (name, sl))
+        self.assertEqual(c.quit(), 0)
+
+    def test_fork_pulldown_lists_share_one_style(self):
+        # every fork list (one showing its value, or a Remake list placed with cover) opens the same
+        # list: the original's green and yellow, in the pulldown's own clear font (verdana-12 was too
+        # small on the Remake plates; the value lists were dark)
+        _, c = self.start(1280, 720, "+set", "ui_console", "0")
+        for menu, name, font in (("plus_pulldown_test", "res list", "verdana-12"),
+                                 ("plus_cover_pulldown_test", "detail list", "verdana-14")):
+            screen = self.widgets(c, f"pushmenu {menu}")
+            self.assertEqual(screen["menu"], menu)
+            x0, y0, x1, y1 = screen["widgets"][name]["rect"]
+            x, y = round((x0 + x1) / 2), round((y0 + y1) / 2)
+            for buttons in (0, 1):                  # held down: the list is open
+                c.send(f"ui_testmouse {x} {y} {buttons}")
+                time.sleep(1)
+            mark = len(c.log())
+            c.send("ui_printwidgets")
+            out = c.wait_for(r"end of widgets", start=mark, timeout=20)[mark:]
+            c.send(f"ui_testmouse {x} {y} 0")
+            m = re.search(r'pulldown list font "([^"]*)" fg (\S+) (\S+) (\S+) bg (\S+) (\S+) (\S+)', out)
+            self.assertIsNotNone(m, (menu, out))
+            self.assertEqual(m.group(1), font, menu)
+            self.assertEqual(tuple(float(v) for v in m.group(2, 3, 4)), (0.7, 0.6, 0.05), menu)   # UHudColor
+            self.assertEqual(tuple(float(v) for v in m.group(5, 6, 7)), (0.02, 0.07, 0.0), menu)   # the original green
+            c.send("ui_testkey escape")
+            time.sleep(1)
+            c.send("popmenu 0")
+            time.sleep(2)
         self.assertEqual(c.quit(), 0)
 
     def test_pulldown_matches_every_set(self):
@@ -1477,6 +1674,26 @@ class RemakeMenu(GameTestCase):
             self.assertEqual(self.top_menu(c, "joininternetgame"), "joininternetgame")
             c.send("popmenu 0")
             self.assertEqual(self.top_menu(c, "main"), "main")
+        self.assertEqual(c.quit(), 0)
+
+    def test_server_board_filters(self):
+        # the server board's filters (added in OPM): a lamp sets its filter, the favourite plates and
+        # the search field are there, and no knob opens a list (only the plate)
+        c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "dm_filter_empty", "0")
+        c.send("pushmenu joinnetgame")
+        self.assertEqual(self.top_menu(c, "joinnetgame"), "joinnetgame")
+        screen = self.widgets(c)["widgets"]
+        for name in ("add favourite", "remove favourite", "search", "max ping", "pure only"):
+            self.assertIn(name, screen)
+        self.assertFalse([n for n in screen if n.endswith(" knob")])
+        x0, y0, x1, y1 = screen["hide empty"]["rect"]
+        x, y = round((x0 + x1) / 2), round((y0 + y1) / 2)
+        for buttons in (0, 1, 0):
+            c.send(f"ui_testmouse {x} {y} {buttons}")
+            time.sleep(1)
+        mark = len(c.log())
+        c.send("dm_filter_empty")
+        c.wait_for(r'"dm_filter_empty" is:"1', start=mark, timeout=10)
         self.assertEqual(c.quit(), 0)
 
     def test_option_screen_escape_is_back(self):

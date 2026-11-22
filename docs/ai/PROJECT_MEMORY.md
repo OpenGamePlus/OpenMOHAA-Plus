@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Remake server board filters
+- The server board (`serverlist_1940.blend`) is wider and the camera closer (list taller, a filter column right of it): search field, max ping / min / max players lists, lamps for game types, empty, full, sprint, pure; each change runs `restartrefresh` (halts the query, refreshes once idle: `ServerListHalt` is asynchronous and `wait N` counts milliseconds already spent in the frame, so `cancelrefresh;wait 5;refreshserverlist` refreshed nothing). Separate ADD / REMOVE FAVOURITE plates (`addfavorite`/`removefavorite`). Spec `docs/superpowers/specs/2026-11-22-server-board-filters-design.md`.
+- A list placed with `cover` uses the placed column layout (the original's big header overlapped); every fork pulldown list (value shown, or Remake with `cover`) is yellow on green in its own font; the knob no longer opens a list (no click picture). The board's pendant lamp hung in front of it once the camera moved: raised 0.45.
+- The 1.11 servers (most of the real list) send no `gametype_i`, `sprinton` or `pure`, and the master ignores the player filters: type comes from the gametype text, empty/full/players are checked on each answer (`test_filters_on_original_servers` with fake 1.11 responders). Checked against the real master; 4:3 screens crop the board's frame edges only.
+
 ## 2026-11-22 — Remake is the only fork menu
 - The Plus ("Modern") menu is gone (`data/ui/`, its backgrounds, `PlusMenu` tests); `zzz-plus.pk3` holds the fonts, the Remake pak carries `clear.tga` and `ART-LICENSE.md` (renders CC BY-SA 4.0) and is attached to each release by hand. Spec `docs/superpowers/specs/2026-11-22-remake-only-menu-design.md`.
 - The fork's settings moved onto the units (`opciones_detalle_1940.blend`): video got display mode, max FPS, anisotropy, vsync where the jacks and danger plate were; advanced grew two rows for renderer, language, FOV, HUD scale, crosshair size/scale, 4:3 menus; audio got ambience. The anisotropy list links `r_ext_texture_filter_anisotropic`: linked to the max, the renderer's defaults (filter off, max 2) showed "2". Favourites/Recent plates set `dm_browser_show`; the board's Favourite plate toggles.

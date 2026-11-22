@@ -313,7 +313,7 @@ void UIPopupMenu::Draw(void)
     }
 }
 
-// Added in OpenMOHAA Plus: the list of a Plus pulldown: the background (dark, see
+// Added in OpenMOHAA Plus: the list of a fork pulldown: the background (green, see
 //  UIPulldownMenu) comes from Display; a 1-unit border and the highlighted row in the accent colour
 void UIPopupMenu::DrawPlus(void)
 {

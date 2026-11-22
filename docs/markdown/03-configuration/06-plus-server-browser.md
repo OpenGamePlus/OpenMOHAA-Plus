@@ -28,7 +28,14 @@ even when the master servers are down or do not list them.
 | `dm_filter_pure` | `1` shows only pure servers |
 | `dm_run_fast`, `dm_run_normal` | `0` hides servers with / without sprint (`sv_sprinton`) |
 
-Favorites are hidden by the Favourites and Recent filters (`dm_browser_show` 1 and 3): Favourites lists only them, Recent hides those you did not play lately. Only All (0) shows every server. Change a filter, then press Refresh.
+The original 1.11 servers do not send their game type's number, whether sprint is on or whether
+they are pure: their type is read from its name (Free-For-All, Team, Round, Objective, Tug,
+Liberation; a mod's "Freeze-Tag-Objective" counts as objective, a name with none of these words is
+never hidden by type), the sprint filters leave them alone and "pure only" hides them. Empty, full
+and the player counts are checked on each server's answer, as the master servers ignore them.
+
+Favorites are hidden by the Favourites and Recent filters (`dm_browser_show` 1 and 3): Favourites lists only them, Recent hides those you did not play lately. Only All (0) shows every server. Change a filter, then press Refresh. The Remake menu has every
+filter on its server board, and refreshes when one changes ([the Remake menu](14-plus-menu.md)).
 
 ## Files
 

@@ -47,6 +47,7 @@ protected:
 public:
     bool m_bGettingList[NUM_SERVERLISTS];
     bool m_bUpdatingList;
+    bool m_bRestartPending; // Added in OpenMOHAA Plus: see RestartRefresh
 
 private:
     // Added in OPM
@@ -72,6 +73,9 @@ protected:
     void     RefreshStatus();
     void     ToggleFavorite(void);       // Added in OpenMOHAA Plus
     void     ToggleFavoriteEvent(Event *ev); // Added in OpenMOHAA Plus
+    void     AddFavoriteEvent(Event *ev);    // Added in OpenMOHAA Plus
+    void     RemoveFavoriteEvent(Event *ev); // Added in OpenMOHAA Plus
+    void     RestartRefresh(Event *ev);      // Added in OpenMOHAA Plus
     void     SelectItemEvent(Event *ev);     // Added in OpenMOHAA Plus
     void     PrintList(Event *ev);       // Added in OpenMOHAA Plus
     void     QueryServerBook(void);      // Added in OpenMOHAA Plus

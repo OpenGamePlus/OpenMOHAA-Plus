@@ -45,9 +45,11 @@ columns, `replacemenu`, the `plus_options*` Esc hook, `plus_browser_refresh`) wa
   `remake_credits.urc` (model credits) is generated from
   `remake/credits/models.json` (ten fit the board; more is a build error), written in chalk (`pluschalk-32`,
   made from Cabin Sketch, OFL, in `misc/fonts/ofl/`) on the chalkboard's picture when its export exists (a screen with `"credits": true` and a `slate_plate`). Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
-  close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
-  over the plate (which shows the value; when every item sets the list's cvar to a value of its
-  own, a label maps that value as the original did, so the item's other cvars need not match), a check lights its lamp (`lamp_on`), a slider sits on its
+  close-ups whose controls sit on the units: a list is a transparent pulldown over the plate
+  (the knob is only drawn, as it has no click picture; the plate shows the value; when every item sets the list's cvar to a value of its
+  own, a label maps that value as the original did, so the item's other cvars need not match; every
+  fork list, this one or one showing its value, opens in the pulldown's font with the original's
+  yellow on green, `UIPulldownMenu::CreateSubmenu`), a check lights its lamp (`lamp_on`), a slider sits on its
   plate; `binds` puts the game's key list (`FakkBindList`) on a card; `medal` shows its own render
   (cut by the pak from a full-frame render: a border render lights differently) when its cvar is
   set, and pointing at it writes its name and description on the case's plates (`sign_cvar`);

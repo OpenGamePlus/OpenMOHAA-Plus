@@ -69,8 +69,11 @@ rebuild are the original menus from the game files.
   free-for-all game shows them in a framed photo of the room); the red door joins a game (a board
   for LAN or internet, the server lists on a big board, an address to connect to); the board starts
   one (the game type, then the map, limits, rotation, server name). On the internet board Browse
-  lists every server, Favourites and Recent only those; the server board's Favourite plate adds or
-  removes the selected server.
+  lists every server, Favourites and Recent only those. The server board fills the screen: the
+  list, the browser's filters on its right (a search field, where Enter refreshes; max ping, min
+  and max players; lamps for the game types, hiding empty or full servers, sprint and pure
+  servers), and plates to add the selected server to the favourites or remove it. Changing a
+  filter refreshes the list.
 - The chalkboard in the main room opens the credits of the 3D models in the scenes, written in chalk
   on that board up close (`misc/plus-pk3/remake/credits/models.json`, CC BY 4.0 or CC0).
 
@@ -117,9 +120,14 @@ A widget with neither `align`, `anchor` nor `cover` is placed in the menu's own 
 puts the widget at the screen edge whatever the `rect` says.
 
 The server list widget also takes the events `togglefavorite` (favourite on or off for the
-selected server) and `selectitem <n>`. Its `printlist` command prints a `Columns: N` line first,
-then one line per server ending with its version. An anchored list has a version column ("Ver."
-when narrow), names without the version, and an IP column when wider than 800 virtual units. An anchored list has
+selected server), `addfavorite` and `removefavorite` (the selected server only becomes, or stops
+being, a favourite), `restartrefresh` (stops the refresh in progress and refreshes once the list is
+idle; a plain refresh asked while the list is querying does nothing) and `selectitem <n>`. A changed `dm_filter_empty`, `dm_filter_full`,
+`dm_min_players` or `dm_max_players` empties the list on the next refresh, like the other filters.
+A `Field` with `stuffcommand` runs it on Enter with the typed text appended (the Remake's search
+ends its command with `//` so the text is a comment). Its `printlist` command prints a `Columns: N` line first,
+then one line per server ending with its version. A placed list (`anchor` or `cover`) has a version column ("Ver."
+when narrow), names without the version (as the server sends them), and an IP column when wider than 800 virtual units. A placed list has
 its header in the row font, draws its rows at the menu's scale (the original list keeps the HUD
 scale) and its columns end at the scroll bar. Text longer than its column is cut 4 units before
 the column's edge.
@@ -135,11 +143,11 @@ matching item the pulldown shows the linked cvar's value itself. A pulldown with
 (every `PulldownMenuContainer` in practice) opens on a click anywhere in its `rect`; its arrow
 keeps its own size. A click leaves the list open until the next click: on an item it picks it,
 anywhere else it closes the list (press, drag and release on an item also picks it, as in the
-original game). The list of a pulldown with `linkcvar` matches the field: the container's `font`
-and scale, the field's width, padded rows on a dark box with a 1-unit `fgcolor` border, the
-highlighted row tinted with `fgcolor` (the original list keeps `verdana-12` on green). The Remake
-sets the transparent `textures/menu_plus/clear` as the pulldowns' `shader`, `menushader` and
-`selmenushader`, so the list only takes the clicks over the unit's knob or plate.
+original game). The list of a pulldown with `linkcvar`, or of one placed with `cover`, is in the container's `font`
+and scale, as wide as the field, with padded rows in the original's colours (yellow on green, a
+1-unit yellow border, the highlighted row light); other lists keep the original `verdana-12`. The
+Remake sets the transparent `textures/menu_plus/clear` as the pulldowns' `shader`, `menushader` and
+`selmenushader`, so the list only takes the clicks over the unit's plate (the knob is only drawn).
 
 A `Slider` with `showvalue "<format>" [<multiplier>]` has a flat look (track, filled part and thumb
 in its `fgcolor`, no arrows) and prints its value times the multiplier with the format right of the

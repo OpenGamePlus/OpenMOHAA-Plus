@@ -86,6 +86,7 @@ UIPulldownMenu::UIPulldownMenu()
     m_stayOpen   = false;
 
     m_valueFont = NULL; // Added in OpenMOHAA Plus
+    m_placedList = false; // Added in OpenMOHAA Plus
 
     // Added in OPM
     //  This is so the window manager knows it can be activated
@@ -140,11 +141,13 @@ float UIPulldownMenu::getValueWidth(uipull_describe *desc)
     return m_valueFont->getWidth(Sys_LV_CL_ConvertString(m_valueTitle), -1) + 8.0f;
 }
 
-// Added in OpenMOHAA Plus: the text shown before the first pulldown (empty: none, the original look)
-void UIPulldownMenu::setValue(const str& title, UIFont *font)
+// Added in OpenMOHAA Plus: the text shown before the first pulldown (empty: none, the original look);
+//  placed: a Remake list on its plate (cover), whose list is in the font even without a value
+void UIPulldownMenu::setValue(const str& title, UIFont *font, bool placed)
 {
     m_valueTitle = title;
     m_valueFont  = font;
+    m_placedList = placed;
 }
 
 float UIPulldownMenu::getDescWidth(uipull_describe *desc)
@@ -303,17 +306,19 @@ void UIPulldownMenu::MouseDragged(Event *ev)
     subRect.pos.x += m_screenframe.pos.x;
     subRect.pos.y += m_screenframe.pos.y;
     float listWidth = -1.0f;
-    // Added in OpenMOHAA Plus: the list of a pulldown showing its value (linkcvar, see setValue)
-    //  matches the field: same font, scale and colour, as wide, on a dark box instead of green
-    if (m_valueFont && m_valueTitle.length() && subdesc == m_desc.ObjectAt(1)) {
+    // Added in OpenMOHAA Plus: the list of a fork pulldown (one showing its value, see setValue, or a
+    //  Remake list placed on its plate with cover) is in the pulldown's font and scale, as wide as
+    //  the field, with the original's colours: yellow on green, the lit row light
+    UIFont *listFont = m_valueFont && (m_valueTitle.length() || m_placedList) ? m_valueFont : NULL;
+    if (listFont && subdesc == m_desc.ObjectAt(1)) {
         UIPopupMenu *list        = m_submenuptr;
-        list->m_plusFont         = m_valueFont->getName();
-        list->m_plusAccent       = m_foreground_color;
+        list->m_plusFont         = listFont->getName();
+        list->m_plusAccent       = UHudColor;
         list->m_scaleCvar        = m_scaleCvar;
-        list->m_foreground_color = UColor(0.95f, 0.90f, 0.78f, 1.0f);
-        list->m_background_color = UColor(0.05f, 0.05f, 0.04f, 0.94f);
-        list->m_highlightBGColor = m_foreground_color;
-        list->m_highlightFGColor = m_foreground_color;
+        list->m_foreground_color = UHudColor;
+        list->m_background_color = UColor(0.02f, 0.07f, 0.005f, 1.0f);
+        list->m_highlightBGColor = UHudColor;
+        list->m_highlightFGColor = UColor(0.9f, 0.8f, 0.6f, 1.0f);
         // aligned with the field's left edge; Create adds 24 units to the width it is given
         subRect.pos.x -= 2.0f * m_vVirtualScale[0];
         listWidth = m_frame.size.width / m_vVirtualScale[0] - 24.0f;
@@ -544,4 +549,17 @@ void UIPulldownMenu::PrintGeometry(int depth)
         width += getDescWidth(m_desc.ObjectAt(i)) * m_vVirtualScale[0];
     }
     uii.Sys_Printf("pulldown value \"%s\" width %.0f\n", m_valueTitle.c_str(), width);
+    if (m_submenu != -1 && m_submenuptr) { // the open list's look
+        const UIPopupMenu *list = m_submenuptr;
+        uii.Sys_Printf(
+            "pulldown list font \"%s\" fg %.2f %.2f %.2f bg %.2f %.2f %.2f\n",
+            list->m_plusFont.c_str(),
+            list->m_foreground_color.r,
+            list->m_foreground_color.g,
+            list->m_foreground_color.b,
+            list->m_background_color.r,
+            list->m_background_color.g,
+            list->m_background_color.b
+        );
+    }
 }

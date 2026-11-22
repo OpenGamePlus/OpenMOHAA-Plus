@@ -54,6 +54,9 @@ Event EV_FAKKServerList_LANListing(
 Event EV_FAKKServerList_UpdateServer("updateserver", EV_DEFAULT, NULL, NULL, "Update the selected server");
 // Added in OpenMOHAA Plus
 Event EV_FAKKServerList_ToggleFavorite("togglefavorite", EV_DEFAULT, NULL, NULL, "Toggle the selected server as favorite");
+Event EV_FAKKServerList_AddFavorite("addfavorite", EV_DEFAULT, NULL, NULL, "Make the selected server a favorite"); // Added in OpenMOHAA Plus
+Event EV_FAKKServerList_RestartRefresh("restartrefresh", EV_DEFAULT, NULL, NULL, "Stop the refresh in progress and refresh again"); // Added in OpenMOHAA Plus
+Event EV_FAKKServerList_RemoveFavorite("removefavorite", EV_DEFAULT, NULL, NULL, "Remove the selected server from the favorites"); // Added in OpenMOHAA Plus
 Event EV_FAKKServerList_SelectItem("selectitem", EV_DEFAULT, "i", "item", "Select the item with this number"); // Added in OpenMOHAA Plus
 Event EV_FAKKServerList_PrintList("printlist", EV_DEFAULT, NULL, NULL, "Print the listed servers to the console");
 
@@ -333,6 +336,9 @@ CLASS_DECLARATION(UIListCtrl, UIFAKKServerList, NULL) {
     {&EV_FAKKServerList_PrintList,            &UIFAKKServerList::PrintList           },
     {&EV_FAKKServerList_SelectItem,           &UIFAKKServerList::SelectItemEvent     },
     {&EV_FAKKServerList_ToggleFavorite,       &UIFAKKServerList::ToggleFavoriteEvent },
+    {&EV_FAKKServerList_AddFavorite,          &UIFAKKServerList::AddFavoriteEvent    },
+    {&EV_FAKKServerList_RemoveFavorite,       &UIFAKKServerList::RemoveFavoriteEvent },
+    {&EV_FAKKServerList_RestartRefresh,       &UIFAKKServerList::RestartRefresh      },
     {NULL,                                    NULL                                   }
 };
 
@@ -347,6 +353,7 @@ UIFAKKServerList::UIFAKKServerList()
     m_serverList[0]   = NULL;
     m_serverList[1]   = NULL;
     m_bHasList        = false;
+    m_bRestartPending = false; // Added in OpenMOHAA Plus
     m_bGettingList[0] = false;
     m_bGettingList[1] = false;
     m_bUpdatingList   = false;
@@ -498,8 +505,8 @@ void UIFAKKServerList::UpdateUIElement(void)
 
     width = getClientFrame().size.width;
 
-    if (m_flags & WF_ANCHORED) {
-        // Added in OpenMOHAA Plus: the Plus browser's list (anchored) has its header in the row font,
+    if (m_flags & (WF_ANCHORED | WF_COVER)) {
+        // Added in OpenMOHAA Plus: a placed list (anchored, or the Remake board's with cover) has its header in the row font,
         //  and its columns end at the scroll bar and are wide enough for their titles; a list wider
         //  than 800 virtual units (1/480 of the screen height) also shows the IP
         setHeaderFont(NULL);
@@ -559,7 +566,10 @@ void UIFAKKServerList::RefreshServerList(Event *ev)
             Cvar_Get("dm_team_match", "1", CVAR_ARCHIVE), Cvar_Get("dm_round_based_match", "1", CVAR_ARCHIVE),
             Cvar_Get("dm_objective_match", "1", CVAR_ARCHIVE), Cvar_Get("dm_tow_match", "1", CVAR_ARCHIVE),
             Cvar_Get("dm_liberation_match", "1", CVAR_ARCHIVE), Cvar_Get("dm_filter_pure", "0", CVAR_ARCHIVE),
-            Cvar_Get("dm_run_fast", "1", CVAR_ARCHIVE), Cvar_Get("dm_run_normal", "1", CVAR_ARCHIVE)};
+            Cvar_Get("dm_run_fast", "1", CVAR_ARCHIVE), Cvar_Get("dm_run_normal", "1", CVAR_ARCHIVE),
+            // the master's filters: servers it no longer lists would keep their old line
+            Cvar_Get("dm_filter_empty", "0", CVAR_ARCHIVE), Cvar_Get("dm_filter_full", "0", CVAR_ARCHIVE),
+            Cvar_Get("dm_min_players", "0", CVAR_ARCHIVE), Cvar_Get("dm_max_players", "0", CVAR_ARCHIVE)};
         bool changed = false;
 
         for (i = 0; i < ARRAY_LEN(filters); i++) {
@@ -733,6 +743,21 @@ static void AddFilter(char *filter, const char *value, size_t maxsize)
     }
 
     strncpy(filter + filterlen, newval, maxsize - filterlen);
+}
+
+// Added in OpenMOHAA Plus: a filter changed (the Remake board): a refresh asked while the list
+//  is querying does nothing, so halt the query (it ends on a later frame) and refresh then
+void UIFAKKServerList::RestartRefresh(Event *ev)
+{
+    const bool busy = (m_serverList[0] && ServerListState(m_serverList[0]) != sl_idle)
+                   || (m_serverList[1] && ServerListState(m_serverList[1]) != sl_idle);
+
+    if (!busy) {
+        RefreshServerList(NULL);
+        return;
+    }
+    CancelRefresh(NULL);
+    m_bRestartPending = true;
 }
 
 void UIFAKKServerList::CancelRefresh(Event *ev)
@@ -1037,6 +1062,17 @@ void UIFAKKServerList::Draw(void)
 
         listState[0] = ServerListState(m_serverList[0]);
         listState[1] = m_serverList[1] ? ServerListState(m_serverList[1]) : GServerListState::sl_idle;
+        // Added in OpenMOHAA Plus: the halted query is over, refresh as RestartRefresh asked
+        if (m_bRestartPending && listState[0] == GServerListState::sl_idle
+            && listState[1] == GServerListState::sl_idle) {
+            m_bRestartPending = false;
+            RefreshServerList(NULL);
+            if (!m_serverList[0]) {
+                return;
+            }
+            listState[0] = ServerListState(m_serverList[0]);
+            listState[1] = m_serverList[1] ? ServerListState(m_serverList[1]) : GServerListState::sl_idle;
+        }
         if (listState[0] != GServerListState::sl_idle || listState[1] != GServerListState::sl_idle) {
             menuManager.PassEventToWidget("refresh", new Event(EV_Widget_Disable));
             menuManager.PassEventToWidget("cancelrefresh", new Event(EV_Widget_Enable));
@@ -1142,6 +1178,8 @@ void UIFAKKServerList::UpdateServerListCallBack(
     static cvar_t *dm_filter_full       = Cvar_Get("dm_filter_full", "0", CVAR_ARCHIVE);
     static cvar_t *dm_filter_pure       = Cvar_Get("dm_filter_pure", "0", CVAR_ARCHIVE);
     static cvar_t *dm_max_ping          = Cvar_Get("dm_max_ping", "0", CVAR_ARCHIVE);
+    static cvar_t *dm_min_players       = Cvar_Get("dm_min_players", "0", CVAR_ARCHIVE); // Added in OpenMOHAA Plus
+    static cvar_t *dm_max_players       = Cvar_Get("dm_max_players", "0", CVAR_ARCHIVE); // Added in OpenMOHAA Plus
     static cvar_t *dm_free_for_all      = Cvar_Get("dm_free_for_all", "1", CVAR_ARCHIVE);
     static cvar_t *dm_objective_match   = Cvar_Get("dm_objective_match", "1", CVAR_ARCHIVE);
     static cvar_t *dm_round_based_match = Cvar_Get("dm_round_based_match", "1", CVAR_ARCHIVE);
@@ -1237,9 +1275,9 @@ void UIFAKKServerList::UpdateServerListCallBack(
             }
         }
         // always show the version
-        if (uiServerList->m_flags & WF_ANCHORED) {
-            // Added in OpenMOHAA Plus: the Plus browser's list (anchored) has a Version column, so
-            //  the name is left as the server sends it
+        if (uiServerList->m_flags & (WF_ANCHORED | WF_COVER)) {
+            // Added in OpenMOHAA Plus: a placed list (anchored, or the Remake board's) has a Version
+            //  column, so the name is left as the server sends it
             sServerName = pszHostName;
         } else if (!bIsDemo) {
             sServerName = va(" (%s) %s", pszGameVerNumber, pszHostName);
@@ -1315,10 +1353,29 @@ void UIFAKKServerList::UpdateServerListCallBack(
                 cvar_t *typeFilters[] = {
                     NULL, dm_free_for_all, dm_team_match, dm_round_based_match,
                     dm_objective_match, dm_tow_match, dm_liberation_match};
-                const int gametype = ServerGetIntValue(server, "gametype_i", -1);
+                int       gametype = ServerGetIntValue(server, "gametype_i", -1);
                 const int sprint   = ServerGetIntValue(server, "sprinton", -1);
+                const int players  = ServerGetIntValue(server, "numplayers", 0);
+                const int maxSlots = ServerGetIntValue(server, "maxplayers", 0);
 
-                bHide = (dm_max_ping->integer > 0 && ServerGetPing(server) > dm_max_ping->integer)
+                if (gametype < 0) {
+                    // the original servers send only the type's text, which mods rename
+                    //  (Freeze-Tag-Objective): known words give the type, anything else is kept
+                    const char *text  = ServerGetStringValue(server, "gametype", "");
+                    const char *words[] = {NULL, "Free-For-All", "Team", "Round", "Objective", "Tug", "Liberation"};
+                    for (i = ARRAY_LEN(words) - 1; i > 0 && gametype < 0; i--) {
+                        if (Q_stristr(text, words[i])) {
+                            gametype = i;
+                        }
+                    }
+                }
+
+                // the master servers ignore the query's player filters: apply them to each answer
+                bHide = (dm_filter_empty->integer && players == 0)
+                     || (dm_filter_full->integer && maxSlots > 0 && players >= maxSlots)
+                     || (dm_min_players->integer && players < dm_min_players->integer)
+                     || (dm_max_players->integer && players > dm_max_players->integer)
+                     || (dm_max_ping->integer > 0 && ServerGetPing(server) > dm_max_ping->integer)
                      || (dm_browser_search->string[0] && !Q_stristr(pszHostName, dm_browser_search->string)
                          && !Q_stristr(ServerGetStringValue(server, "mapname", ""), dm_browser_search->string))
                      || (gametype > 0 && gametype < (int)ARRAY_LEN(typeFilters) && !typeFilters[gametype]->integer)
@@ -1540,6 +1597,22 @@ void UIFAKKServerList::SelectItemEvent(Event *ev)
 void UIFAKKServerList::ToggleFavoriteEvent(Event *ev)
 {
     ToggleFavorite();
+}
+
+// Added in OpenMOHAA Plus: one plate to add and one to remove, as one plate doing both confused players
+void UIFAKKServerList::AddFavoriteEvent(Event *ev)
+{
+    if (getCurrentItem() > 0 && !static_cast<FAKKServerListItem *>(GetItem(getCurrentItem()))->IsFavorite()) {
+        ToggleFavorite();
+    }
+}
+
+// Added in OpenMOHAA Plus
+void UIFAKKServerList::RemoveFavoriteEvent(Event *ev)
+{
+    if (getCurrentItem() > 0 && static_cast<FAKKServerListItem *>(GetItem(getCurrentItem()))->IsFavorite()) {
+        ToggleFavorite();
+    }
 }
 
 void UIFAKKServerList::PrintList(Event *ev)

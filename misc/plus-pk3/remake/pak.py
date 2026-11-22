@@ -348,7 +348,7 @@ def _item_values(control):
 
 def screen_urc(mapping, export):
     """ui/<menu>.urc of an option screen: the close-up and, on its units, the controls: a list is a
-    pulldown over the knob and one over the plate, which shows the value; a check lights its lamp; a
+    pulldown over the plate, which shows the value (the knob is only drawn: no click picture of its own); a check lights its lamp; a
     slider sits on its plate. The engine writes every value (in the picture's scale under cover)."""
     menu, width = mapping["menu"], export["picture"][0]
     cover = f"cover {width} 480"
@@ -387,7 +387,6 @@ def screen_urc(mapping, export):
             items = [f'addpopup "MENU" "{title}" command "{command}"' for title, command in control["items"]]
             pull = ['font verdana-14', 'menushader "MENU" "textures/menu_plus/clear"',
                     'selmenushader "MENU" "textures/menu_plus/clear"']
-            widget("PulldownMenuContainer", common(name + " knob", rects["knob"]) + pull + items)
             values = _item_values(control)
             if values:  # a label maps the cvar's value (the original's way), under a pulldown without one
                 # its text as big and as far in as a pulldown's (6 units in, about 64% of the plate's
@@ -419,7 +418,9 @@ def screen_urc(mapping, export):
                 f'hovercommand "set {mapping["sign_cvar"]} {key}"'])
         elif control["kind"] == "field":  # typed into: the player's name
             widget("Field", common(name, rects["plate"]) + ["font verdana-14", "textalign left",
-                                                            f'linkcvar "{control["cvar"]}"'])
+                                                            f'linkcvar "{control["cvar"]}"'] +
+                   # Enter runs it with the typed text appended (UIField::KeyEvent)
+                   ([f'stuffcommand "{control["command"]}"'] if control.get("command") else []))
         elif control["kind"] == "text":  # a cvar's text on its plate
             widget("Label", common(name, rects["plate"]) + ["font verdana-14", "textalign center",
                                                             f'linkcvar "{control["cvar"]}"'])

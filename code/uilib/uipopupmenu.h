@@ -100,8 +100,8 @@ protected:
     bool                           m_autodismiss;
     UColor                         m_highlightFGColor;
     UColor                         m_highlightBGColor;
-    // Added in OpenMOHAA Plus: list of an anchored (Plus) pulldown, set by UIPulldownMenu before
-    //  Create: its font, a dark box with a border and padded rows in the pulldown's colour
+    // Added in OpenMOHAA Plus: list of a fork pulldown, set by UIPulldownMenu before Create: its
+    //  font, a border and padded rows in the original's colours
     str                            m_plusFont;
     UColor                         m_plusAccent;
 

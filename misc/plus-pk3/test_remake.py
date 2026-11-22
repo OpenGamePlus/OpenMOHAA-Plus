@@ -383,9 +383,39 @@ class Screens(unittest.TestCase):
                                "favourite servers": "set dm_browser_show 1;" + refresh,
                                "recent servers": "set dm_browser_show 3;" + refresh,
                                "connect to ip address": "menuconnect ui_connectip"})
+
+    def test_real_server_board(self):
+        # the server board (added in OPM): one plate adds a favourite and one removes it, and every
+        # browser filter is on the board; changing one refreshes the list (the engine applies the
+        # filters to new answers), and Enter in the search field does too
+        from remake import pak
         board = hotspots.load_mapping(os.path.join(HERE, "remake", "joinnetgame.json"))
-        toggle = next(c for c in board["controls"] if c["name"] == "toggle favourite")
-        self.assertEqual(toggle["command"], "widgetcommand netgamelist togglefavorite")
+        controls = {c["name"]: c for c in board["controls"]}
+        self.assertEqual({n: controls[n]["command"] for n in ("add favourite", "remove favourite")},
+                         {"add favourite": "widgetcommand netgamelist addfavorite",
+                          "remove favourite": "widgetcommand netgamelist removefavorite"})
+        self.assertNotIn("toggle favourite", controls)
+        refresh = "widgetcommand netgamelist restartrefresh"  # a refresh asked while querying would do nothing
+        checks = {c["cvar"] for c in board["controls"] if c["kind"] == "check"}
+        self.assertEqual(checks, {"dm_free_for_all", "dm_team_match", "dm_round_based_match", "dm_objective_match",
+                                  "dm_tow_match", "dm_liberation_match", "dm_filter_empty", "dm_filter_full",
+                                  "dm_run_fast", "dm_run_normal", "dm_filter_pure"})
+        for c in board["controls"]:
+            if c["kind"] == "check":
+                self.assertEqual((c["checked_command"], c["unchecked_command"]), (refresh, refresh), c["name"])
+            if c["kind"] == "list":
+                for title, command in c["items"]:
+                    self.assertTrue(command.endswith(";" + refresh), (c["name"], title))
+        self.assertEqual({c["cvar"] for c in board["controls"] if c["kind"] == "list"},
+                         {"dm_max_ping", "dm_min_players", "dm_max_players"})
+        search = controls["search"]
+        self.assertEqual((search["kind"], search["cvar"]), ("field", "dm_browser_search"))
+        # the field appends what was typed to its command: a comment keeps it out of the refresh
+        self.assertEqual(search["command"], refresh + " //")
+        export = {"menu": "joinnetgame", "picture": [854, 480], "background": "background.png",
+                  "controls": {"search": {"plate": [10, 10, 100, 20]}}}
+        text = pak.screen_urc({**board, "controls": [search], "corners": []}, export)
+        self.assertIn(f'\nstuffcommand "{refresh} //"\n', self.block(text, "search") + "\n")
 
     BRIEFING = {"menu": "briefingroom", "screen": True, "camera": "Cam_Briefing", "sign_cvar": "ui_briefingsign",
                 "sign_plate": ["Sign"], "signs": {"briefing": "Briefing"}, "controls": [
@@ -480,12 +510,11 @@ class Screens(unittest.TestCase):
         text = pak.screen_urc(self.load(self.SCREEN), self.EXPORT)
         self.assertIn('menu "video_options"', text)
         self.assertIn("cover 854 480", text)
-        knob, plate = self.block(text, "resolution knob"), self.block(text, "resolution")
-        for block in (knob, plate):  # both open the same list
-            self.assertIn("PulldownMenuContainer", text)
-            self.assertIn('addpopup "MENU" "1920x1080" command "set r_mode -1; set r_customwidth 1920"', block)
-        self.assertIn("rect 100 100 20 20", knob)
-        self.assertNotIn("linkcvar", knob)
+        plate = self.block(text, "resolution")
+        self.assertIn("PulldownMenuContainer", text)
+        self.assertIn('addpopup "MENU" "1920x1080" command "set r_mode -1; set r_customwidth 1920"', plate)
+        # only the plate opens the list: the knob has no picture of its own for a click
+        self.assertNotIn('name "resolution knob"', text)
         self.assertIn("rect 125 100 60 12", plate)
         self.assertIn('linkcvar "r_mode"', plate)  # the plate shows the value: every set must match
         # each item gives its own value of the cvar: a label maps it, as the original did (the other
