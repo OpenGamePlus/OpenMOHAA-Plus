@@ -1,0 +1,145 @@
+{
+ "menu": "briefingroom",
+ "screen": true,
+ "camera": "Cam_Briefing",
+ "sign_cvar": "ui_briefingsign",
+ "sign_plate": [
+  "Board_Felt"
+ ],
+ "signs": {
+  "briefing": "Briefing"
+ },
+ "controls": [
+  {
+   "name": "arzew",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Arzew",
+    "BR_Star_Arzew"
+   ],
+   "shown": [
+    "BR_Name_Arzew",
+    "BR_Star_Arzew"
+   ],
+   "lit": [
+    "BR_NameLit_Arzew",
+    "BR_StarLit_Arzew"
+   ],
+   "command": "pushmenu mission1difficulty",
+   "text": "Lighting the Torch"
+  },
+  {
+   "name": "trondheim",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Trondheim",
+    "BR_Star_Trondheim"
+   ],
+   "shown": [
+    "BR_Name_Trondheim",
+    "BR_Star_Trondheim"
+   ],
+   "lit": [
+    "BR_NameLit_Trondheim",
+    "BR_StarLit_Trondheim"
+   ],
+   "command": "pushmenu mission2difficulty",
+   "text": "Scuttling the U-529",
+   "cvar": "g_m2l1"
+  },
+  {
+   "name": "omaha",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Omaha",
+    "BR_Star_Omaha"
+   ],
+   "shown": [
+    "BR_Name_Omaha",
+    "BR_Star_Omaha"
+   ],
+   "lit": [
+    "BR_NameLit_Omaha",
+    "BR_StarLit_Omaha"
+   ],
+   "command": "pushmenu mission3difficulty",
+   "text": "Operation Overlord",
+   "cvar": "g_m3l1"
+  },
+  {
+   "name": "normandy",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Normandy",
+    "BR_Star_Normandy"
+   ],
+   "shown": [
+    "BR_Name_Normandy",
+    "BR_Star_Normandy"
+   ],
+   "lit": [
+    "BR_NameLit_Normandy",
+    "BR_StarLit_Normandy"
+   ],
+   "command": "pushmenu mission4difficulty",
+   "text": "Behind Enemy Lines",
+   "cvar": "g_m4l1"
+  },
+  {
+   "name": "brittany",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Brittany",
+    "BR_Star_Brittany"
+   ],
+   "shown": [
+    "BR_Name_Brittany",
+    "BR_Star_Brittany"
+   ],
+   "lit": [
+    "BR_NameLit_Brittany",
+    "BR_StarLit_Brittany"
+   ],
+   "command": "pushmenu mission5difficulty",
+   "text": "Day of the Tiger",
+   "cvar": "g_m5l1"
+  },
+  {
+   "name": "siegfried",
+   "kind": "mission",
+   "plate": [
+    "BR_Name_Siegfried",
+    "BR_Star_Siegfried"
+   ],
+   "shown": [
+    "BR_Name_Siegfried",
+    "BR_Star_Siegfried"
+   ],
+   "lit": [
+    "BR_NameLit_Siegfried",
+    "BR_StarLit_Siegfried"
+   ],
+   "command": "pushmenu mission6difficulty",
+   "text": "Return to Schmerzen",
+   "cvar": "g_m6l1"
+  },
+  {
+   "name": "training",
+   "kind": "action",
+   "plate": [
+    "BR_Training"
+   ],
+   "lit": [
+    "BR_TrainingLit"
+   ],
+   "command": "spmap training"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

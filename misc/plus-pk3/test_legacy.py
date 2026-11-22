@@ -351,6 +351,62 @@ class Screens(unittest.TestCase):
             bad = json.loads(json.dumps(mapping)); bad["controls"][0]["class"] = "Button"
             self.load(bad)
 
+    BRIEFING = {"menu": "briefingroom", "screen": True, "camera": "Cam_Briefing", "sign_cvar": "ui_briefingsign",
+                "sign_plate": ["Sign"], "signs": {"briefing": "Briefing"}, "controls": [
+        {"name": "arzew", "kind": "mission", "plate": ["A"], "shown": ["A_Name"], "lit": ["A_Red"],
+         "command": "pushmenu mission1difficulty", "text": "Lighting The Torch"},
+        {"name": "trondheim", "kind": "mission", "plate": ["T"], "shown": ["T_Name"], "lit": ["T_Red"], "cvar": "g_m2l1",
+         "command": "pushmenu mission2difficulty", "text": "Scuttling The U-529"}],
+        "corners": [{"title": "Back", "side": "left", "command": "popmenu 0"}]}
+    BRIEFING_EXPORT = {"menu": "briefingroom", "picture": [854, 480], "background": "background.png",
+                       "plates": {"sign": [600, 20, 200, 50]}, "controls": {
+        "arzew": {"plate": [300, 380, 60, 20], "image": "picture_arzew.png", "lit_image": "lit_arzew.png"},
+        "trondheim": {"plate": [400, 80, 90, 20], "image": "picture_trondheim.png", "lit_image": "lit_trondheim.png"}}}
+
+    def test_briefing_missions(self):
+        # a mission shows on the map when unlocked (g_mXl1; the first always), red under the pointer,
+        # and names itself on the sign
+        from legacy import pak
+        text = pak.screen_urc(self.load(self.BRIEFING), self.BRIEFING_EXPORT)
+        name, button = self.block(text, "trondheim"), self.block(text, "trondheim button")
+        for line in ('shader "textures/menu_plus/legacy/briefingroom_trondheim"', 'enabledcvar "g_m2l1"', "rect 400 80 90 20"):
+            self.assertIn("\n" + line + "\n", name + "\n", line)
+        for line in ('hovershader "textures/menu_plus/legacy/briefingroom_trondheim_h"', 'enabledcvar "g_m2l1"',
+                     'stuffcommand "pushmenu mission2difficulty"', 'hovercommand "set ui_briefingsign trondheim"',
+                     'shader "textures/menu_plus/clear"'):
+            self.assertIn("\n" + line + "\n", button + "\n", line)
+        self.assertNotIn("enabledcvar", self.block(text, "arzew"))
+        sign = self.block(text, "mission sign")
+        for line in ("rect 600 20 200 50", 'linkcvar "ui_briefingsign"', 'linkstring "trondheim" "Scuttling The U-529"',
+                     'linkstring "briefing" "Briefing"'):   # what the doors set before opening it
+            self.assertIn("\n" + line + "\n", sign + "\n", line)
+        with self.assertRaises(ValueError):  # a mission needs its lit look
+            bad = json.loads(json.dumps(self.BRIEFING)); del bad["controls"][0]["lit"]
+            self.load(bad)
+
+    def test_screen_as_include(self):
+        # the briefing slides share ui/missionbriefingback.inc: a screen can be just that background
+        from legacy import pak
+        mapping = {"menu": "missionbriefingback", "screen": True, "include": True, "camera": "C", "controls": []}
+        export = {"menu": "missionbriefingback", "picture": [854, 480], "background": "background.png", "controls": {}}
+        text = pak.screen_urc(self.load(mapping), export)
+        self.assertNotIn('menu "', text)
+        self.assertNotIn("end.", text)
+        self.assertIn('shader "textures/menu_plus/legacy/missionbriefingback_l"', text)
+
+    def test_briefing_slide(self):
+        # the game stretches a 640x480 menu to the screen: the slide is placed in picture units instead,
+        # in the 4:3 middle of the slides' background (the original's 96,74 456x344 there)
+        from legacy import pak
+        text = pak.slide_urc("briefing1b", "sabotage", 854)
+        slide = self.block(text, "slide")
+        for line in ("rect 203 74 456 344", "cover 854 480", 'shader "sabotage"'):
+            self.assertIn("\n" + line + "\n", slide + "\n", line)
+        self.assertIn('\ninclude "ui/missionbriefingback.inc"\n', text)
+        first = pak.slide_urc("mission1_briefing", "briefing1a", 854, "spmap m1l1")
+        self.assertIn('stuffcommand "spmap m1l1"', first)
+        self.assertIn('title "Skip Briefing"', first)
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
@@ -419,8 +475,8 @@ class Mappings(unittest.TestCase):
     """The hotspots agreed with the maintainer (spec 2026-11-17-legacy-menu-design.md)."""
     AGREED = {
         "main": {"sign": (None, None, None),
-                 "new game": ("pushmenu briefingroom", "newgame_sign", "New Game"),
-                 "briefing": ("pushmenu briefingroom", "briefingroom_sign", "Briefing"),
+                 "new game": ("set ui_briefingsign briefing;pushmenu briefingroom", "newgame_sign", "New Game"),
+                 "briefing": ("set ui_briefingsign briefing;pushmenu briefingroom", "briefingroom_sign", "Briefing"),
                  "multiplayer": ("pushmenu multiplayer", "multiplayer_sign", "Multiplayer"),
                  "options": ("pushmenu options_main", "options_sign", "Options"),
                  "records": ("pushmenu war_records", "warrecords_sign", "War Records"),
@@ -471,6 +527,12 @@ class BuildLegacy(unittest.TestCase):
         write_json(mappings, "options_main.json", dict(cls.MAPPING, menu="options_main"))
         write_json(mappings, "video_options.json", Screens.SCREEN)
         write_json(mappings, "medals.json", Screens.MEDALS)
+        write_json(mappings, "briefingroom.json", Screens.BRIEFING)
+        os.makedirs(os.path.join(mappings, "briefing"))
+        write_json(os.path.join(mappings, "briefing"), "slides.json", {"slides": {"briefing1b": "sabotage"},
+                                                                       "skip": {"mission1_briefing": ["briefing1a", "spmap m1l1"]}})
+        write_json(mappings, "missionbriefingback.json", {"menu": "missionbriefingback", "screen": True, "include": True,
+                                                           "camera": "C", "controls": []})
         stamped = json.loads(json.dumps(Screens.LOADSAVE)); stamped["controls"][1]["lit"] = ["SL"]; del stamped["controls"][1]["title"]
         write_json(mappings, "loadsave.json", stamped)
         os.makedirs(os.path.join(mappings, "credits"))
@@ -513,7 +575,12 @@ class BuildLegacy(unittest.TestCase):
             "ui/medals.urc", "textures/menu_plus/legacy/medals_l.jpg", "textures/menu_plus/legacy/medals_r.jpg",
             "textures/menu_plus/legacy/medals_silver_star.jpg",
             "ui/loadsave.urc", "textures/menu_plus/legacy/loadsave_l.jpg", "textures/menu_plus/legacy/loadsave_r.jpg",
-            "textures/menu_plus/legacy/loadsave_load_game.jpg"})
+            "textures/menu_plus/legacy/loadsave_load_game.jpg",
+            "ui/briefingroom.urc", "textures/menu_plus/legacy/briefingroom_l.jpg", "textures/menu_plus/legacy/briefingroom_r.jpg",
+            "textures/menu_plus/legacy/briefingroom_arzew.jpg", "textures/menu_plus/legacy/briefingroom_arzew_h.jpg",
+            "textures/menu_plus/legacy/briefingroom_trondheim.jpg", "textures/menu_plus/legacy/briefingroom_trondheim_h.jpg",
+            "ui/missionbriefingback.inc", "textures/menu_plus/legacy/missionbriefingback_l.jpg",
+            "textures/menu_plus/legacy/missionbriefingback_r.jpg", "ui/briefing1b.urc", "ui/mission1_briefing.urc"})
 
     def test_medal_picture_is_cut_from_a_full_render(self):
         # a medal is rendered over the whole frame (a border render lit the velvet differently) and the

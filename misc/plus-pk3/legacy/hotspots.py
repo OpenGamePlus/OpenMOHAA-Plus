@@ -130,25 +130,28 @@ def _check_corners(menu, mapping):
 
 CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",),
                  "medal": ("medal",), "shot": ("plate",), "action": ("plate",), "saves": ("plate",),
-                 "field": ("plate",), "text": ("plate",), "model": ("plate",), "servers": ("plate",)}
-NO_CVAR = ("binds", "shot", "action", "saves", "servers")  # controls the game drives by name or by command
+                 "field": ("plate",), "text": ("plate",), "model": ("plate",), "servers": ("plate",), "mission": ("plate",)}
+NO_CVAR = ("binds", "shot", "action", "saves", "servers", "mission")  # controls the game drives by name or by command
 
 
-def picture(control):
-    """A control drawn from its own render: the objects shown only in it, and the part whose rect
-    is cut from it (a medal; a stamp's lit look). None for the others."""
+def pictures(control):
+    """A control drawn from its own renders: (its key in the export, the objects shown only in that
+    render, the part whose rect is cut from it) for each (a medal; a lit action's look; a mission's
+    name and its lit look). Empty for the others."""
     if control["kind"] == "medal":
-        return control["medal"], "medal"
+        return [("image", control["medal"], "medal")]
     if control["kind"] == "action" and control.get("lit"):
-        return control["lit"], "plate"
-    return None
+        return [("image", control["lit"], "plate")]
+    if control["kind"] == "mission":
+        return [("image", control["shown"], "plate"), ("lit_image", control["lit"], "plate")]
+    return []
 
 
 def _check_screen(path, mapping):
     """An option screen: a close-up whose controls (list, check, slider) sit on Blender objects."""
     for key in ("menu", "camera", "controls"):
-        if not mapping.get(key):
-            raise ValueError(f"{path}: missing {key}")
+        if not mapping.get(key) and not (key == "controls" and mapping.get("include") and mapping.get(key) == []):
+            raise ValueError(f"{path}: missing {key}")   # an include may be just its background
     menu, names = mapping["menu"], set()
     for control in mapping["controls"]:
         name, kind = control.get("name", ""), control.get("kind")
@@ -168,8 +171,8 @@ def _check_screen(path, mapping):
             items = control.get("items") or []
             if not items or any(len(i) != 2 or '"' in "".join(i) for i in items):
                 raise ValueError(f"{menu}: list {name} needs items [title, command] without quotes")
-        if "lit" in control and (kind != "action" or not isinstance(control["lit"], list)):
-            raise ValueError(f"{menu}: {name}: lit is a list of objects, for an action")
+        if "lit" in control and (kind not in ("action", "mission") or not isinstance(control["lit"], list)):
+            raise ValueError(f"{menu}: {name}: lit is a list of objects, for an action or a mission")
         if control.get("lit") and control.get("title"):  # the button's ink would tint its lit picture dark
             raise ValueError(f"{menu}: {name}: a lit action has its text in the picture, not a title")
         if kind == "action" and (not control.get("command")
@@ -182,6 +185,14 @@ def _check_screen(path, mapping):
             raise ValueError(f"{menu}: {name}: ink is dark or light")
         if kind == "servers" and control.get("class") not in ("LANGameClass", "FAKKServerList"):
             raise ValueError(f"{menu}: servers {name} is a LANGameClass or a FAKKServerList")
+        if kind == "mission":
+            for key in ("shown", "lit", "command", "text"):
+                if not control.get(key) or '"' in str(control[key]):
+                    raise ValueError(f"{menu}: mission {name} needs a {key} without quotes")
+            if not mapping.get("sign_cvar") or not mapping.get("sign_plate"):
+                raise ValueError(f"{menu}: missions need sign_cvar and sign_plate")
+            if any('"' in k + v for k, v in mapping.get("signs", {}).items()):
+                raise ValueError(f"{menu}: no quotes in signs")
         if kind == "medal":
             for key in ("title", "desc"):
                 text = control.get(key, "")

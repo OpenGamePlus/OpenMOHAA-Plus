@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy briefing room
+- New Game and Briefing open a room built from the main room: a wall map from Norway to Algeria drawn from Natural Earth (public domain; the ComfyUI maps invented the geography), the missions as names with stars at their real places (`mission` control: shown when `g_mXl1` is set, red under the pointer, named on the sign), Basic Training, a difficulty board, the slides over the darkened room (`missionbriefingback.inc` from an `"include"` screen).
+- The game stretches a 640x480 menu to the screen: the 61 slide menus are generated from `legacy/briefing/slides.json` with the slide in picture units. The export hides and measures mesh objects only: text objects stayed in every render until converted.
+- Not checked: clicking missions and difficulties, a briefing inside the game, Skip Briefing, training.
+
 ## 2026-11-21 — Legacy start-game screens
 - The room's start board seen close up (the original's serverback), a mahogany board on the right wall: the game type chooser and the four setups (map, inactivity, limits, team damage, rotation, server name, dedicated, internet listing), with the original's commands (`ui_startdmmap`, `dmmapselect`). "Use GameSpy" became "List On Internet": `ui_gamespy` sets `sv_gamespy`, the master server heartbeat.
 - The multiplayer boards took the original's reddish lacquered wood (Poly Haven `rosewood_veneer1`, CC0): planks with light titles, green felt where the engine writes (`"ink": "light"`).

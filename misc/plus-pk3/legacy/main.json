@@ -23,7 +23,7 @@
    "objects": [
     "Map_Europe"
    ],
-   "command": "pushmenu briefingroom",
+   "command": "set ui_briefingsign briefing;pushmenu briefingroom",
    "sign": "newgame_sign",
    "text": "New Game",
    "lights": [
@@ -38,7 +38,7 @@
     "DoorB_root",
     "DoorL_*"
    ],
-   "command": "pushmenu briefingroom",
+   "command": "set ui_briefingsign briefing;pushmenu briefingroom",
    "sign": "briefingroom_sign",
    "text": "Briefing",
    "lights": [

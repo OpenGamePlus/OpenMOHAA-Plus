@@ -294,20 +294,22 @@ def export_screen(mapping_path, out_root):
                 for part in hotspots.CONTROL_PARTS[control["kind"]]}
         data = {"menu": mapping["menu"], "picture": list(_picture()), "background": "background.png",
                 "controls": controls}
-        pictures = {c["name"]: _objects({"objects": hotspots.picture(c)[0]})
-                    for c in mapping["controls"] if hotspots.picture(c)}
-        if any(c["kind"] == "medal" for c in mapping["controls"]):  # a medal case: the plates the engine writes on
+        pictures = {(c["name"], key): _objects({"objects": objects})
+                    for c in mapping["controls"] for key, objects, _ in hotspots.pictures(c)}
+        plates = [key[:-len("_plate")] for key in mapping if key.endswith("_plate")]
+        if plates:  # where the engine writes beside the controls (a medal's name, a mission's sign)
             data["plates"] = {plate: list(_rect({"name": plate, "objects": mapping[plate + "_plate"]}, mapping["menu"]))
-                              for plate in ("name", "desc")}
+                              for plate in plates}
         path = os.path.join(folder, "background.png")
         # the background without the pictures' objects (medals, lit stamps), then each alone
         with _hidden([ob for objects in pictures.values() for ob in objects]):
             _render(path)
-        for name, objects in pictures.items():
-            controls[name]["image"] = f"picture_{hotspots.slug(name)}.png"
+        for (name, key), objects in pictures.items():
+            controls[name][key] = f"{'picture' if key == 'image' else 'lit'}_{hotspots.slug(name)}.png"
             # the whole frame (a border render lights the velvet differently); the pak cuts the rect
-            with _hidden([ob for other, obs in pictures.items() if other != name for ob in obs]):
-                _render(os.path.join(folder, controls[name]["image"]))
+            with _hidden([ob for other, obs in pictures.items() if other != (name, key) for ob in obs
+                          if ob not in objects]):
+                _render(os.path.join(folder, controls[name][key]))
         with open(json_path, "w") as f:
             json.dump(data, f, indent=1)
     finally:
