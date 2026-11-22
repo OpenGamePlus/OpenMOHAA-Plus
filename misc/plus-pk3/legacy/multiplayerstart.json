@@ -1,0 +1,58 @@
+{
+ "menu": "multiplayerstart",
+ "screen": true,
+ "camera": "Cam_Start",
+ "controls": [
+  {
+   "name": "free for all",
+   "kind": "action",
+   "plate": [
+    "MPS_P_FFA"
+   ],
+   "lit": [
+    "MPS_P_FFA_Lit"
+   ],
+   "command": "set ui_dmmap dm/mohdm1;pushmenu multiplayerstart_ffa"
+  },
+  {
+   "name": "team match",
+   "kind": "action",
+   "plate": [
+    "MPS_P_Team"
+   ],
+   "lit": [
+    "MPS_P_Team_Lit"
+   ],
+   "command": "set ui_dmmap dm/mohdm1;pushmenu multiplayerstart_team"
+  },
+  {
+   "name": "round based match",
+   "kind": "action",
+   "plate": [
+    "MPS_P_Round"
+   ],
+   "lit": [
+    "MPS_P_Round_Lit"
+   ],
+   "command": "set ui_dmmap dm/mohdm1;pushmenu multiplayerstart_round"
+  },
+  {
+   "name": "objective based match",
+   "kind": "action",
+   "plate": [
+    "MPS_P_Obj"
+   ],
+   "lit": [
+    "MPS_P_Obj_Lit"
+   ],
+   "command": "set ui_dmmap obj/obj_team1;pushmenu multiplayerstart_obj"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

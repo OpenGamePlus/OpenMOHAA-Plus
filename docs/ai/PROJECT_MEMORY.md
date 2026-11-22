@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy start-game screens
+- The room's start board seen close up (the original's serverback), a mahogany board on the right wall: the game type chooser and the four setups (map, inactivity, limits, team damage, rotation, server name, dedicated, internet listing), with the original's commands (`ui_startdmmap`, `dmmapselect`). "Use GameSpy" became "List On Internet": `ui_gamespy` sets `sv_gamespy`, the master server heartbeat.
+- The multiplayer boards took the original's reddish lacquered wood (Poly Haven `rosewood_veneer1`, CC0): planks with light titles, green felt where the engine writes (`"ink": "light"`).
+- Not checked: Select Map, Start Game, typing in the fields; round and objective setups seen only through the team one.
+
 ## 2026-11-21 — Legacy player options and join screens
 - Copies of the multiplayer room with boards hung from the ceiling (`mpboard.py`): the player options (name, models, connection; the engine draws both soldiers in the room), and the join screens: LAN or internet, the server lists (`servers` control: `langamelist`, `netgamelist`), an address, the Plus browser where GameSpy was. The free-for-all model dialog frames the room's view.
 - `CL_Draw3DModel` uses a 30x30 degree view whatever the rect: narrow model rects squeezed the soldiers, so the pak makes them square. A title's label over a button takes the pointer (`FindResponder` picks the topmost widget), so lit buttons carry their text in the picture.
