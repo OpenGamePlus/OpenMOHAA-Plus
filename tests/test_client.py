@@ -1676,6 +1676,24 @@ class RemakeMenu(GameTestCase):
             self.assertEqual(self.top_menu(c, "main"), "main")
         self.assertEqual(c.quit(), 0)
 
+    def test_telegram_message_screens(self):
+        # the original's message screens are the telegram (added in OPM): its message on the slip and
+        # the original's continuebutton, which pops the menu
+        c = self.start(1280, 720, "+set", "ui_console", "0")
+        c.send("pushmenu serverfull")
+        self.assertEqual(self.top_menu(c, "serverfull"), "serverfull")
+        screen = self.widgets(c)["widgets"]
+        self.assertIn("message", screen)
+        self.assertIn("continuebutton", screen)
+        x0, y0, x1, y1 = screen["continuebutton"]["rect"]
+        x, y = round((x0 + x1) / 2), round((y0 + y1) / 2)
+        for buttons in (0, 1, 0):
+            c.send(f"ui_testmouse {x} {y} {buttons}")
+            time.sleep(1)
+        self.assertEqual(self.top_menu(c, "main"), "main")
+        self.assertFalse([e for e in self.UI_ERRORS if e in c.log()])
+        self.assertEqual(c.quit(), 0)
+
     def test_server_board_filters(self):
         # the server board's filters (added in OPM): a lamp sets its filter, the favourite plates and
         # the search field are there, and no knob opens a list (only the plate)

@@ -74,6 +74,9 @@ rebuild are the original menus from the game files.
   and max players; lamps for the game types, hiding empty or full servers, sprint and pure
   servers), and plates to add the selected server to the favourites or remove it. Changing a
   filter refreshes the list.
+- The game's messages (connecting, server full, disconnected, timed out, bad address, wrong
+  version, error, no saving in multiplayer) are typed on a Signal Corps telegram lying on the radio
+  desk, with the Remake's Continue and Back plates.
 - The chalkboard in the main room opens the credits of the 3D models in the scenes, written in chalk
   on that board up close (`misc/plus-pk3/remake/credits/models.json`, CC BY 4.0 or CC0).
 

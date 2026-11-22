@@ -1,0 +1,170 @@
+{
+ "menu": "telegram",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_Telegram",
+ "controls": [],
+ "message_plate": [
+  "Telegram_Message"
+ ],
+ "dialogs": [
+  {
+   "menu": "badserveraddy",
+   "lines": [
+    {
+     "text": "Bad Server Address"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "connecting",
+   "lines": [
+    {
+     "text": "Connecting to Server..."
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Back",
+     "side": "left",
+     "command": "popmenu 0;disconnect;wait 50;gotoreturnmenu"
+    }
+   ]
+  },
+  {
+   "menu": "disconnected",
+   "lines": [
+    {
+     "text": "Server Disconnected"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "errormessage",
+   "lines": [
+    {
+     "cvar": "com_errormessage"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0;wait 50;gotoreturnmenu",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "loadsave_mp",
+   "lines": [
+    {
+     "text": "Saving and loading is not"
+    },
+    {
+     "text": "allowed during a multiplayer game."
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "serverdisconnected",
+   "lines": [
+    {
+     "text": "Server Disconnected"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0;wait 50;gotoreturnmenu",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "serverfull",
+   "lines": [
+    {
+     "text": "Server is full"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "servertimeout",
+   "lines": [
+    {
+     "text": "Server Connection Timed Out"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "popmenu 0;wait 50;gotoreturnmenu",
+     "widget": "continuebutton"
+    }
+   ]
+  },
+  {
+   "menu": "wrongversion",
+   "lines": [
+    {
+     "text": "Server is using a newer version"
+    },
+    {
+     "cvar": "com_errormessage"
+    },
+    {
+     "text": "Click Continue to go get the latest patch!"
+    }
+   ],
+   "buttons": [
+    {
+     "title": "Back",
+     "side": "left",
+     "command": "Popmenu 0;wait 50;gotoreturnmenu",
+     "widget": "back"
+    },
+    {
+     "title": "Continue",
+     "side": "right",
+     "command": "gogetpatch",
+     "widget": "continuebutton"
+    }
+   ]
+  }
+ ]
+}

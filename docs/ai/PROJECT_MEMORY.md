@@ -3,6 +3,10 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Remake telegram message screens
+- The nine original message menus (connecting, serverfull, servertimeout, wrongversion, errormessage...) shared one picture, the sepia box art; the Remake draws them all on one include background, a telegram on the options desk (`05_mensajes/telegrama_1940.blend`, copied from the options close-up scene), from `telegram.json`'s `dialogs` (`dialog_urc`). Spec `docs/superpowers/specs/2026-11-22-telegram-messages-design.md`.
+- A label fits its text into half its rect: a plate sized to the slip made one line huge, so lines are 26 units tall, centred on the plate.
+
 ## 2026-11-22 — Remake server board filters
 - The server board (`serverlist_1940.blend`) is wider and the camera closer (list taller, a filter column right of it): search field, max ping / min / max players lists, lamps for game types, empty, full, sprint, pure; each change runs `restartrefresh` (halts the query, refreshes once idle: `ServerListHalt` is asynchronous and `wait N` counts milliseconds already spent in the frame, so `cancelrefresh;wait 5;refreshserverlist` refreshed nothing). Separate ADD / REMOVE FAVOURITE plates (`addfavorite`/`removefavorite`). Spec `docs/superpowers/specs/2026-11-22-server-board-filters-design.md`.
 - A list placed with `cover` uses the placed column layout (the original's big header overlapped); every fork pulldown list (value shown, or Remake with `cover`) is yellow on green in its own font; the knob no longer opens a list (no click picture). The board's pendant lamp hung in front of it once the camera moved: raised 0.45.

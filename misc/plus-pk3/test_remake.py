@@ -429,6 +429,54 @@ class Screens(unittest.TestCase):
         "arzew": {"plate": [300, 380, 60, 20], "image": "picture_arzew.png", "lit_image": "lit_arzew.png"},
         "trondheim": {"plate": [400, 80, 90, 20], "image": "picture_trondheim.png", "lit_image": "lit_trondheim.png"}}}
 
+    TELEGRAM = {"menu": "telegram", "screen": True, "include": True, "camera": "Cam_Telegram", "controls": [],
+                "message_plate": ["M"], "dialogs": [
+        {"menu": "serverfull", "lines": [{"text": "Server is full"}],
+         "buttons": [{"title": "Continue", "side": "right", "command": "popmenu 0", "widget": "continuebutton"}]},
+        {"menu": "wrongversion", "lines": [{"text": "Server is using a newer version"}, {"cvar": "com_errormessage"}],
+         "buttons": [{"title": "Back", "side": "left", "command": "Popmenu 0;wait 50;gotoreturnmenu", "widget": "back"},
+                     {"title": "Continue", "side": "right", "command": "gogetpatch", "widget": "continuebutton"}]}]}
+    TELEGRAM_EXPORT = {"menu": "telegram", "picture": [854, 480], "background": "background.png", "controls": {},
+                       "plates": {"message": [300, 200, 240, 60]}}
+
+    def test_telegram_dialogs(self):
+        # the original's message screens (added in OPM): each includes the telegram's background and
+        # types its lines on the slip's plate, one under the other; its buttons keep the original's
+        # names and commands, as the Remake's corner plates
+        from remake import pak
+        mapping = self.load(self.TELEGRAM)
+        self.assertNotIn('menu "telegram"', pak.screen_urc(mapping, self.TELEGRAM_EXPORT))  # only a background
+        full = pak.dialog_urc(mapping, mapping["dialogs"][0], self.TELEGRAM_EXPORT)
+        self.assertIn('menu "serverfull"', full)
+        self.assertIn('include "ui/telegram.inc"', full)
+        message = self.block(full, "message")
+        # a label fits its text into half its rect: lines 26 units tall, in the middle of the plate
+        for line in ("rect 300 217 240 26", 'title "Server is full"', "font courier-20", "cover 854 480",
+                     f"fgcolor {pak.INK}"):
+            self.assertIn("\n" + line + "\n", message + "\n", line)
+        button = self.block(full, "continuebutton")
+        self.assertIn('stuffcommand "popmenu 0"', button)
+        self.assertIn('title "Continue"', button)
+        wrong = pak.dialog_urc(mapping, mapping["dialogs"][1], self.TELEGRAM_EXPORT)
+        self.assertIn("rect 300 204 240 26", self.block(wrong, "message"))
+        second = self.block(wrong, "message 2")
+        self.assertIn("rect 300 230 240 26", second)
+        self.assertIn('linkcvar "com_errormessage"', second)
+        self.assertIn('stuffcommand "gogetpatch"', self.block(wrong, "continuebutton"))
+        self.assertIn('stuffcommand "Popmenu 0;wait 50;gotoreturnmenu"', self.block(wrong, "back"))
+
+    def test_real_telegram_dialogs(self):
+        # the nine original menus on the same box art, with the original's messages and commands
+        mapping = hotspots.load_mapping(os.path.join(HERE, "remake", "telegram.json"))
+        got = {d["menu"]: [b["command"] for b in d["buttons"]] for d in mapping["dialogs"]}
+        back = "popmenu 0;wait 50;gotoreturnmenu"
+        self.assertEqual(got, {"badserveraddy": ["popmenu 0"], "connecting": ["popmenu 0;disconnect;wait 50;gotoreturnmenu"],
+                               "disconnected": ["popmenu 0"], "errormessage": [back], "loadsave_mp": ["popmenu 0"],
+                               "serverdisconnected": [back], "serverfull": ["popmenu 0"], "servertimeout": [back],
+                               "wrongversion": ["Popmenu 0;wait 50;gotoreturnmenu", "gogetpatch"]})
+        cvars = {d["menu"] for d in mapping["dialogs"] for line in d["lines"] if line.get("cvar") == "com_errormessage"}
+        self.assertEqual(cvars, {"errormessage", "wrongversion"})
+
     def test_briefing_missions(self):
         # a mission shows on the map when unlocked (g_mXl1; the first always), red under the pointer,
         # and names itself on the sign
