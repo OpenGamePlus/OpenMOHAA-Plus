@@ -1,0 +1,64 @@
+{
+ "menu": "loadingdesk_m4l3",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM4L3",
+ "controls": [],
+ "heading_plate": [
+  "M4L3_Heading"
+ ],
+ "body_plate": [
+  "M4L3_Body"
+ ],
+ "sign_plate": [
+  "M4L3_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m4l3",
+    "menu": "m4l3",
+    "heading": {
+     "en": "The Command Post - Normandy, France\nJune 24, 1944",
+     "es": "El puesto de mando - Normandía, Francia\n24 de junio de 1944"
+    },
+    "body": [
+     {
+      "en": "Très bien, Powell! While they clean up your mess, you have time to finish the job. The estate is still well guarded, so choose your fights.",
+      "es": "Très bien, Powell! Mientras limpian su desorden, tiene tiempo para terminar el trabajo. La finca sigue bien vigilada, así que elija sus combates."
+     },
+     {
+      "en": "Henri, your driver, left you a Winchester shotgun and shells. Indoors it will serve you well.",
+      "es": "Henri, su conductor, le dejó una escopeta Winchester y cartuchos. Dentro de los edificios le será muy útil."
+     },
+     "\n\n",
+     {
+      "en": "The inner gate is heavily defended; find a quieter way past it if you can. Once inside, radio the order that sends a shipment of Kar 98 rifles to Courson, where our people will take it.",
+      "es": "La puerta interior está muy defendida; busque un paso más discreto si puede. Una vez dentro, transmita por radio la orden que envía un cargamento de fusiles Kar 98 a Courson, donde los nuestros lo interceptarán."
+     },
+     {
+      "en": "Bring me their battle maps for the region and the manifest of the tanks bound for Saint-Lô.",
+      "es": "Tráigame sus mapas de batalla de la región y el manifiesto de los tanques que van a Saint-Lô."
+     },
+     "\n\n",
+     {
+      "en": "The Colonel spoke of a new heavy tank. If it is here you will know it, bigger than any Tiger. Find its papers.",
+      "es": "El coronel habló de un nuevo tanque pesado. Si está aquí lo reconocerá, más grande que cualquier Tiger. Encuentre sus documentos."
+     },
+     "\n\n",
+     {
+      "en": "Past the bridge beyond the front gate, a car will be waiting. Je vous embrasse.",
+      "es": "Pasado el puente tras la puerta principal, un coche lo estará esperando. Je vous embrasse."
+     }
+    ],
+    "sign": {
+     "en": "- Manon",
+     "es": "- Manon"
+    }
+   }
+  ]
+ }
+}

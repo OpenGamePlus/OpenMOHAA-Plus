@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m2l3",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM2L3",
+ "controls": [],
+ "heading_plate": [
+  "M2L3_Heading"
+ ],
+ "body_plate": [
+  "M2L3_Body"
+ ],
+ "sign_plate": [
+  "M2L3_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m2l3",
+    "menu": "m2l3",
+    "heading": {
+     "en": "Escape from Trondheim - Trondheim, Norway\nFebruary 12, 1943",
+     "es": "Huida de Trondheim - Trondheim, Noruega\n12 de febrero de 1943"
+    },
+    "body": [
+     {
+      "en": "Outstanding, Lieutenant. You managed without Major Grillo, and you managed well. With the U-529 and the Naxos prototype gone, the Atlantic stays ours; we expect no new prototype before autumn.",
+      "es": "Excelente, teniente. Se las arregló sin el mayor Grillo, y lo hizo bien. Sin el U-529 ni el prototipo Naxos, el Atlántico sigue siendo nuestro; no esperamos otro prototipo antes del otoño."
+     },
+     "\n\n",
+     {
+      "en": "No time to celebrate. The base is on full alert and they will not let you leave quietly. Get to the rail depot on the north side. A German supply train taken by the Norwegian resistance will be there soon.",
+      "es": "No hay tiempo para celebrarlo. La base está en alerta máxima y no lo dejarán marcharse sin pelear. Llegue al depósito ferroviario del lado norte. Pronto estará allí un tren de suministros alemán tomado por la resistencia noruega."
+     },
+     "\n\n",
+     {
+      "en": "Some of our men are aboard. When the boxcar doors open they will give you covering fire for as long as they can. Mind you do not shoot them. Use the diversion and get on that train.",
+      "es": "Hay hombres nuestros a bordo. Cuando se abran las puertas de los vagones lo cubrirán con fuego tanto como puedan. Cuide de no dispararles. Aproveche la distracción y suba a ese tren."
+     },
+     "\n\n",
+     {
+      "en": "When their ammunition runs low they leave, with you or without you. Good luck, Powell.",
+      "es": "Cuando les falte munición se irán, con usted o sin usted. Buena suerte, Powell."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

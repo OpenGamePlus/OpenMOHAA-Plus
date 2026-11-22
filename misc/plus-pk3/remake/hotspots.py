@@ -77,7 +77,7 @@ def slug(name):
 
 def load_mapping(path):
     """Reads and checks a mapping file (misc/plus-pk3/remake/<menu>.json)."""
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         mapping = json.load(f)
     if mapping.get("screen"):
         return _check_screen(path, mapping)

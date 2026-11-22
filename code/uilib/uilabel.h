@@ -59,6 +59,11 @@ class UILabel : public UIWidget
 
 protected:
     qboolean m_bOutlinedText;
+    float    m_wrapLineHeight; // Added in OpenMOHAA Plus: see WordWrap
+    Container<str> m_textPieces; // Added in OpenMOHAA Plus: see AddText
+
+    // Added in OpenMOHAA Plus: the text broken into lines that fit the label at m_wrapLineHeight
+    void WrapText(const str& text, Container<str>& lines, vec2_t scale);
 
 public:
     CLASS_PROTOTYPE(UILabel);
@@ -75,6 +80,9 @@ private:
     void OneShotSound(Event *ev);
     void LoopingSound(Event *ev);
     void EventSetOutlinedText(Event *ev);
+    void WordWrap(Event *ev);                  // Added in OpenMOHAA Plus
+    void AddText(Event *ev);                   // Added in OpenMOHAA Plus
+    void PrintGeometry(int depth) override;    // Added in OpenMOHAA Plus: ui_printwidgets
     //====
     void SetLinkCvarToShader(Event *ev);
     void FrameInitialized() override; // Added in 2.0

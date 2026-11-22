@@ -1,0 +1,60 @@
+{
+ "menu": "loadingdesk_m1l3a",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM1L3A",
+ "controls": [],
+ "heading_plate": [
+  "M1L3A_Heading"
+ ],
+ "body_plate": [
+  "M1L3A_Body"
+ ],
+ "sign_plate": [
+  "M1L3A_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m1l3a",
+    "menu": "m1l3a",
+    "heading": {
+     "en": "Lighting the Torch - Algeria, North Africa\nNovember 7, 1942",
+     "es": "Encender la Antorcha - Argelia, norte de África\n7 de noviembre de 1942"
+    },
+    "body": [
+     {
+      "en": "Fine work at the motorpool. I hope you slept on the drive down the coast, because you are not finished. Your last target is a radar station dug into a cliff above the Mediterranean.",
+      "es": "Buen trabajo en el parque móvil. Espero que durmiera en el viaje por la costa, porque aún no ha terminado. Su último objetivo es una estación de radar excavada en un acantilado sobre el Mediterráneo."
+     },
+     {
+      "en": "It guides the coastal batteries onto our fleet. Destroy it and those guns go blind.",
+      "es": "Dirige las baterías costeras contra nuestra flota. Destrúyala y esos cañones quedarán ciegos."
+     },
+     "\n\n",
+     {
+      "en": "Grillo drives; you man the .30 calibre gun on the back of the jeep. The station sits by a desert airstrip. Wreck the Stukas parked there and anything else you can.",
+      "es": "Grillo conduce; usted maneja la ametralladora del calibre 30 en la parte trasera del jeep. La estación está junto a una pista en el desierto. Destroce los Stukas aparcados allí y todo lo que pueda."
+     },
+     "\n\n",
+     {
+      "en": "Then wreck the radar equipment, follow the seawall to the lighthouse and switch on its lamp: that is the fleet's all clear. Grillo will pick you up at the foot of the lighthouse.",
+      "es": "Después destruya el radar, siga el rompeolas hasta el faro y encienda su lámpara: esa es la señal de vía libre para la flota. Grillo lo recogerá al pie del faro."
+     },
+     "\n\n",
+     {
+      "en": "With luck, Rommel will be out of Africa before long.",
+      "es": "Con suerte, Rommel saldrá pronto de África."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

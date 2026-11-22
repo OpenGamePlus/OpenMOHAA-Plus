@@ -1170,6 +1170,53 @@ addpopup "MENU" "High" command "set r_lodscale 1.1"
 end.
 """
 
+    # a typed letter: one label, its paragraphs split by \n, wrapped by the engine at a fixed line height
+    WRAP_TEXT = ("The landing went well and the real work begins now. Two captured trucks will carry your "
+                 "squad to the village on the shore.\\n\\nTake no needless chances.")
+    WRAP_URC = """menu "plus_wrap_test" 2048 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+Label
+{
+name "letter"
+rect 300 40 254 300
+scalecvar ui_plusscale
+cover 854 480
+font courier-16
+textalign left
+wordwrap 9
+title "%s"
+}
+end.
+"""
+
+    # a letter longer than one script token: translatable pieces, a "\n\n" piece between paragraphs
+    PIECES_URC = """menu "plus_pieces_test" 2048 480 NONE 0
+virtualres 1
+scalecvar ui_plusscale
+bgfill 0 0 0 1
+fullscreen 1
+resource
+Label
+{
+name "letter"
+rect 300 40 254 300
+scalecvar ui_plusscale
+cover 854 480
+font courier-16
+textalign left
+wordwrap 9
+addtext "First sentence of the letter."
+addtext "Second sentence."
+addtext "\\n\\n"
+addtext "New paragraph."
+}
+end.
+"""
+
     # the Remake's server board: the game's server list placed on the picture with cover
     SERVERS_URC = """menu "plus_servers_test" 2048 480 NONE 0
 virtualres 1
@@ -1194,6 +1241,8 @@ end.
         with zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
             z.writestr("ui/plus_servers_test.urc", cls.SERVERS_URC)
             z.writestr("ui/plus_cover_pulldown_test.urc", cls.COVER_PULLDOWN_URC)
+            z.writestr("ui/plus_wrap_test.urc", cls.WRAP_URC % cls.WRAP_TEXT)
+            z.writestr("ui/plus_pieces_test.urc", cls.PIECES_URC)
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
             z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
             z.writestr("ui/plus_slider_test.urc", cls.SLIDER_URC)
@@ -1340,6 +1389,45 @@ end.
             self.assertLessEqual(sl["track"][1], sl["text"][0], (name, sl))
             self.assertLessEqual(sl["text"][1], sl["rect"][2] + 1, (name, sl))
             self.assertGreater(sl["track"][1] - sl["track"][0], (sl["rect"][2] - sl["rect"][0]) / 2, (name, sl))
+        self.assertEqual(c.quit(), 0)
+
+    def test_label_wraps_words_at_a_fixed_line_height(self):
+        # wordwrap <height> (added in OPM): the engine breaks a label's text into lines of that height
+        # that fit its width, \n starting a paragraph, so a translation keeps the letter's type size
+        # whatever its length (a plain label shrinks its whole text to fit)
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        spanish = ("El desembarco salio bien y ahora empieza el trabajo de verdad. Dos camiones capturados "
+                   "llevaran a su peloton hasta la aldea de la orilla, la ultima que informo nuestro agente."
+                   "\\n\\nNo corra riesgos innecesarios.")
+        home.write("lang/es/wrap.txt", '{ "%s" "%s" }\r\n' % (self.WRAP_TEXT, spanish))
+        got = {}
+        for language in ("", "es"):
+            _, c = self.start(1280, 720, "+set", "cl_language", language, home=home)
+            mark = len(c.log())
+            screen = self.widgets(c, "pushmenu plus_wrap_test")
+            out = c.log()[mark:]
+            m = re.search(r'label wrap lines (\d+) width (\S+) height (\S+)', out)
+            self.assertIsNotNone(m, out[-2000:])
+            lines, width, height = int(m.group(1)), float(m.group(2)), float(m.group(3))
+            x0, y0, x1, y1 = screen["widgets"]["letter"]["rect"]
+            self.assertLessEqual(width, x1 - x0 + 1, language)        # every line fits the label
+            self.assertAlmostEqual(height, 9 * 720 / 480, delta=0.6)  # 9 picture units at 720 lines
+            got[language] = lines
+            self.assertEqual(c.quit(), 0)
+        self.assertGreaterEqual(got[""], 5)              # wrapped, plus the blank line between paragraphs
+        self.assertGreater(got["es"], got[""])           # the longer translation takes more lines, same size
+
+    def test_label_pieces_translate_one_by_one(self):
+        # addtext (added in OPM): a wrapped label's text in pieces, each translated on its own (the
+        # localization reader keeps 255 characters a text), joined by spaces, "\n\n" a paragraph
+        home = omoh.Home()
+        self.addCleanup(home.cleanup)
+        home.write("lang/es/pieces.txt", '{ "Second sentence." "Segunda frase." }\r\n')
+        _, c = self.start(1280, 720, "+set", "cl_language", "es", home=home)
+        screen = self.widgets(c, "pushmenu plus_pieces_test")
+        self.assertEqual(screen["widgets"]["letter"]["title"],
+                         "First sentence of the letter. Segunda frase.\\n\\nNew paragraph.")
         self.assertEqual(c.quit(), 0)
 
     def test_fork_pulldown_lists_share_one_style(self):
@@ -1674,6 +1762,24 @@ class RemakeMenu(GameTestCase):
             self.assertEqual(self.top_menu(c, "joininternetgame"), "joininternetgame")
             c.send("popmenu 0")
             self.assertEqual(self.top_menu(c, "main"), "main")
+        self.assertEqual(c.quit(), 0)
+
+    def test_loading_screens(self):
+        # the original's loading screens are the Remake's desks (added in OPM): a mission's letter typed
+        # by the engine, a map's picture from the player's files, the engine's loading widgets
+        c = self.start(1280, 720, "+set", "ui_console", "0")
+        for menu, content in (("m1l2a", "body"), ("dm/mohdm1", "photo"), ("loading_default", None)):
+            c.send(f"pushmenu {menu}")
+            self.assertEqual(self.top_menu(c, menu), menu)
+            screen = self.widgets(c)["widgets"]
+            for name in ("loadingbar", "loadingbar_border", "loadingflasher", "continuebutton") + ((content,) if content else ()):
+                self.assertIn(name, screen, (menu, name))
+            c.send("popmenu 0")
+            time.sleep(2)
+        self.assertFalse([e for e in self.UI_ERRORS if e in c.log()])
+        # the map's shader finds the player's picture
+        self.assertNotIn("R_FindImageFile could not find", c.log())
+        self.assertNotIn("Couldn't find image for shader", c.log())
         self.assertEqual(c.quit(), 0)
 
     def test_telegram_message_screens(self):

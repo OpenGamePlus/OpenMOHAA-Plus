@@ -1,6 +1,7 @@
 # Copyright (C) 2026 the OpenMOHAA Plus contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Unit tests for the Remake menu tools in remake/ (the build tests need Pillow)."""
+import glob
 import io
 import json
 import os
@@ -476,6 +477,69 @@ class Screens(unittest.TestCase):
                                "wrongversion": ["Popmenu 0;wait 50;gotoreturnmenu", "gogetpatch"]})
         cvars = {d["menu"] for d in mapping["dialogs"] for line in d["lines"] if line.get("cvar") == "com_errormessage"}
         self.assertEqual(cvars, {"errormessage", "wrongversion"})
+
+    PHOTOS = {"menu": "loadingdesk_photo", "screen": True, "include": True, "camera": "C", "controls": [],
+              "content_plate": ["P"], "loading": {"content": "photo", "screens": [
+        {"file": "objdm3", "menu": "obj/obj_team3", "shader": "objdm5"}]}}
+    DESK_EXPORT = {"menu": "loadingdesk_photo", "picture": [854, 480], "background": "background.png", "controls": {},
+                   "plates": {"content": [300, 20, 240, 400]}}
+
+    def test_loading_photo_screen(self):
+        # a multiplayer map's loading screen: the game's own picture of the map (by its shader name)
+        # on the desk's print, 4:3 in the plate
+        from remake import pak
+        mapping = self.load(self.PHOTOS)
+        text = pak.loading_urc(mapping, mapping["loading"]["screens"][0], {**self.DESK_EXPORT, "menu": "loadingdesk_photo"})
+        self.assertIn('menu "obj/obj_team3"', text)
+        photo = self.block(text, "photo")
+        self.assertIn("rect 300 130 240 180", photo)
+        self.assertIn('shader "objdm5"', photo)
+
+    TYPED = {"menu": "loadingdesk_m1l1", "screen": True, "include": True, "camera": "C", "controls": [],
+             "heading_plate": ["H"], "body_plate": ["B"], "sign_plate": ["S"],
+             "loading": {"content": "typed", "line": 11, "font": "courier-16", "screens": [
+        {"file": "m1l1", "menu": "m1l1",
+         "heading": {"en": "Rangers Lead the Way\nNovember 7, 1942", "es": "Los Rangers abren camino\n7 de noviembre de 1942"},
+         "body": [{"en": "First paragraph.", "es": "Primer párrafo."}, "\n\n", {"en": "Second one.", "es": "Segundo."}],
+         "sign": {"en": "Colonel", "es": "Coronel"}}]}}
+    TYPED_EXPORT = {"menu": "loadingdesk_m1l1", "picture": [854, 480], "background": "background.png", "controls": {},
+                    "plates": {"heading": [300, 60, 300, 30], "body": [300, 100, 300, 280], "sign": [450, 390, 150, 40]}}
+
+    def test_loading_typed_letter(self):
+        # a letter the engine types (added in OPM): its text in English in the menu, wrapped by the
+        # engine on the desk's plates; the Spanish text in lang/es, which cl_language es loads
+        from remake import pak
+        mapping = self.load(self.TYPED)
+        text = pak.loading_urc(mapping, mapping["loading"]["screens"][0], self.TYPED_EXPORT)
+        # the body in pieces (addtext): a localization text keeps 255 characters, a script token 511
+        for name, rect, lines in (("heading", "rect 300 60 300 30", ['title "Rangers Lead the Way\\nNovember 7, 1942"']),
+                                  ("body", "rect 300 100 300 280", ['addtext "First paragraph."', 'addtext "\\n\\n"',
+                                                                    'addtext "Second one."']),
+                                  ("sign", "rect 450 390 150 40", ['title "Colonel"'])):
+            block = self.block(text, name)
+            for line in [rect, "wordwrap 11", "font courier-16", "textalign left", "cover 854 480"] + lines:
+                self.assertIn("\n" + line + "\n", block + "\n", (name, line))
+        lang = pak.loading_lang([mapping], "es")
+        self.assertIn('{ "Rangers Lead the Way\\nNovember 7, 1942" "Los Rangers abren camino\\n7 de noviembre de 1942" }', lang)
+        self.assertIn('{ "First paragraph." "Primer párrafo." }', lang)
+        self.assertIn('{ "Second one." "Segundo." }', lang)
+        long = {**self.TYPED["loading"]["screens"][0], "body": [{"en": "x" * 256, "es": "y"}]}
+        with self.assertRaises(ValueError):
+            pak.loading_urc({**mapping, "loading": {**mapping["loading"], "screens": [long]}}, long, self.TYPED_EXPORT)
+        self.assertIn('{ "Colonel" "Coronel" }', lang)
+
+    def test_real_loading_screens(self):
+        # every original loading screen, by its menu name (the map's), from the three desks
+        menus = {}
+        for path in sorted(glob.glob(os.path.join(HERE, "remake", "loadingdesk_*.json"))):
+            mapping = hotspots.load_mapping(path)
+            for screen in mapping["loading"]["screens"]:
+                self.assertNotIn(screen["file"], menus, "two desks write one screen")
+                menus[screen["file"]] = screen["menu"]
+        self.assertEqual(len(menus), 34)
+        for file, menu in (("default", "loading_default"), ("m5l1", "m5l1a"), ("m6l3", "m6l3a"),
+                           ("mohdm1", "dm/mohdm1"), ("objdm3", "obj/obj_team3"), ("m3l1a", "m3l1a")):
+            self.assertEqual(menus[file], menu, file)
 
     def test_briefing_missions(self):
         # a mission shows on the map when unlocked (g_mXl1; the first always), red under the pointer,

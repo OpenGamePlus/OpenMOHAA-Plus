@@ -1,0 +1,60 @@
+{
+ "menu": "loadingdesk_m4l2",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM4L2",
+ "controls": [],
+ "heading_plate": [
+  "M4L2_Heading"
+ ],
+ "body_plate": [
+  "M4L2_Body"
+ ],
+ "sign_plate": [
+  "M4L2_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m4l2",
+    "menu": "m4l2",
+    "heading": {
+     "en": "Diverting the Enemy - Normandy, France\nJune 23, 1944",
+     "es": "Distraer al enemigo - Normandía, Francia\n23 de junio de 1944"
+    },
+    "body": [
+     {
+      "en": "Bonsoir, mon ami! The Colonel speaks well of you. Here you fight quietly: surprise and silence are your best weapons. Keep your Hi-Standard pistol close. It is light and silent; get near and aim for the head.",
+      "es": "Bonsoir, mon ami! El coronel habla muy bien de usted. Aquí se lucha en silencio: la sorpresa y el sigilo son sus mejores armas. Tenga a mano su pistola Hi-Standard. Es ligera y silenciosa; acérquese y apunte a la cabeza."
+     },
+     "\n\n",
+     {
+      "en": "Your goal is a command post on an occupied estate, but first we must pull some of its troops away. At the tank park nearby, charges in the right places will keep their tanks idle for two weeks.",
+      "es": "Su objetivo es un puesto de mando en una finca ocupada, pero antes debemos alejar a parte de sus tropas. En el parque de carros cercano, unas cargas bien puestas dejarán sus tanques parados dos semanas."
+     },
+     {
+      "en": "Supply trucks pass through a checkpoint there; climb into the back of one to get inside unseen.",
+      "es": "Por un control de allí pasan camiones de suministros; súbase a la caja de uno para entrar sin ser visto."
+     },
+     "\n\n",
+     {
+      "en": "Tonight a supply train passes the small depot. Switch the points to send it into the repair siding and mine the buffer.",
+      "es": "Esta noche un tren de suministros pasa por el pequeño depósito. Cambie las agujas para desviarlo a la vía de reparación y mine el tope."
+     },
+     "\n\n",
+     {
+      "en": "At the station garage an old friend, dressed as a German driver, will take you to the estate. Wait for his signal. Bonne chance!",
+      "es": "En el garaje de la estación, un viejo amigo vestido de conductor alemán lo llevará a la finca. Espere su señal. Bonne chance!"
+     }
+    ],
+    "sign": {
+     "en": "- Manon",
+     "es": "- Manon"
+    }
+   }
+  ]
+ }
+}

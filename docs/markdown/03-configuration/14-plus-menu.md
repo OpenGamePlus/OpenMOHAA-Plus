@@ -1,3 +1,8 @@
+- Loading screens are a desk filling the screen, seen from above. Each mission has its own: a
+  letter typed by the game among the mission's photographs, maps and objects (our own text, in
+  English or, with `cl_language es`, in Spanish from `lang/es/remake_loading.txt` in the Remake
+  pak); a multiplayer map's picture lies as a print; other maps show a closed folder. A green bar
+  shows the progress and Continue (bottom right) starts the mission once it is loaded.
 # OpenMOHAA Plus: the Remake menu
 
 OpenMOHAA Plus replaces the main menu of Allied Assault with the Remake menu: the original game's
@@ -77,6 +82,12 @@ rebuild are the original menus from the game files.
 - The game's messages (connecting, server full, disconnected, timed out, bad address, wrong
   version, error, no saving in multiplayer) are typed on a Signal Corps telegram lying on the radio
   desk, with the Remake's Continue and Back plates.
+- Loading screens are a desk filling the screen: a mission's letter lies in an open folder, a
+  multiplayer map's picture is a print, other maps show a closed folder; the letter and the
+  picture come from your own game files. A green bar shows the progress and Continue (bottom
+  right) starts the mission once it is loaded. The first mission's screen is a test of a typed
+  letter: our own text, typed by the game on an OSS letterhead among the mission's objects, in
+  English or, with `cl_language es`, in Spanish (`lang/es/remake_loading.txt` in the Remake pak).
 - The chalkboard in the main room opens the credits of the 3D models in the scenes, written in chalk
   on that board up close (`misc/plus-pk3/remake/credits/models.json`, CC BY 4.0 or CC0).
 
@@ -127,7 +138,11 @@ selected server), `addfavorite` and `removefavorite` (the selected server only b
 being, a favourite), `restartrefresh` (stops the refresh in progress and refreshes once the list is
 idle; a plain refresh asked while the list is querying does nothing) and `selectitem <n>`. A changed `dm_filter_empty`, `dm_filter_full`,
 `dm_min_players` or `dm_max_players` empties the list on the next refresh, like the other filters.
-A `Field` with `stuffcommand` runs it on Enter with the typed text appended (the Remake's search
+A `Label` with `wordwrap <height>` breaks its text into lines of that height (picture units under
+`cover`) that fit its width, `\n` starting a new line, so a longer translation takes more lines at
+the same type size; `addtext "<piece>"` adds a piece of its text, translated on its own and joined
+to the previous one by a space (the localization reader keeps 255 characters a text, a `.urc`
+token 511). A `Field` with `stuffcommand` runs it on Enter with the typed text appended (the Remake's search
 ends its command with `//` so the text is a comment). Its `printlist` command prints a `Columns: N` line first,
 then one line per server ending with its version. A placed list (`anchor` or `cover`) has a version column ("Ver."
 when narrow), names without the version (as the server sends them), and an IP column when wider than 800 virtual units. A placed list has

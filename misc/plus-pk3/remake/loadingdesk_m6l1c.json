@@ -1,0 +1,55 @@
+{
+ "menu": "loadingdesk_m6l1c",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM6L1C",
+ "controls": [],
+ "heading_plate": [
+  "M6L1C_Heading"
+ ],
+ "body_plate": [
+  "M6L1C_Body"
+ ],
+ "sign_plate": [
+  "M6L1C_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m6l1c",
+    "menu": "m6l1c",
+    "heading": {
+     "en": "Die Sturmgewehr - Siegfried Line, Germany\nJanuary 18, 1945",
+     "es": "Die Sturmgewehr - Línea Sigfrido, Alemania\n18 de enero de 1945"
+    },
+    "body": [
+     {
+      "en": "Our bombing of the Ruhr has hurt them, and it seems they moved some arms production away. This place may be a hidden assembly plant and depot for the new StG 44 assault rifle, near Fort Schmerzen.",
+      "es": "Nuestros bombardeos sobre el Ruhr les han hecho daño, y parece que trasladaron parte de su producción de armas. Este lugar puede ser una planta de montaje y un depósito ocultos del nuevo fusil de asalto StG 44, cerca del Fuerte Schmerzen."
+     },
+     "\n\n",
+     {
+      "en": "Get inside and take a disguise and papers; the silenced Hi-Standard will help. Steal the blueprints and machining instructions, take one of the newest rifles and set charges on the rest of the stock.",
+      "es": "Entre y consiga un disfraz y documentos; la Hi-Standard con silenciador le ayudará. Robe los planos y las instrucciones de fabricación, llévese uno de los fusiles más nuevos y coloque cargas en el resto de las existencias."
+     },
+     {
+      "en": "Then get out any way you can.",
+      "es": "Después salga como pueda."
+     },
+     "\n\n",
+     {
+      "en": "The rifle is a marvel: automatic fire, a large magazine, five pounds lighter than a BAR, and a rifle's reach and accuracy. Nothing on either side can match it. Be careful, Lieutenant.",
+      "es": "El fusil es una maravilla: fuego automático, cargador grande, cinco libras más ligero que un BAR y el alcance y la precisión de un fusil. Nada en ningún bando se le puede comparar. Tenga cuidado, teniente."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

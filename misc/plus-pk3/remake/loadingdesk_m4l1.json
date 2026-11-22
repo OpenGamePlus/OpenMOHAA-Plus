@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m4l1",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM4L1",
+ "controls": [],
+ "heading_plate": [
+  "M4L1_Heading"
+ ],
+ "body_plate": [
+  "M4L1_Body"
+ ],
+ "sign_plate": [
+  "M4L1_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m4l1",
+    "menu": "m4l1",
+    "heading": {
+     "en": "Rendezvous with the Resistance - Normandy, France\nJune 22, 1944",
+     "es": "Cita con la Resistencia - Normandía, Francia\n22 de junio de 1944"
+    },
+    "body": [
+     {
+      "en": "This time you work alone, Powell. An OSS agent learns to live on his own in enemy country. Your goal is a Resistance safehouse in Saint-Ébremond, south of Saint-Lô, far behind the German lines.",
+      "es": "Esta vez trabaja solo, Powell. Un agente de la OSS aprende a valerse por sí mismo en territorio enemigo. Su objetivo es una casa franca de la Resistencia en Saint-Ébremond, al sur de Saint-Lô, muy por detrás de las líneas alemanas."
+     },
+     "\n\n",
+     {
+      "en": "There is a complication. One of our reconnaissance planes came down in your area today, carrying an Allied G3 operations officer and the pilot.",
+      "es": "Hay una complicación. Uno de nuestros aviones de reconocimiento cayó hoy en su zona, con un oficial de operaciones del G3 aliado y el piloto."
+     },
+     "\n\n",
+     {
+      "en": "Find them and bring them to the safehouse to be flown out and questioned. If the Germans take them first, they gain a great deal.",
+      "es": "Encuéntrelos y llévelos a la casa franca para que los saquen y los interroguen. Si los alemanes los atrapan antes, ganarán mucho."
+     },
+     "\n\n",
+     {
+      "en": "At the safehouse your Resistance contact will brief you. Her name is Manon Batiste.",
+      "es": "En la casa franca, su contacto de la Resistencia le dará instrucciones. Se llama Manon Batiste."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

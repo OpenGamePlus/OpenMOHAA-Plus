@@ -2889,7 +2889,11 @@ void UIWidget::PrintGeometry(int depth)
         } else if (m_iFontAlignmentVertical == FONT_JUSTVERT_BOTTOM) {
             y += m_screenframe.size.height - h;
         }
-        uii.Sys_Printf(" text %.0f %.0f %.0f %.0f \"%s\"", x, y, w, h, ctext);
+        str printed; // one line per widget: a line break shows as \n
+        for (const char *c = ctext; *c; c++) {
+            printed += *c == '\n' ? "\\n" : str(*c);
+        }
+        uii.Sys_Printf(" text %.0f %.0f %.0f %.0f \"%s\"", x, y, w, h, printed.c_str());
     }
     uii.Sys_Printf("\n");
 

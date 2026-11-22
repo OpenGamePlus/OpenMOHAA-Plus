@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m2l1",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM2L1",
+ "controls": [],
+ "heading_plate": [
+  "M2L1_Heading"
+ ],
+ "body_plate": [
+  "M2L1_Body"
+ ],
+ "sign_plate": [
+  "M2L1_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m2l1",
+    "menu": "m2l1",
+    "heading": {
+     "en": "Secret Documents of the Kriegsmarine - Trondheim, Norway\nFebruary 12, 1943",
+     "es": "Documentos secretos de la Kriegsmarine - Trondheim, Noruega\n12 de febrero de 1943"
+    },
+    "body": [
+     {
+      "en": "The German navy is building a radar detector they call Naxos. If it works, their U-boats will slip past our radar patrols and the Atlantic will be theirs again.",
+      "es": "La marina alemana está construyendo un detector de radar al que llaman Naxos. Si funciona, sus submarinos esquivarán nuestras patrullas de radar y el Atlántico volverá a ser suyo."
+     },
+     "\n\n",
+     {
+      "en": "You go in near Trondheim. Major Grillo has been inside since January, posing as a German officer. Wait for his radio signal, then cover him with the rifle from a distance while he opens the main gate.",
+      "es": "Entrará cerca de Trondheim. El mayor Grillo está dentro desde enero, haciéndose pasar por oficial alemán. Espere su señal por radio y cúbralo con el fusil desde lejos mientras abre la puerta principal."
+     },
+     "\n\n",
+     {
+      "en": "Bring plenty of explosives: Grillo cannot get enough for the U-529. Stay with him, steal every paper on the prototype from the research building, then get into the submarine pens.",
+      "es": "Lleve explosivos de sobra: Grillo no puede conseguir suficientes para el U-529. Quédese con él, robe del edificio de investigación todos los papeles del prototipo y después entre en la base de submarinos."
+     },
+     "\n\n",
+     {
+      "en": "Grillo is in charge. Do as he says and this will run like clockwork.",
+      "es": "Grillo está al mando. Haga lo que le diga y todo irá como un reloj."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

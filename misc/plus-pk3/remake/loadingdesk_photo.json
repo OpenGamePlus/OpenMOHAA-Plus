@@ -1,0 +1,75 @@
+{
+ "menu": "loadingdesk_photo",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadPhoto",
+ "controls": [],
+ "content_plate": [
+  "Load_Photo"
+ ],
+ "loading": {
+  "content": "photo",
+  "screens": [
+   {
+    "file": "mohdm1",
+    "menu": "dm/mohdm1",
+    "shader": "mohdm1"
+   },
+   {
+    "file": "mohdm2",
+    "menu": "dm/mohdm2",
+    "shader": "mohdm2"
+   },
+   {
+    "file": "mohdm3",
+    "menu": "dm/mohdm3",
+    "shader": "mohdm3"
+   },
+   {
+    "file": "mohdm4",
+    "menu": "dm/mohdm4",
+    "shader": "mohdm4"
+   },
+   {
+    "file": "mohdm5",
+    "menu": "dm/mohdm5",
+    "shader": "mohdm5"
+   },
+   {
+    "file": "mohdm6",
+    "menu": "dm/mohdm6",
+    "shader": "mohdm6"
+   },
+   {
+    "file": "mohdm7",
+    "menu": "dm/mohdm7",
+    "shader": "mohdm7"
+   },
+   {
+    "file": "objdm1",
+    "menu": "obj/obj_team1",
+    "shader": "objdm1"
+   },
+   {
+    "file": "objdm2",
+    "menu": "obj/obj_team2",
+    "shader": "objdm2"
+   },
+   {
+    "file": "objdm3",
+    "menu": "obj/obj_team3",
+    "shader": "objdm5"
+   },
+   {
+    "file": "objdm4",
+    "menu": "obj/obj_team4",
+    "shader": "objdm4"
+   },
+   {
+    "file": "objdm5",
+    "menu": "obj/obj_team5",
+    "shader": "objdm5"
+   }
+  ]
+ }
+}

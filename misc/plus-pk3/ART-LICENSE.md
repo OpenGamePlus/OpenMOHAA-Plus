@@ -12,6 +12,11 @@ Blender scenes of the menu rooms:
   section 4(a) restricts commercial use of data produced by the model.
 - Third-party 3D models in the scenes keep their own licences (CC BY 4.0 or CC0); they are credited
   on the chalkboard of the main room, from `remake/credits/models.json`.
+- Some scene textures are CC0 photographs from Poly Haven (the loading desks' wooden table,
+  `wood_table_worn`).
+- The loading screens' letters are our own text; the multiplayer map pictures come from the player's
+  own game files (by shader name) and are not in the pak. The maps on the desks are drawn from
+  Natural Earth (public domain), not generated.
 - The renders are not in the repository: the maintainer builds the pak from them and attaches it to
   each release.
 

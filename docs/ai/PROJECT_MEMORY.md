@@ -3,6 +3,18 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Every mission's loading desk
+- The 21 mission screens are typed letters on top-down collages (`07_carga/mision.py` builds each zone from `misiones.py`, zones 2 m apart: at 0.8 m each desk's key light lit its neighbour); objects and photos from ComfyUI on chroma green, maps from Natural Earth (`herramientas/mapa_region.py`, specs in `herramientas/mapas/`): Klein invents coastlines. Letters are ours (paired English/Spanish sentences, grouped under 255 bytes); Eisenhower's order of the day is a US government work (public domain), its Spanish ours.
+- The cut-out letter desk (`loadingdesk_letter`, `tcMod` crops of the player's briefing textures) is gone with its code: nothing used it.
+
+## 2026-11-22 — Typed, translatable loading letter (m1l1 test)
+- `m1l1` is a top-down collage in the spirit of the original (own ComfyUI cut-outs on chroma green, OSS letterhead as Blender text) with our own letter, typed by the engine: `Label` `wordwrap <height>` (fixed type size, more lines for longer text) and `addtext` pieces (each translated alone); English in the `.urc`, Spanish in `lang/es/remake_loading.txt` generated from `loadingdesk_m1l1.json`.
+- Limits found: a `.urc` token is 511 characters and a localization text 255 (the TIKI reader cuts silently), so the body goes in sentence pieces; `ui_printwidgets` now prints a line break as `\n`. Idea left for later: a script that reads the letters from the player's own textures and writes their translation file locally (never shipped).
+
+## 2026-11-22 — Remake loading screens
+- The 34 loading screens are three top-down desks (`07_carga/carga_1940.blend`): a mission's letter is cut from the player's own briefing textures by a shader of ours (`clampMap` + `tcMod transform`, rects measured by hand; the auto-detection failed on photos lying over the letters), a map's picture is its original shader, so the pak ships no game art and letters follow the player's language pak. Spec `docs/superpowers/specs/2026-11-22-remake-loading-screens-design.md`.
+- Checked with a real load of `m1l2a`: bar during the load, Continue at the end, the click starts the mission. The credits board is full (10 models): new scenes use own props or already credited models.
+
 ## 2026-11-22 — Remake telegram message screens
 - The nine original message menus (connecting, serverfull, servertimeout, wrongversion, errormessage...) shared one picture, the sepia box art; the Remake draws them all on one include background, a telegram on the options desk (`05_mensajes/telegrama_1940.blend`, copied from the options close-up scene), from `telegram.json`'s `dialogs` (`dialog_urc`). Spec `docs/superpowers/specs/2026-11-22-telegram-messages-design.md`.
 - A label fits its text into half its rect: a plate sized to the slip made one line huge, so lines are 26 units tall, centred on the plate.

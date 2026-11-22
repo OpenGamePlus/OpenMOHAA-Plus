@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m5l2",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM5L2",
+ "controls": [],
+ "heading_plate": [
+  "M5L2_Heading"
+ ],
+ "body_plate": [
+  "M5L2_Body"
+ ],
+ "sign_plate": [
+  "M5L2_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m5l2",
+    "menu": "m5l2a",
+    "heading": {
+     "en": "The Hunt for the King Tiger - Brittany, France\nAugust 20, 1944",
+     "es": "La caza del Tigre Real - Bretaña, Francia\n20 de agosto de 1944"
+    },
+    "body": [
+     {
+      "en": "Good job, Powell. The road to Brest runs through villages the enemy still holds, so do not relax yet. The King Tiger carries more gun and armour than any tank yet built, but it is slow and makes a big target.",
+      "es": "Buen trabajo, Powell. La carretera a Brest atraviesa pueblos que el enemigo aún controla, así que no se confíe. El Tigre Real lleva más cañón y blindaje que ningún tanque construido, pero es lento y un blanco grande."
+     },
+     "\n\n",
+     {
+      "en": "Watch for Tiger I and Panzer IV tanks, Panzerschreck teams and 88mm field guns. The Tiger I has the same gun and engine as yours and less armour. Hit it first: the crew reels while you reload.",
+      "es": "Vigile los Tiger I y Panzer IV, los equipos de Panzerschreck y los cañones de campaña de 88 mm. El Tiger I tiene el mismo cañón y motor que el suyo y menos blindaje. Dispare primero: la tripulación queda aturdida mientras usted recarga."
+     },
+     "\n\n",
+     {
+      "en": "Panzerschreck teams wait in houses for you to pass. Shell those houses first. No civilians are left in those ruins, only the enemy.",
+      "es": "Los equipos de Panzerschreck esperan en las casas a que usted pase. Bombardee antes esas casas. En esas ruinas ya no quedan civiles, solo el enemigo."
+     },
+     "\n\n",
+     {
+      "en": "You know the 88 from the bocage: hidden, patient, waiting for its moment. Watch the road ahead.",
+      "es": "Ya conoce el 88 del bocage: oculto, paciente, esperando su momento. Vigile la carretera."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

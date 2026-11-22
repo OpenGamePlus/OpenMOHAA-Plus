@@ -1,0 +1,60 @@
+{
+ "menu": "loadingdesk_m6l2a",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM6L2A",
+ "controls": [],
+ "heading_plate": [
+  "M6L2A_Heading"
+ ],
+ "body_plate": [
+  "M6L2A_Body"
+ ],
+ "sign_plate": [
+  "M6L2A_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m6l2a",
+    "menu": "m6l2a",
+    "heading": {
+     "en": "The Communications Blackout - Germany\nJanuary 18, 1945",
+     "es": "El apagón de comunicaciones - Alemania\n18 de enero de 1945"
+    },
+    "body": [
+     {
+      "en": "This part of the Schmerzen operation needs a light touch, Lieutenant. The town ahead has the last station on the line before Fort Schmerzen,",
+      "es": "Esta parte de la operación Schmerzen requiere mano fina, teniente. El pueblo que tiene delante alberga la última estación de la línea antes del Fuerte Schmerzen,"
+     },
+     {
+      "en": "and the region's messages pass through a radio post used by the Gestapo and senior SS officers. Those lines must be cut.",
+      "es": "y los mensajes de la región pasan por un puesto de radio que usan la Gestapo y altos oficiales de las SS. Hay que cortar esas líneas."
+     },
+     "\n\n",
+     {
+      "en": "Winter troops hold the town, and its guard posts have alarms. If a guard raises one, expect a search party. Get past them and blow up the radio post.",
+      "es": "Tropas de montaña ocupan el pueblo y sus puestos de guardia tienen alarmas. Si un guardia da la alarma, espere una patrulla. Supere sus defensas y vuele el puesto de radio."
+     },
+     "\n\n",
+     {
+      "en": "Then Schmerzen is deaf and blind, and you head for the meeting point at the station. The SS commandant's house on the edge of town should give you a way out.",
+      "es": "Entonces Schmerzen quedará sordo y ciego, y usted irá al punto de encuentro en la estación. La casa del comandante de las SS, en las afueras, debería ofrecerle una salida."
+     },
+     "\n\n",
+     {
+      "en": "Step lightly and stay sharp, Powell. There is no room for mistakes now.",
+      "es": "Pise con cuidado y esté atento, Powell. Ahora no hay margen de error."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

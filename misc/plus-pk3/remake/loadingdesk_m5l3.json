@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m5l3",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM5L3",
+ "controls": [],
+ "heading_plate": [
+  "M5L3_Heading"
+ ],
+ "body_plate": [
+  "M5L3_Body"
+ ],
+ "sign_plate": [
+  "M5L3_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m5l3",
+    "menu": "m5l3",
+    "heading": {
+     "en": "The Bridge - Brittany, France\nAugust 20, 1944",
+     "es": "El puente - Bretaña, Francia\n20 de agosto de 1944"
+    },
+    "body": [
+     {
+      "en": "So far so good, Lieutenant. The bridge garrison surely knows the King Tiger has been stolen, so the tank cannot drive straight in. This Resistance photograph shows the bridge wired to a small detonator on the far bank.",
+      "es": "Hasta ahora, bien, teniente. La guarnición del puente sabe de sobra que han robado el Tigre Real, así que el tanque no puede llegar sin más. Esta fotografía de la Resistencia muestra el puente cableado a un pequeño detonador en la otra orilla."
+     },
+     "\n\n",
+     {
+      "en": "Go in quietly, find a sniping spot above the bridge and keep anyone from that detonator until the tank is in place. If they spot you, catch every sentry before he can run and blow it.",
+      "es": "Entre en silencio, busque un puesto de tiro sobre el puente y no deje que nadie se acerque al detonador hasta que el tanque esté en posición. Si lo descubren, alcance a cada centinela antes de que pueda correr a volarlo."
+     },
+     "\n\n",
+     {
+      "en": "Once the King Tiger is on the bridge they will bring up reinforcements. Call artillery on their tanks by radio; the shells take a few seconds to land. Hold until our troops arrive.",
+      "es": "Cuando el Tigre Real esté en el puente traerán refuerzos. Pida artillería por radio contra sus tanques; los proyectiles tardan unos segundos en caer. Resista hasta que lleguen los nuestros."
+     },
+     "\n\n",
+     {
+      "en": "Win here and the Germans will be all but gone from France by mid-September. Good hunting.",
+      "es": "Si gana aquí, los alemanes casi habrán salido de Francia a mediados de septiembre. Buena caza."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

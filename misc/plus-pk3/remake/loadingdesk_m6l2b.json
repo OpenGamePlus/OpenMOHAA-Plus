@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m6l2b",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM6L2B",
+ "controls": [],
+ "heading_plate": [
+  "M6L2B_Heading"
+ ],
+ "body_plate": [
+  "M6L2B_Body"
+ ],
+ "sign_plate": [
+  "M6L2B_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m6l2b",
+    "menu": "m6l2b",
+    "heading": {
+     "en": "The Schmerzen Express - Siegfried Line, Germany\nJanuary 18, 1945",
+     "es": "El expreso de Schmerzen - Línea Sigfrido, Alemania\n18 de enero de 1945"
+    },
+    "body": [
+     {
+      "en": "Excellent, Powell. With the radio post gone, nobody can call for help in time to save Fort Schmerzen. The park you are in should be lightly held. The station is another matter: machine gun towers watch the yard and the tracks.",
+      "es": "Excelente, Powell. Sin el puesto de radio, nadie podrá pedir ayuda a tiempo para salvar el Fuerte Schmerzen. El parque donde está debería estar poco defendido. La estación es otro asunto: torres de ametralladoras vigilan el patio y las vías."
+     },
+     "\n\n",
+     {
+      "en": "The station is the meeting point, but first some chores. Cut the power to the electric fence so your squad can get through; the lights in the main building will fail for a moment and draw some guards out.",
+      "es": "La estación es el punto de encuentro, pero antes hay tareas. Corte la corriente de la valla electrificada para que su pelotón pueda pasar; las luces del edificio principal fallarán un momento y atraerán a algunos guardias."
+     },
+     "\n\n",
+     {
+      "en": "Find the radio in the station building and send a false order to stop the incoming train. When it pulls in, deal with the driver and one of the Rangers will take over.",
+      "es": "Encuentre la radio del edificio de la estación y envíe una orden falsa para detener el tren que llega. Cuando entre, encárguese del maquinista y uno de los Rangers lo conducirá."
+     },
+     "\n\n",
+     {
+      "en": "You are nearly there, Lieutenant. Good luck.",
+      "es": "Ya casi está, teniente. Buena suerte."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

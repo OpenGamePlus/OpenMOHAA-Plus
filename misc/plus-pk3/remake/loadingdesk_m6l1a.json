@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m6l1a",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM6L1A",
+ "controls": [],
+ "heading_plate": [
+  "M6L1A_Heading"
+ ],
+ "body_plate": [
+  "M6L1A_Body"
+ ],
+ "sign_plate": [
+  "M6L1A_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m6l1a",
+    "menu": "m6l1a",
+    "heading": {
+     "en": "The Siegfried Forest - Siegfried Line, Germany\nJanuary 18, 1945",
+     "es": "El bosque de Sigfrido - Línea Sigfrido, Alemania\n18 de enero de 1945"
+    },
+    "body": [
+     {
+      "en": "The Air Force has lost several reconnaissance planes twenty miles north of Fort Schmerzen, over nothing but forest and snow. Why guard nothing with anti-aircraft guns? I want you in there first.",
+      "es": "La aviación ha perdido varios aviones de reconocimiento veinte millas al norte del Fuerte Schmerzen, sobre nada más que bosque y nieve. ¿Por qué proteger la nada con antiaéreos? Quiero que entre usted primero."
+     },
+     "\n\n",
+     {
+      "en": "You will parachute into the trees. It is risky, but it is the fastest way in. On the ground, watch for snipers. You carry a Springfield sniper rifle.",
+      "es": "Saltará en paracaídas sobre los árboles. Es arriesgado, pero es la forma más rápida de entrar. En tierra, cuidado con los francotiradores. Lleva un fusil de francotirador Springfield."
+     },
+     "\n\n",
+     {
+      "en": "Our planes most likely fell to 20mm Flak hidden in the forest. Find the guns and destroy them, and report anything unusual. We will improvise from there.",
+      "es": "Lo más probable es que nuestros aviones cayeran ante antiaéreos de 20 mm ocultos en el bosque. Encuentre los cañones y destrúyalos, e informe de cualquier cosa extraña. A partir de ahí improvisaremos."
+     },
+     "\n\n",
+     {
+      "en": "Good luck out there, Powell.",
+      "es": "Buena suerte ahí fuera, Powell."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

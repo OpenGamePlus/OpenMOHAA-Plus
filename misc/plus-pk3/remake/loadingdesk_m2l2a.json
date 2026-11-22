@@ -1,0 +1,71 @@
+{
+ "menu": "loadingdesk_m2l2a",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM2L2A",
+ "controls": [],
+ "heading_plate": [
+  "M2L2A_Heading"
+ ],
+ "body_plate": [
+  "M2L2A_Body"
+ ],
+ "sign_plate": [
+  "M2L2A_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m2l2a",
+    "menu": "m2l2a",
+    "heading": {
+     "en": "Scuttling the U-529 - Trondheim, Norway\nFebruary 12, 1943",
+     "es": "Hundir el U-529 - Trondheim, Noruega\n12 de febrero de 1943"
+    },
+    "body": [
+     {
+      "en": "The plan has gone wrong. If you want to live, Powell, you will have to pass for one of them. Take an officer's uniform from the locker room and speak only German until you are out.",
+      "es": "El plan ha salido mal. Si quiere vivir, Powell, tendrá que pasar por uno de ellos. Coja un uniforme de oficial del vestuario y hable solo en alemán hasta que salga."
+     },
+     "\n\n",
+     {
+      "en": "Remember this:",
+      "es": "Recuerde esto:"
+     },
+     "\n\n",
+     {
+      "en": "1. Show your papers whenever you are asked.",
+      "es": "1. Enseñe sus papeles siempre que se los pidan."
+     },
+     "\n\n",
+     {
+      "en": "2. Keep your weapon away. A drawn gun gives you away at once.",
+      "es": "2. Guarde el arma. Un arma en la mano lo delata al instante."
+     },
+     "\n\n",
+     {
+      "en": "3. Higher security areas need an officer's papers. You may have to take them by force.",
+      "es": "3. Las zonas de más seguridad exigen papeles de oficial. Puede que tenga que quitárselos por la fuerza."
+     },
+     "\n\n",
+     {
+      "en": "4. If someone grows suspicious, get him alone first.",
+      "es": "4. Si alguien sospecha, apártelo antes de actuar."
+     },
+     "\n\n",
+     {
+      "en": "Destroy the Naxos prototype, board the U-529, plant your charges in the bow and find another way out.",
+      "es": "Destruya el prototipo Naxos, suba al U-529, coloque las cargas en la proa y busque otra salida."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}
