@@ -156,18 +156,22 @@ class Screens(unittest.TestCase):
         self.assertEqual(screen["menu"], "video_options")
         cvars = {c["cvar"] for c in screen["controls"]}
         self.assertEqual(cvars, {"r_mode", "r_colorbits", "r_picmip", "r_texturebits", "r_texturemode", "r_gamma",
-                                 "cg_marks_add", "cg_rain", "r_ext_compressed_textures"})  # the original's
+                                 "cg_marks_add", "cg_rain", "r_ext_compressed_textures",  # the original's
+                                 "r_fullscreen", "com_maxfps", "r_ext_texture_filter_anisotropic", "r_swapInterval"})  # added in OPM
 
     def test_real_audio_screen(self):
         screen = hotspots.load_mapping(os.path.join(HERE, "remake", "audio_options.json"))
         self.assertEqual(screen["menu"], "audio_options")
-        self.assertEqual({c["cvar"] for c in screen["controls"]}, {"s_volume", "s_musicvolume", "s_speaker_type", "s_khz"})
+        self.assertEqual({c["cvar"] for c in screen["controls"]}, {"s_volume", "s_musicvolume", "s_speaker_type", "s_khz",
+                                                                      "s_ambientvolume"})  # ambience: added in OPM
 
     def test_real_advanced_screen(self):
         screen = hotspots.load_mapping(os.path.join(HERE, "remake", "advancedoptions.json"))
         self.assertEqual({c["cvar"] for c in screen["controls"]}, {  # the original's
             "cg_drawviewmodel", "cg_shadows", "ter_error", "r_lodscale", "cg_effectdetail", "r_subdivisions", "g_subtitle",
-            "ui_console", "r_drawstaticdecals", "r_fastdlights", "r_fastentlight", "vss_draw", "ui_weaponsbar", "ui_crosshair"})
+            "ui_console", "r_drawstaticdecals", "r_fastdlights", "r_fastentlight", "vss_draw", "ui_weaponsbar", "ui_crosshair",
+            # added in OPM
+            "cl_renderer", "cl_language", "cg_fov", "ui_hudscale", "cg_crosshair_size", "cg_crosshair_scale", "ui_menuaspect"})
 
     def test_binds_and_check_commands(self):
         # the controls screen: the game's key list on the card, and a check that runs a command each

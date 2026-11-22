@@ -34,6 +34,21 @@
    "multiplier": 100
   },
   {
+   "name": "ambience volume",
+   "kind": "slider",
+   "plate": [
+    "Unit_Middle_lbl_AMBIENCE VOLUME"
+   ],
+   "cvar": "s_ambientvolume",
+   "range": [
+    0.0,
+    1.0
+   ],
+   "step": 0.05,
+   "format": "%.0f%%",
+   "multiplier": 100
+  },
+  {
    "name": "speaker setup",
    "kind": "list",
    "knob": [

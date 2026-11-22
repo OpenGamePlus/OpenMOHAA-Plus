@@ -198,6 +198,116 @@
     "Unit_Mouse_lbl_TEXTURE COMPRE"
    ],
    "cvar": "r_ext_compressed_textures"
+  },
+  {
+   "name": "display mode",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_DISPLAY_MODE_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_DISPLAY MODE"
+   ],
+   "cvar": "r_fullscreen",
+   "items": [
+    [
+     "Fullscreen",
+     "set r_fullscreen 1; set r_noborder 0"
+    ],
+    [
+     "Window",
+     "set r_fullscreen 0; set r_noborder 0"
+    ],
+    [
+     "Borderless",
+     "set r_fullscreen 0; set r_noborder 1"
+    ]
+   ]
+  },
+  {
+   "name": "max fps",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_MAX_FPS_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_MAX FPS"
+   ],
+   "cvar": "com_maxfps",
+   "items": [
+    [
+     "60",
+     "set com_maxfps 60"
+    ],
+    [
+     "85",
+     "set com_maxfps 85"
+    ],
+    [
+     "120",
+     "set com_maxfps 120"
+    ],
+    [
+     "144",
+     "set com_maxfps 144"
+    ],
+    [
+     "165",
+     "set com_maxfps 165"
+    ],
+    [
+     "240",
+     "set com_maxfps 240"
+    ],
+    [
+     "333",
+     "set com_maxfps 333"
+    ]
+   ]
+  },
+  {
+   "name": "anisotropic filter",
+   "kind": "list",
+   "knob": [
+    "Unit_Mouse_dial70_ANISOTROPIC_fluted"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_ANISOTROPIC"
+   ],
+   "cvar": "r_ext_texture_filter_anisotropic",
+   "items": [
+    [
+     "Off",
+     "set r_ext_texture_filter_anisotropic 0"
+    ],
+    [
+     "2x",
+     "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 2"
+    ],
+    [
+     "4x",
+     "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 4"
+    ],
+    [
+     "8x",
+     "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 8"
+    ],
+    [
+     "16x",
+     "set r_ext_texture_filter_anisotropic 1; set r_ext_max_anisotropy 16"
+    ]
+   ]
+  },
+  {
+   "name": "vsync",
+   "kind": "check",
+   "lamp": [
+    "VidLamp_Vsync_Bezel"
+   ],
+   "plate": [
+    "Unit_Mouse_lbl_VSYNC"
+   ],
+   "cvar": "r_swapInterval"
   }
  ],
  "corners": [

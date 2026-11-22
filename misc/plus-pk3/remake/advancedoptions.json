@@ -276,6 +276,115 @@
     "Unit_TopPanel_lbl_CROSSHAIR"
    ],
    "cvar": "ui_crosshair"
+  },
+  {
+   "name": "renderer",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial_RENDERER_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_RENDERER"
+   ],
+   "cvar": "cl_renderer",
+   "items": [
+    [
+     "OpenGL",
+     "set cl_renderer opengl1"
+    ],
+    [
+     "Vulkan",
+     "set cl_renderer vulkan"
+    ]
+   ]
+  },
+  {
+   "name": "language",
+   "kind": "list",
+   "knob": [
+    "Unit_TopPanel_dial_LANGUAGE_fluted"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_LANGUAGE"
+   ],
+   "cvar": "cl_language",
+   "items": [
+    [
+     "Game default",
+     "reset cl_language"
+    ],
+    [
+     "Spanish",
+     "set cl_language es"
+    ]
+   ]
+  },
+  {
+   "name": "field of view",
+   "kind": "slider",
+   "plate": [
+    "Unit_TopPanel_lbl_FIELD OF VIEW"
+   ],
+   "cvar": "cg_fov",
+   "range": [
+    80,
+    120
+   ],
+   "step": 1,
+   "format": "%.0f"
+  },
+  {
+   "name": "hud scale",
+   "kind": "slider",
+   "plate": [
+    "Unit_TopPanel_lbl_HUD SCALE"
+   ],
+   "cvar": "ui_hudscale",
+   "range": [
+    0.5,
+    4
+   ],
+   "step": 0.1,
+   "format": "%.1fx"
+  },
+  {
+   "name": "crosshair size",
+   "kind": "slider",
+   "plate": [
+    "Unit_TopPanel_lbl_CROSSHAIR SIZE"
+   ],
+   "cvar": "cg_crosshair_size",
+   "range": [
+    0,
+    4
+   ],
+   "step": 0.1,
+   "format": "%.1f"
+  },
+  {
+   "name": "crosshair scale",
+   "kind": "slider",
+   "plate": [
+    "Unit_TopPanel_lbl_CROSSHAIR SCALE"
+   ],
+   "cvar": "cg_crosshair_scale",
+   "range": [
+    0.1,
+    4
+   ],
+   "step": 0.1,
+   "format": "%.1f"
+  },
+  {
+   "name": "menus keep 4:3",
+   "kind": "check",
+   "lamp": [
+    "AdvLamp_MENUS_4_3_Bezel"
+   ],
+   "plate": [
+    "Unit_TopPanel_lbl_MENUS KEEP 4:3"
+   ],
+   "cvar": "ui_menuaspect"
   }
  ],
  "corners": [

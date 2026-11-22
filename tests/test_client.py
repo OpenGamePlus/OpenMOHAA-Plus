@@ -1831,6 +1831,45 @@ class RemakeMenu(GameTestCase):
             self.assertTrue(x0 - 1 <= px0 <= x1 and y0 - 1 <= py0 <= y1, (box, pull))
         self.assertEqual(c.quit(), 0)
 
+    def plate_values(self, c, menu, names, *commands):
+        """{control: the value its plate's pulldown shows} on an option screen after the commands."""
+        for command in commands + ("pushmenu " + menu,):
+            c.send(command)
+        self.assertEqual(self.top_menu(c, menu), menu)     # loading the screen's pictures takes a while
+        screen = self.widgets(c)
+        c.send("popmenu 0")
+        self.assertEqual(self.top_menu(c, "main"), "main")
+        values = {}
+        for name in names:
+            x0, y0, x1, y1 = screen["widgets"][name]["rect"]
+            values[name] = next(p["value"] for p in screen["pulldowns"]
+                                if p["value"] and x0 - 1 <= p["rect"][0] <= x1 and y0 - 1 <= p["rect"][1] <= y1)
+        return values, screen
+
+    def test_video_new_values(self):
+        # the fork's video settings on the video unit (added in OPM): two-cvar items match as a whole
+        names = ("display mode", "anisotropic filter")
+        c = self.start(1280, 720, "+set", "r_ext_texture_filter_anisotropic", "0", "+set", "r_ext_max_anisotropy", "2")
+        v, _ = self.plate_values(c, "video_options", names)   # the renderer's defaults: filter off at 2x
+        self.assertEqual(v["anisotropic filter"], "Off")
+        v, _ = self.plate_values(c, "video_options", names, "ui_marklatched", "set r_fullscreen 0;set r_noborder 1",
+                                 "set r_ext_texture_filter_anisotropic 1;set r_ext_max_anisotropy 8")
+        self.assertEqual(v, {"display mode": "Borderless", "anisotropic filter": "8x"})
+        c.send("ui_discardlatched")
+        v, _ = self.plate_values(c, "video_options", names)
+        self.assertEqual(v["display mode"], "Fullscreen")
+        self.assertEqual(c.quit(), 0)
+
+    def test_advanced_new_values(self):
+        # language (a reset item matches the default) and field of view on the advanced unit (added in OPM)
+        c = self.start(1280, 720)
+        v, _ = self.plate_values(c, "advancedoptions", ("language",))
+        self.assertEqual(v["language"], "Game default")
+        v, screen = self.plate_values(c, "advancedoptions", ("language",), "set cl_language es", "set cg_fov 100")
+        self.assertEqual(v["language"], "Spanish")
+        self.assertEqual(screen["sliders"]["field of view"]["value"], "100")
+        self.assertEqual(c.quit(), 0)
+
     def test_option_screen_check_toggles(self):
         # a click on a lamp's checkbox sets its cvar (the original screen's behaviour)
         c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "r_ext_compressed_textures", "0")
