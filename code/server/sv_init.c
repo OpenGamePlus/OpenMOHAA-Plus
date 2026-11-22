@@ -245,11 +245,66 @@ SV_SoundIndex
 int SV_SoundIndex( const char *name, qboolean streamed )
 {
 	char buf[ 1024 ];
+	int  index;
 
 	Q_strncpyz( buf, name, sizeof(buf) );
 	Q_strcat( buf, sizeof(buf), va( "%d", streamed ) );
 
-	return SV_FindIndex( buf, CS_SOUNDS, MAX_SOUNDS, qtrue );
+	// Changed in OpenMOHAA Plus: a map's precache can take every sound index (Spearhead's precached
+	//  models and a custom map's aliases fill all 511); the first new sound then crashed the server
+	//  ("SV_FindIndex: overflow", upstream #876). The least recently used sound that no entity loops
+	//  and no non-PVS sound holds gives up its index; the clients re-register the configstring.
+	index = SV_FindIndex( buf, CS_SOUNDS, MAX_SOUNDS, qfalse );
+	if ( !index ) {
+		int i;
+
+		for ( i = 1; i < MAX_SOUNDS && sv.configstrings[ CS_SOUNDS + i ][ 0 ]; i++ ) {
+		}
+		if ( i < MAX_SOUNDS ) {
+			index = SV_FindIndex( buf, CS_SOUNDS, MAX_SOUNDS, qtrue );
+		} else {
+			index = SV_ReclaimSoundIndex();
+			if ( !index ) {
+				Com_DPrintf( "SV_SoundIndex: no sound index free for %s\n", buf );
+				return 0;
+			}
+			Com_DPrintf( "SV_SoundIndex: %s takes the index of %s\n", buf, sv.configstrings[ CS_SOUNDS + index ] );
+			SV_SetConfigstring( CS_SOUNDS + index, buf );
+		}
+	}
+	sv.soundLastUsed[ index ] = svs.time;
+	return index;
+}
+
+/*
+===============
+SV_ReclaimSoundIndex
+
+Added in OpenMOHAA Plus: the sound index asked for longest ago that no entity uses as its looping
+sound and no non-PVS sound holds, or 0.
+===============
+*/
+int SV_ReclaimSoundIndex( void )
+{
+	static qboolean looped[ MAX_SOUNDS ];
+	int             i, best = 0;
+
+	Com_Memset( looped, 0, sizeof( looped ) );
+	for ( i = 0; i < sv.num_entities; i++ ) {
+		const gentity_t *ent = SV_GentityNum( i );
+		if ( ent->s.loopSound > 0 && ent->s.loopSound < MAX_SOUNDS ) {
+			looped[ ent->s.loopSound ] = qtrue;
+		}
+	}
+	for ( i = 1; i < MAX_SOUNDS; i++ ) {
+		if ( looped[ i ] || svs.nonpvs_sound_cache[ i ].inUse ) {
+			continue;
+		}
+		if ( !best || sv.soundLastUsed[ i ] < sv.soundLastUsed[ best ] ) {
+			best = i;
+		}
+	}
+	return best;
 }
 
 /*

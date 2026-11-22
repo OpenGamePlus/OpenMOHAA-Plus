@@ -277,6 +277,53 @@ end
         self.assertRegex(status, r"\n\s*0\s+\d+\s+\d+\s")      # client 0 still connected
         self.assertTrue("would exceed MAX_GAMESTATE_CHARS" in s.log(), "server did not refuse a configstring")
 
+    # upstream #876: a map whose precache took every sound index (Spearhead's 90 precached models
+    # and the map's aliases fill all 511) crashed the server ("SV_FindIndex: overflow") on the
+    # first new sound; the least recently used sound that no entity loops now gives up its index
+    SOUND_FILL_SCRIPT = """main:
+    level waittill spawn
+    local.go = getcvar "plus_snd_fill"
+    while (local.go != "1") {
+        wait 0.5
+        local.go = getcvar "plus_snd_fill"
+    }
+    local.fire = spawn script_model model "fx/dummy.tik"
+    local.fire loopsound fire_large
+    wait 1
+    for (local.i = 0; local.i < 600; local.i++) {
+        cache ("sound/plus_test/snd_fill_" + local.i + ".wav")
+        if (local.i % 5 == 4) {
+            waitframe   // a few a frame, as sounds come in a game: 600 at once overflow the client's commands
+        }
+    }
+    println "PLUS_SND_FILLED"
+end
+"""
+
+    def test_full_sound_table_reuses_an_index(self):
+        self.home.write("maps/dm/mohdm1.scr", self.SOUND_FILL_SCRIPT)
+        s = self.server("+set", "developer", "1", "+set", "g_gametype", "1", "+map", "dm/mohdm1")
+        s.wait_for(r"==== InitGame ====")
+        client_home = omoh.Home()
+        self.addCleanup(client_home.cleanup)
+        c = omoh.client(client_home, "+connect", f"127.0.0.1:{s.port}")
+        self.games.append(c)
+        s.wait_for(r"entered the battle", timeout=120)
+        s.send("set plus_snd_fill 1")
+        s.wait_for(r"PLUS_SND_FILLED", timeout=60)
+        time.sleep(3)
+        mark = len(c.log())
+        c.send("configstrings")
+        sounds = c.wait_for(r"snd_fill_599\.wav", timeout=20, start=mark)[mark:]
+        self.assertTrue("amb_fireloop_02.wav" in sounds.lower(), "the looping sound lost its index")
+        mark = len(s.log())
+        s.send("status")
+        status = s.wait_for(r"^map: dm/mohdm1", timeout=20, start=mark)[mark:]
+        c.quit()
+        self.assertEqual(s.quit(), 0)
+        self.assertNotIn("SV_FindIndex: overflow", s.log())
+        self.assertRegex(status, r"\n\s*0\s+\d+\s+\d+\s")      # client 0 still connected
+
     def _fire_intervals(self, sv_fps, weapon):
         home = omoh.Home()
         self.addCleanup(home.cleanup)
@@ -947,7 +994,9 @@ end
         s.wait_for(r"==== InitGame ====")
         client_home = omoh.Home()
         self.addCleanup(client_home.cleanup)
-        c = omoh.client(client_home, "+set", "developer", "1", "+connect", f"127.0.0.1:{s.port}")
+        # the name set here: a configs/*.cfg left in the game folder can rename the client
+        c = omoh.client(client_home, "+set", "developer", "1", "+set", "name", "UnnamedSoldier",
+                        "+connect", f"127.0.0.1:{s.port}")
         self.games.append(c)
         s.wait_for(r"UnnamedSoldier.* has entered the battle", timeout=120)
         time.sleep(3)

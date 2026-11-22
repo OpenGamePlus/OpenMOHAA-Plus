@@ -105,6 +105,9 @@ typedef struct {
 
 	playerState_t	*gameClients;
 	int				gameClientSize;		// will be > sizeof(playerState_t) due to game private data
+
+	// Added in OpenMOHAA Plus: svs.time each sound index was last asked for (see SV_SoundIndex)
+	int				soundLastUsed[MAX_SOUNDS];
 } server_t;
 
 
@@ -478,6 +481,7 @@ int SV_FindIndex( const char *name, int start, int max, qboolean create );
 int SV_ModelIndex( const char *name );
 void SV_ClearModel( int index );
 int SV_SoundIndex( const char *name, qboolean streamed );
+int SV_ReclaimSoundIndex( void ); // Added in OpenMOHAA Plus
 int SV_ImageIndex( const char *name );
 int SV_ItemIndex( const char *name );
 void SV_SetLightStyle( int index, const char *data );

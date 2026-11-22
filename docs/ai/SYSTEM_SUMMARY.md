@@ -29,6 +29,7 @@ Details: [overview.md](../dev/architecture/overview.md).
 | Client connection | Reason of a mid-connection drop shown in console and error menu | (phase 0) |
 | Frame loop (`qcommon`) | `com_maxfps` remainder carried across frames | #530 |
 | Server / savegames | svs time fixups add instead of overwrite (stopwatch after load) | #916 |
+| Server / sounds | A full sound table (511 indexes) gives the least recently used sound no entity loops to the new one instead of crashing (`SV_ReclaimSoundIndex`) | #876 |
 | Server bans | `rehashbans` skips blank lines and stale slots, reads CRLF files and a last line without newline | #926 |
 | Server / modules | `TAG_GAME` freed only if `game.so` really unloaded; event tables kept; same for `cgame.so` (`TAG_CGAME`), whose emitters are dropped at shutdown | #918 |
 | Filesystem / pure | Paks rejected by a pure server not reported as referenced | #659 |

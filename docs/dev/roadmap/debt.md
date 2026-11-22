@@ -19,6 +19,10 @@ Update when a fix leaves something open or an issue is rejected. Issue numbers a
 - Plus server browser: the LAN tab (sets `dm_browser_show 0`, then `refreshlanserverlist`) has no test, because the headless client finds no LAN server on loopback (checked with a server on port 12301, even with the filter at 0).
 - The 1.11 `errormessage` menu shows `com_errorMessage` on one centered line, so long reasons (e.g.
   the "Unpure Client ..." text) are clipped on screen; the console has the full text.
+- `SV_PVSSoundIndex` (non-PVS sounds, `sv_netoptimize 1`, off by default) writes the sound's name
+  without the `0`/`1` streamed suffix that cgame strips from every sound configstring (so the client
+  registers a name missing its last letter), compares case-sensitively, and takes the first empty
+  slot without checking for the same name after it. Not reproduced in a game yet.
 - "Unknown client game command: disconnect" is still printed by cgame for mid-connection drops
   (harmless).
 - Stopwatch type (fuse/wet fuse) is not saved; only matters for Spearhead/Breakthrough.

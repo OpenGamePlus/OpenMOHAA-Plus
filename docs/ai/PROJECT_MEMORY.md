@@ -3,6 +3,10 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Full sound table no longer crashes the server (#876)
+- Reproduced with the reporter's Spearhead map (Cubus Castle, objective, 6 bots): its precache (Spearhead's 90 models and the map's aliases) takes all 511 sound indexes at load; the first new sound (a damage voice, ~5 minutes in) hit `SV_FindIndex: overflow`. `SV_SoundIndex` now gives the least recently used index that no entity loops and no non-PVS sound holds; clients re-register the configstring.
+- Found on the way, not fixed: `SV_PVSSoundIndex` (`sv_netoptimize 1`) stores names without the `0`/`1` streamed suffix the client strips, and writes at the first gap without checking for the same name further on (`debt.md`). A test filling 600 sounds in one frame overflowed the client's reliable commands; the test spreads them over frames.
+
 ## 2026-11-22 — Every mission's loading desk
 - The 21 mission screens are typed letters on top-down collages (`07_carga/mision.py` builds each zone from `misiones.py`, zones 2 m apart: at 0.8 m each desk's key light lit its neighbour); objects and photos from ComfyUI on chroma green, maps from Natural Earth (`herramientas/mapa_region.py`, specs in `herramientas/mapas/`): Klein invents coastlines. Letters are ours (paired English/Spanish sentences, grouped under 255 bytes); Eisenhower's order of the day is a US government work (public domain), its Spanish ours.
 - The cut-out letter desk (`loadingdesk_letter`, `tcMod` crops of the player's briefing textures) is gone with its code: nothing used it.
