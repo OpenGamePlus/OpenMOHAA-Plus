@@ -258,6 +258,7 @@ def stamp_h():
 
 
 INK = "0.12 0.11 0.09 1"  # dark print on the units' light plates
+LIGHT_INK = "0.92 0.90 0.84 1"  # light print on green felt ("ink": "light")
 
 
 def _union(*rects):
@@ -297,8 +298,10 @@ def screen_urc(mapping, export):
     def widget(kind, lines):
         out.extend(["", "resource", kind, "{", *lines, "}"])
 
+    ink = {"now": INK}  # the control being written: its print colour
+
     def common(name, rect):
-        return [f'name "{name}"', "rect " + " ".join(str(v) for v in rect), f"fgcolor {INK}", "bgcolor 0 0 0 0",
+        return [f'name "{name}"', "rect " + " ".join(str(v) for v in rect), f"fgcolor {ink['now']}", "bgcolor 0 0 0 0",
                 'borderstyle "NONE"', "scalecvar ui_plusscale", cover]
 
     for name, x, side in (("background left", 0, "l"), ("background right", width // 2, "r")):
@@ -307,6 +310,7 @@ def screen_urc(mapping, export):
                          cover, f'shader "{TEXTURES}/{menu}_{side}"'])
     for control in mapping["controls"]:
         name, rects = control["name"], export["controls"][control["name"]]
+        ink["now"] = LIGHT_INK if control.get("ink") == "light" else INK
         if control["kind"] == "list":
             items = [f'addpopup "MENU" "{title}" command "{command}"' for title, command in control["items"]]
             pull = ['font verdana-14', 'menushader "MENU" "textures/menu_plus/clear"',

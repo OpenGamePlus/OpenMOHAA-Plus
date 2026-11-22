@@ -298,6 +298,11 @@ class Screens(unittest.TestCase):
             for line in lines:
                 self.assertIn("\n" + line + "\n", block + "\n", line)
         self.assertIn("\nfont verdana-14\n", self.block(text, "allies button") + "\n")  # a smaller title fits
+        felt = json.loads(json.dumps(self.MPOPTIONS)); felt["controls"][0]["ink"] = "light"  # on green felt
+        self.assertIn("\nfgcolor 0.92 0.90 0.84 1\n", self.block(pak.screen_urc(self.load(felt), self.MPOPTIONS_EXPORT), "player name") + "\n")
+        felt["controls"][0]["ink"] = "pink"
+        with self.assertRaises(ValueError):
+            self.load(felt)
         # a lit render with an engine title cannot work: the title's label would sit over the button and
         #  take the pointer (FindResponder picks the topmost widget), under it the hover hides the text
         lit = json.loads(json.dumps(self.MPOPTIONS)); lit["controls"][2]["lit"] = ["BL"]

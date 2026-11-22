@@ -9,7 +9,8 @@
    "plate": [
     "MPO_P_Name"
    ],
-   "cvar": "ui_name"
+   "cvar": "ui_name",
+   "ink": "light"
   },
   {
    "name": "allies player model",
@@ -39,7 +40,8 @@
    "plate": [
     "MPO_P_AlliesModel"
    ],
-   "cvar": "ui_dm_playermodel"
+   "cvar": "ui_dm_playermodel",
+   "ink": "light"
   },
   {
    "name": "axis model name",
@@ -47,7 +49,8 @@
    "plate": [
     "MPO_P_AxisModel"
    ],
-   "cvar": "ui_dm_playergermanmodel"
+   "cvar": "ui_dm_playergermanmodel",
+   "ink": "light"
   },
   {
    "name": "net connection",
@@ -88,7 +91,8 @@
      "LAN",
      "set rate 30000"
     ]
-   ]
+   ],
+   "ink": "light"
   },
   {
    "name": "force models",

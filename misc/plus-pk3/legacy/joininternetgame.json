@@ -42,7 +42,8 @@
    "plate": [
     "MPI_P_IP"
    ],
-   "cvar": "ui_connectip"
+   "cvar": "ui_connectip",
+   "ink": "light"
   }
  ],
  "corners": [

@@ -178,6 +178,8 @@ def _check_screen(path, mapping):
         if kind == "model" and (not control.get("anim") or '"' in "".join(str(control.get(k, "")) for k in
                                                                      ("anim", "offset", "angles"))):
             raise ValueError(f"{menu}: model {name} needs an anim, and no quotes in anim, offset or angles")
+        if control.get("ink", "dark") not in ("dark", "light"):
+            raise ValueError(f"{menu}: {name}: ink is dark or light")
         if kind == "servers" and control.get("class") not in ("LANGameClass", "FAKKServerList"):
             raise ValueError(f"{menu}: servers {name} is a LANGameClass or a FAKKServerList")
         if kind == "medal":

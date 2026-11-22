@@ -9,7 +9,8 @@
    "class": "FAKKServerList",
    "plate": [
     "MPL_P_List"
-   ]
+   ],
+   "ink": "light"
   },
   {
    "name": "status",
@@ -17,7 +18,8 @@
    "plate": [
     "MPL_P_Status"
    ],
-   "cvar": "dm_serverstatus"
+   "cvar": "dm_serverstatus",
+   "ink": "light"
   }
  ],
  "corners": [
