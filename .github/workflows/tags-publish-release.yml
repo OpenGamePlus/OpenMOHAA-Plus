@@ -89,6 +89,9 @@ jobs:
       with:
         files: ${{github.workspace}}/${{ env.RELEASE_NAME }}.zip
 
+    # Changed in OpenMOHAA Plus: zzz-plus.pk3 holds the fonts only; the Remake menu pak
+    # (zzzz-plus-remake.pk3) is built by the maintainer from renders kept outside the repository and
+    # attached to the release by hand
     - name: Release plus data
       if: ${{ matrix.target_os == 'plus-data' }}
       uses: softprops/action-gh-release@v2.3.2

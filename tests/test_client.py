@@ -946,19 +946,11 @@ def _tga(width, rows):
 
 @require_game
 @unittest.skipUnless(HAVE_PILLOW, "needs Pillow for misc/plus-pk3")
-class PlusMenu(GameTestCase):
-    """The fork's main menu (misc/plus-pk3/data/ui/main.urc), with plain background tiles: the left
-    half red with its bottom quarter green, the right half blue."""
+class MenuWidgets(GameTestCase):
+    """Opt-in menu widget features of the engine (anchor, linkcvar pulldowns, showvalue sliders, the
+    build label, the latched-cvar commands) on small test menus in a plus/ pak."""
 
-    # virtual units are 1/480 of the screen height (ui_plusscale 1)
-    BAR_FADE_END = 300                     # the bar gradient is transparent from here
-    # the main menu entries shown in a game only
-    IN_GAME_ENTRIES = ("backtogame", "savegame", "disconnect")
-    # screens of the maintainer's report (5:4) and two wide ones; the 5:4 one also at both scale ends
-    LAYOUT_SCREENS = ((1280, 1024, ("0.85", "1.1")), (1920, 1080, ("1",)), (2560, 1080, ("1",)))
-
-    # a test menu with a green panel anchored like the Plus content panel
-    # two pulldowns whose items set several cvars (Plus options' resolution and effect presets)
+    # two pulldowns whose items set several cvars (a resolution list and effect presets)
     PULLDOWN_URC = """menu "plus_pulldown_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -995,6 +987,8 @@ end.
 """
 
     # sliders with "showvalue": a percentage, a plain float, a format that is refused, and none
+
+    # sliders with "showvalue": a percentage, a plain float, a format that is refused, and none
     SLIDER_URC = """menu "plus_slider_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -1020,6 +1014,7 @@ setrange {lo} {hi}
         ("bad", 180, "r_gamma", 0.5, 3, 'showvalue "%s"'),
         ("plain", 220, "r_gamma", 0.5, 3, ""))) + "end.\n"
 
+    # a test menu with a green panel anchored to the screen edges
     ANCHOR_URC = """menu "plus_anchor_test" 640 480 NONE 0
 virtualres 1
 scalecvar ui_plusscale
@@ -1041,21 +1036,8 @@ end.
     @classmethod
     def setUpClass(cls):
         cls.plus_dir = tempfile.mkdtemp()
-        built = os.path.join(cls.plus_dir, "built.pk3")
-        subprocess.run([sys.executable, PLUS_PK3, "--out", built, "--skip-fonts"], check=True, capture_output=True)
         os.makedirs(os.path.join(cls.plus_dir, "plus"))
-        left = _tga(4, [(0, 255, 0)] * 64 + [(255, 0, 0)] * 192)
-        right = _tga(4, [(0, 0, 255)] * 256)
-        with zipfile.ZipFile(built) as src, \
-                zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
-            plain = {f"textures/menu_plus/{p}_{side}.tga": tile
-                     for p in ("bg", "opt") for side, tile in (("l", left), ("r", right))}
-            for name in src.namelist():
-                # the built art is JPEG, which the renderer would try before these plain TGAs
-                if name[:-4] + ".tga" not in plain:
-                    z.writestr(name, src.read(name))
-            for name, tile in plain.items():
-                z.writestr(name, tile)
+        with zipfile.ZipFile(os.path.join(cls.plus_dir, "plus", "zzz-plus.pk3"), "w", zipfile.ZIP_DEFLATED) as z:
             z.writestr("ui/plus_anchor_test.urc", cls.ANCHOR_URC)
             z.writestr("ui/plus_pulldown_test.urc", cls.PULLDOWN_URC)
             z.writestr("ui/plus_slider_test.urc", cls.SLIDER_URC)
@@ -1145,295 +1127,6 @@ end.
     def overlap(a, b):
         return a[0] < b[2] - 1 and b[0] < a[2] - 1 and a[1] < b[3] - 1 and b[1] < a[3] - 1
 
-    @staticmethod
-    def inside(a, b, slack=1):
-        return a[0] >= b[0] - slack and a[1] >= b[1] - slack and a[2] <= b[2] + slack and a[3] <= b[3] + slack
-
-    @staticmethod
-    def is_blue(p):
-        return p[2] > 200 and p[0] < 60 and p[1] < 60
-
-    @staticmethod
-    def is_green(p):
-        return p[1] > 200 and p[0] < 60 and p[2] < 60
-
-    @staticmethod
-    def mean_brightness(rows, x0, x1, y0, y1):
-        return statistics.mean(sum(rows[y][x]) / 3 for y in range(y0, y1) for x in range(x0, x1))
-
-    def test_main_fills_any_aspect(self):
-        # the 2.4:1 picture covers the screen, centred and undistorted: cropped at the sides when the
-        # screen is narrower, at the top and bottom when wider. Sampled below the console, which
-        # covers the top half at start-up.
-        for w, h in ((1280, 720), (2560, 1080), (1024, 768), (3840, 1080)):
-            _, _, rows = self.shot(w, h)
-            y = int(h * 0.6)
-            self.assertTrue(self.is_blue(rows[y][w - 5]), (w, h, rows[y][w - 5]))   # reaches the right edge
-            # the halves meet at the centre of the screen
-            middle = next(x for x in range(w // 2 - 50, w) if self.is_blue(rows[y][x]))
-            self.assertAlmostEqual(middle, w / 2, delta=3, msg=(w, h))
-            # the green bottom quarter of the left half starts 3/4 down a picture 1/2.4 as high as wide
-            height = max(h, w / 2.4)
-            x = w // 2 - 8
-            green = next(y for y in range(int(h * 0.55), h) if self.is_green(rows[y][x]))
-            self.assertAlmostEqual(green, (h - height) / 2 + height * 0.75, delta=height / 256 + 3, msg=(w, h))
-            ys = (int(h * 0.55), int(h * 0.65))
-            bar = self.mean_brightness(rows, 0, int(h * 0.1), *ys)
-            self.assertLess(bar, self.mean_brightness(rows, w - 20, w - 5, *ys) / 2, (w, h))
-
-    def test_bar_size_follows_height(self):
-        def fade_end(w, h):
-            _, _, rows = self.shot(w, h)
-            y = int(h * 0.6)
-            return next(x for x in range(w) if rows[y][x][0] >= 250) / h
-
-        a, b = fade_end(1280, 720), fade_end(2560, 1080)
-        self.assertAlmostEqual(a, b, delta=0.02 * a)
-        self.assertAlmostEqual(a, self.BAR_FADE_END / 480, delta=0.02 * a)
-
-    def bar_entries(self, screen):
-        """The visible buttons and the title of a screen's bar, top to bottom."""
-        entries = [(n, w) for n, w in screen["widgets"].items() if w["depth"] == 1 and w["shown"]
-                   and "text" in w and (w["class"] == "UIButton" or n == "title")]
-        return sorted(entries, key=lambda e: e[1]["rect"][1])
-
-    def assert_bar(self, screen, msg):
-        # left-aligned under the title, inside the bar, no two entries overlapping
-        entries = self.bar_entries(screen)
-        h = screen["screen"][1]
-        title = screen["widgets"]["title"]["text"]
-        for i, (name, w) in enumerate(entries):
-            self.assertAlmostEqual(w["text"][0], title[0], delta=2, msg=(msg, name))
-            self.assertLess(w["text"][2], 200 * h / 480 * 1.1 + 2, (msg, name))
-            for other, w2 in entries[i + 1:]:
-                self.assertFalse(self.overlap(w["rect"], w2["rect"]), (msg, name, other))
-        return entries
-
-    def test_main_layout(self):
-        # no game: no gap where the hidden entries are, no "New game" next to Campaign; in a game, the
-        # in-game entries show next to Quit without overlapping the others; after "disconnect" they go
-        for w, h, scales in self.LAYOUT_SCREENS:
-            home, c = self.start(w, h)
-            for scale in scales:
-                screen = self.widgets(c, "set ui_plusscale " + scale, "popmenu 0", "pushmenu main")
-                msg = (w, h, scale)
-                self.assertEqual(screen["menu"], "main", msg)
-                entries = [e for e in self.assert_bar(screen, msg) if e[0] not in ("title", "quit")]
-                titles = [e[1]["title"] for e in entries]
-                self.assertNotIn("New game", titles, msg)
-                for name in self.IN_GAME_ENTRIES:
-                    self.assertFalse(screen["widgets"][name]["shown"], (msg, name))
-                row = entries[0][1]["rect"][3] - entries[0][1]["rect"][1]
-                for (n1, e1), (n2, e2) in zip(entries, entries[1:]):
-                    self.assertLessEqual(e2["rect"][1] - e1["rect"][1], 1.5 * row, (msg, n1, n2))
-            self.assertEqual(c.quit(), 0)
-
-        w, h = 1280, 1024
-        home, c = self.start(w, h, "+set", "ui_plusscale", "1.1", "+devmap", "training")
-        c.wait_for(r"==== InitGame ====", timeout=120)
-        time.sleep(15)
-        in_game = self.widgets(c, "pushmenu main")
-        c.send("disconnect")
-        time.sleep(5)
-        no_game = self.widgets(c)
-        self.assertEqual(c.quit(), 0)
-        self.assertEqual(in_game["menu"], "main")
-        entries = self.assert_bar(in_game, "in game")
-        names = [n for n, _ in entries]
-        for name in self.IN_GAME_ENTRIES:
-            self.assertIn(name, names)
-            self.assertFalse(no_game["widgets"][name]["shown"], name)
-        # the in-game group sits right above Quit
-        self.assertEqual(names[-4:], ["backtogame", "savegame", "disconnect", "quit"])
-
-    OPTIONS_BAR = ["title", "tab_video", "tab_detail", "tab_audio", "tab_controls", "tab_game", "tab_plus",
-                   "apply", "back"]
-    # option tabs and their number of rows (one label per row)
-    OPTION_TABS = [("plus_options_video", 8), ("plus_options_detail", 10), ("plus_options_audio", 5),
-                   ("plus_options_game", 7), ("plus_options", 7)]
-
-    def urc_command(self, urc, name):
-        """The stuffcommand of the widget <name> in ui/<urc>.urc of the test pk3."""
-        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
-            text = z.read("ui/%s.urc" % urc).decode()
-        return re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1)
-
-    def assert_options_tab(self, screen, menu, rows, msg, bar=None):
-        """An option tab: the tab bar, every row inside the panel, label on the left and control to
-        its right, no text over another widget, rows evenly spaced, pulldowns clickable over the whole field."""
-        self.assertEqual(screen["menu"], menu, msg)
-        widgets = {n: v for n, v in screen["widgets"].items() if v["depth"] == 1 and v["shown"]}
-        panel = widgets["panel"]["rect"]
-        expected_bar = bar
-        bar = [n for n, _ in self.assert_bar(screen, msg)]
-        self.assertEqual(bar, expected_bar or self.OPTIONS_BAR, msg)
-        in_panel = [n for n in widgets if n.endswith((" label", " slider", " checkbox", " list"))
-                    or n.startswith("language note")]
-        labels = sorted((widgets[n]["rect"][1], n) for n in in_panel if n.endswith(" label"))
-        self.assertEqual(len(labels), rows, (msg, labels))
-        for p in screen["pulldowns"]:
-            # clickable over the whole field (value and arrow), not past it
-            field = p["rect"][2] - p["rect"][0]
-            self.assertLessEqual(p["width"], field + 1, (msg, p))
-            self.assertGreaterEqual(p["width"], field * 0.95, (msg, p))
-        for name, sl in screen["sliders"].items():
-            # the value sits right of the track, inside the slider
-            self.assertLessEqual(sl["track"][1], sl["text"][0], (msg, name, sl))
-            self.assertGreaterEqual(sl["track"][0], sl["rect"][0] - 1, (msg, name, sl))
-            self.assertLessEqual(sl["text"][1], sl["rect"][2] + 1, (msg, name, sl))
-        texts = []
-        for name in in_panel:
-            v = widgets[name]
-            self.assertTrue(self.inside(v["rect"], panel), (msg, name, v["rect"], panel))
-            if "text" in v:
-                self.assertTrue(self.inside(v["text"], panel), (msg, name, v["text"], panel))
-                self.assertTrue(self.inside(v["text"], v["rect"]), (msg, name))
-                texts.append(name)
-        # no text over another widget's text or control
-        for name in texts:
-            for other in in_panel:
-                if other != name:
-                    self.assertFalse(self.overlap(widgets[name]["text"], widgets[other]["rect"]),
-                                     (msg, name, other))
-        # rows evenly spaced, controls to the right of their label
-        steps = {round(b[0] - a[0]) for a, b in zip(labels, labels[1:])}
-        self.assertLessEqual(max(steps) - min(steps), 2, (msg, steps))
-        for top, name in labels:
-            for v in widgets.values():
-                if v is not widgets[name] and abs(v["rect"][1] - top) < 10 and \
-                        self.inside(v["rect"], panel) and v["class"] != "UIFakkLabel":
-                    self.assertGreater(v["rect"][0], widgets[name]["text"][2], (msg, name))
-        return screen
-
-    def test_options_layout(self):
-        for w, h, scales in self.LAYOUT_SCREENS:
-            _, c = self.start(w, h, "+set", "cl_language", "es")
-            for scale in scales:
-                for menu, rows in self.OPTION_TABS:
-                    # cl_renderer is latched: the pulldown shows the choice waiting for Apply
-                    screen = self.widgets(c, "set ui_plusscale " + scale, "set cl_renderer vulkan",
-                                          "pushmenu " + menu)
-                    c.send("popmenu 0")
-                    self.assert_options_tab(screen, menu, rows, (w, h, scale, menu))
-                    if menu == "plus_options":
-                        self.assertEqual([p["value"] for p in screen["pulldowns"]], ["Vulkan", "Spanish"])
-            self.assertEqual(c.quit(), 0)
-
-    def pulldown_values(self, c, menu, *commands):
-        screen = self.widgets(c, *commands, "pushmenu " + menu)
-        c.send("popmenu 0")
-        return [p["value"] for p in sorted(screen["pulldowns"], key=lambda p: p["rect"][1])]
-
-    def test_video_pulldowns_show_values(self):
-        # resolution, display mode, max FPS, texture quality, texture filter, anisotropy
-        _, c = self.start(1280, 720)
-        v = self.pulldown_values(c, "plus_options_video", "set r_mode -1;set r_customwidth 2560;set r_customheight 1080",
-                                 "set r_fullscreen 0;set r_noborder 1", "set com_maxfps 144",
-                                 "set r_ext_texture_filter_anisotropic 1;set r_ext_max_anisotropy 8")
-        self.assertEqual((v[0], v[1], v[2], v[5]), ("2560x1080", "Borderless", "144", "8x"))
-        v = self.pulldown_values(c, "plus_options_video", "set r_mode -2", "set r_fullscreen 1;set r_noborder 0",
-                                 "set r_ext_texture_filter_anisotropic 0")
-        self.assertEqual((v[0], v[1], v[5]), ("Desktop", "Fullscreen", "Off"))
-        self.assertEqual(c.quit(), 0)
-
-    def test_detail_presets_show_values(self):
-        # model detail, terrain, effects, curves, shadows: presets that set several cvars
-        _, c = self.start(1280, 720)
-        v = self.pulldown_values(c, "plus_options_detail", "set r_lodscale 0.55;set r_lodcap 0.5;set r_lodviewmodelcap 0.55",
-                                 "set cg_effectdetail 0.7;set vss_maxcount 20")
-        self.assertEqual((v[0], v[2]), ("High", "Medium"))
-        self.assertEqual(c.quit(), 0)
-
-    def test_controls_layout(self):
-        # the key list in the panel above four rows, its rows and scroll bar inside it; a Defaults
-        # entry in the bar runs the original defaults
-        self.assertEqual(self.urc_command("plus_options_controls", "defaults"), "ui_resetcvars;exec default.cfg")
-        for w, h, scales in self.LAYOUT_SCREENS:
-            _, c = self.start(w, h)
-            for scale in scales:
-                msg = (w, h, scale)
-                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_options_controls")
-                c.send("popmenu 0")
-                self.assert_options_tab(screen, "plus_options_controls", 4, msg,
-                                        bar=self.OPTIONS_BAR[:-1] + ["defaults", "back"])
-                names = list(screen["widgets"])
-                i = names.index("bindlist")
-                lst = screen["widgets"]["bindlist"]
-                self.assertTrue(self.inside(lst["rect"], screen["widgets"]["panel"]["rect"]), msg)
-                children = []
-                for name in names[i + 1:]:
-                    v = screen["widgets"][name]
-                    if v["depth"] <= lst["depth"]:
-                        break
-                    children.append((name, v))
-                self.assertTrue(children, msg)
-                for name, v in children:
-                    if v["shown"] and v["depth"] == lst["depth"] + 1:
-                        self.assertTrue(self.inside(v["rect"], lst["rect"], slack=2), (msg, name, v["rect"], lst["rect"]))
-                scroll = [v["rect"] for _, v in children if v["class"] == "UIVertScroll"]
-                self.assertEqual(len(scroll), 1, msg)
-                self.assertAlmostEqual(scroll[0][2], lst["rect"][2], delta=3, msg=(msg, scroll, lst["rect"]))
-                # the rows are below the list
-                labels = [v for n, v in screen["widgets"].items() if n.endswith(" label") and v["depth"] == 1]
-                self.assertTrue(all(v["rect"][1] >= lst["rect"][3] for v in labels), msg)
-            self.assertEqual(c.quit(), 0)
-
-    def top_menu(self, c):
-        return self.widgets(c)["menu"]
-
-    def test_options_entry_opens_video(self):
-        _, c = self.start(1280, 720)
-        c.send(self.urc_command("main", "options"))
-        time.sleep(2)
-        self.assertEqual(self.top_menu(c), "plus_options_video")
-        self.assertEqual(c.quit(), 0)
-
-    def test_tabs_do_not_stack(self):
-        # every tab entry opens its tab (as the .urc runs it), and after visiting them all Back
-        # returns to the main menu in one step
-        tabs = [("tab_video", "plus_options_video"), ("tab_detail", "plus_options_detail"),
-                ("tab_audio", "plus_options_audio"), ("tab_controls", "plus_options_controls"),
-                ("tab_game", "plus_options_game"), ("tab_plus", "plus_options")]
-        _, c = self.start(1280, 720)
-        c.send(self.urc_command("main", "options"))
-        time.sleep(2)
-        current = "plus_options_video"
-        for tab, menu in tabs[1:] + tabs[:1]:
-            c.send(self.urc_command(current, tab))
-            time.sleep(1.5)
-            self.assertEqual(self.top_menu(c), menu, (current, tab))
-            current = menu
-        c.send(self.urc_command(current, "back"))
-        time.sleep(2)
-        self.assertEqual(self.top_menu(c), "main")
-        self.assertEqual(c.quit(), 0)
-
-    def test_browser_layout(self):
-        # the scroll bar at the list's right edge, a header about as high as a row, every column
-        # title fits its column, the columns end at the scroll bar
-        for w, h, scales in self.LAYOUT_SCREENS:
-            _, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
-            for scale in scales:
-                screen = self.widgets(c, "set ui_plusscale " + scale, "pushmenu plus_browser")
-                c.send("popmenu 0")
-                msg = (w, h, scale)
-                self.assert_bar(screen, msg)
-                lst = screen["widgets"]["netgamelist"]["rect"]
-                scroll = next(v for v in screen["widgets"].values() if v["class"] == "UIVertScroll")["rect"]
-                self.assertAlmostEqual(scroll[2], lst[2], delta=3, msg=(msg, scroll, lst))
-                self.assertTrue(self.inside(scroll, lst), (msg, scroll, lst))
-                self.assertLessEqual(screen["list"]["header"], 1.6 * screen["list"]["row"], msg)
-                # rows are drawn at the list's scale, not at the HUD's (text was tiny at 1080p)
-                self.assertAlmostEqual(screen["items"], h / 480 * float(scale), delta=0.01, msg=msg)
-                columns = screen["columns"]
-                self.assertGreaterEqual(len(columns), 6, msg)
-                for col in columns:
-                    self.assertLessEqual(col["text"], col["width"], (msg, col))
-                end = columns[-1]["x"] + columns[-1]["width"]
-                self.assertLessEqual(lst[0] + end, scroll[0] + 1, msg)
-                self.assertGreater(lst[0] + end, scroll[0] - 0.02 * (lst[2] - lst[0]), msg)
-            self.assertEqual(c.quit(), 0)
-
     def test_anchor_follows_screen_edges(self):
         for w, h in ((1280, 720), (2560, 1080)):
             _, _, rows = self.shot(w, h, "pushmenu plus_anchor_test")
@@ -1446,85 +1139,11 @@ end.
             column = [y for y in range(h) if rows[y][x][1] > 200 and rows[y][x][0] < 60]
             self.assertAlmostEqual(column[-1] + 1, h - 40 * s, delta=2)
 
-    def test_browser_screen_opens(self):
-        for w, h in ((1280, 720), (2560, 1080)):
-            home, c = self.start(w, h)
-            c.send("pushmenu plus_browser")
-            time.sleep(2)
-            _, _, rows = self.screenshot(home, c)
-            log = c.log()
-            self.assertEqual(c.quit(), 0)
-            for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
-                self.assertNotIn(error, log)
-            # the content panel (a dark fill, unlike the red/blue tiles) ends 20 units from the right edge
-            y = int(h * 0.6)
-            panel = [x for x in range(w // 2, w) if rows[y][x][2] < 150]
-            self.assertAlmostEqual(panel[-1] + 1, w - 20 * h / 480, delta=3, msg=(w, h))
-
-    def test_original_screens_reachable(self):
-        # the buttons that open the original screens, run as the .urc holds them
-        cmds = []
-        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
-            for urc, name in (("plus_browser", "createserver"), ("plus_browser", "playersetup"),
-                              ("main", "warrecords")):
-                text = z.read("ui/%s.urc" % urc).decode()
-                cmds.append(re.search(r'name "%s".*?stuffcommand "([^"]*)"' % name, text, re.S).group(1))
-        _, c = self.start(1280, 720)
-        for cmd in cmds:
-            c.send(cmd)
-            time.sleep(1.5)
-        log = c.log()
-        self.assertEqual(c.quit(), 0)
-        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
-            self.assertNotIn(error, log)
-
-    def test_browser_names_without_version(self):
-        # the Plus list has a Version column, so names are shown as the server sends them; the
-        # original list keeps "(1.11) " before the name
-        home = omoh.Home()
-        self.addCleanup(home.cleanup)
-        s = omoh.server(home, "+set", "sv_hostname", "Alpha", "+map", "dm/mohdm1")
-        self.games.append(s)
-        s.wait_for(r"==== InitGame ====")
-        s.send("net_gamespy_port")
-        qport = int(re.findall(r'"net_gamespy_port" is:"(\d+)', s.wait_for(r'"net_gamespy_port" is:"\d+'))[-1])
-        home_c = omoh.Home()
-        self.addCleanup(home_c.cleanup)
-        home_c.write("serverhistory.txt", f"127.0.0.1:{s.port} {qport}\n")
-        _, c = self.start(1920, 1080, *ServerBrowser.NO_MASTERS, "+set", "dm_browser_show", "3", home=home_c)
-        lines = {}
-        for menu in ("plus_browser", "joinnetgame"):
-            c.send("pushmenu " + menu)
-            time.sleep(2)
-            mark = len(c.log())
-            c.send("widgetcommand netgamelist refreshserverlist")
-            time.sleep(6)
-            c.send("widgetcommand netgamelist printlist")
-            lines[menu] = c.wait_for(r"Server list \(\d+\):\n.*Alpha.*\n", start=mark, timeout=20)[mark:]
-            c.send("popmenu 0")
-            time.sleep(1)
-        self.assertEqual(c.quit(), 0)
-        self.assertRegex(lines["plus_browser"], r"\n  Alpha( \(recent\))? \|.*\| \d\.\d+")
-        self.assertRegex(lines["joinnetgame"], r"\n   \(\d\.\d+[^)]*\) Alpha")
-
-    def test_browser_columns_follow_width(self):
-        # a list wider than 800 virtual units also shows the IP
-        for w, h, columns in ((1280, 720, 6), (2560, 1080, 7)):
-            home, c = self.start(w, h, *ServerBrowser.NO_MASTERS)
-            c.send("pushmenu plus_browser")
-            time.sleep(2)
-            mark = len(c.log())
-            c.send("widgetcommand netgamelist printlist")
-            found = c.wait_for(r"Columns: \d+", start=mark, timeout=20)[mark:]
-            self.assertEqual(c.quit(), 0)
-            self.assertIn(f"Columns: {columns}", found, (w, h))
-
     def test_build_label_in_every_menu(self):
         # "OpenMOHAA-Plus <version> (<hash>)" bottom right in any menu, the original ones too, over
         # no widget's text
         _, c = self.start(1600, 900)
-        for commands, menu in (((), "main"), (("pushmenu plus_options_video",), "plus_options_video"),
-                               (("popmenu 0", "pushmenu options_main"), "options_main")):
+        for commands, menu in (((), "main"), (("pushmenu options_main",), "options_main")):
             screen = self.widgets(c, *commands)
             command = commands
             self.assertEqual(screen.get("menu"), menu)
@@ -1577,39 +1196,6 @@ end.
                 self.assertEqual(values[1], fx, cvars)
         self.assertEqual(c.quit(), 0)
 
-    def test_plus_options_opens(self):
-        # the pulldowns show their item from linkcvar: "reset" matches the default, an unknown value
-        # is shown as is
-        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
-            urc = z.read("ui/plus_options.urc").decode()
-        for cvar in ("cl_renderer", "cl_language"):
-            self.assertRegex(urc, r'name "%s list"[^}]*linkcvar "%s"' % (cvar, cvar))
-        _, c = self.start(1280, 720)
-        for language, expected in (("", "Game default"), ("xx", "xx")):
-            screen = self.widgets(c, "reset cl_language" if not language else "set cl_language " + language,
-                                  "pushmenu plus_options")
-            c.send("popmenu 0")
-            self.assertEqual(len(screen["pulldowns"]), 2, (screen.get("menu"), screen["pulldowns"]))
-            pulldown = screen["pulldowns"][1]
-            self.assertEqual(pulldown["value"], expected)
-            self.assertLessEqual(pulldown["width"], pulldown["rect"][2] - pulldown["rect"][0] + 1, pulldown)
-        log = c.log()
-        self.assertEqual(c.quit(), 0)
-        for error in ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu"):
-            self.assertNotIn(error, log)
-
-    def test_renderer_apply_restarts(self):
-        # run the Apply button's command string as the .urc holds it
-        with zipfile.ZipFile(os.path.join(self.plus_dir, "plus", "zzz-plus.pk3")) as z:
-            urc = z.read("ui/plus_options.urc").decode()
-        apply_cmd = re.search(r'name "apply".*?stuffcommand "([^"]*)"', urc, re.S).group(1)
-        _, c = self.start(1280, 720)
-        c.send("set r_customwidth 1000")                # latched: Apply restarts only for pending changes
-        mark = len(c.log())
-        c.send(apply_cmd)
-        c.wait_for(r"Initializing Renderer", start=mark, timeout=60)
-        self.assertEqual(c.quit(), 0)
-
     def assert_no_restart(self, c, command, seconds=5):
         mark = len(c.log())
         c.send(command)
@@ -1643,13 +1229,13 @@ end.
         # s_khz is CVAR_SOUND_LATCH (never latched by the cvar code): Apply restarts sound when it
         # changed since the options opened, Back puts the old value back
         _, c = self.start(1280, 720)
-        c.send(self.urc_command("main", "options"))
+        c.send("ui_marklatched")
         time.sleep(2)
         c.send("set s_khz 22")
         mark = len(c.log())
         c.send("ui_applylatched")
         c.wait_for(r"Sound Shutdown", start=mark, timeout=30)
-        c.send(self.urc_command("main", "options"))
+        c.send("ui_marklatched")
         time.sleep(2)
         c.send("set s_khz 11")
         c.send("ui_discardlatched")
@@ -1663,7 +1249,7 @@ end.
         # Apply restart video nor is dropped by Back
         _, c = self.start(1280, 720)
         c.send("set g_gametype 2")
-        c.send(self.urc_command("main", "options"))
+        c.send("ui_marklatched")
         time.sleep(2)
         self.assert_no_restart(c, "ui_applylatched")
         c.send("ui_discardlatched")
@@ -1698,8 +1284,8 @@ class RemakeMenu(GameTestCase):
     """The Remake menu pak (misc/plus-pk3/remake/), built from a fake Blender export of the real
     mapping files: solid pictures, hotspot i at (300 + 40 i, 100 + 30 i, 60, 40) in 1152x480."""
 
-    widgets = PlusMenu.widgets
-    WIDGET_RE = PlusMenu.WIDGET_RE
+    widgets = MenuWidgets.widgets
+    WIDGET_RE = MenuWidgets.WIDGET_RE
     MENUS = ("main", "options_main", "war_records")
     UI_ERRORS = ("UI EXCEPTION", "Failed to find resource type", "Couldn't find menu")
 

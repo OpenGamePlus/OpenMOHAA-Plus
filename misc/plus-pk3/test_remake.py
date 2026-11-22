@@ -619,7 +619,9 @@ class BuildRemake(unittest.TestCase):
             "textures/menu_plus/remake/briefingroom_arzew.jpg", "textures/menu_plus/remake/briefingroom_arzew_h.jpg",
             "textures/menu_plus/remake/briefingroom_trondheim.jpg", "textures/menu_plus/remake/briefingroom_trondheim_h.jpg",
             "ui/missionbriefingback.inc", "textures/menu_plus/remake/missionbriefingback_l.jpg",
-            "textures/menu_plus/remake/missionbriefingback_r.jpg", "ui/briefing1b.urc", "ui/mission1_briefing.urc"})
+            "textures/menu_plus/remake/missionbriefingback_r.jpg", "ui/briefing1b.urc", "ui/mission1_briefing.urc",
+            # the transparent shader of the pulldowns and buttons, and the renders' licence
+            "textures/menu_plus/clear.tga", "ART-LICENSE.md"})
 
     def test_medal_picture_is_cut_from_a_full_render(self):
         # a medal is rendered over the whole frame (a border render lit the velvet differently) and the
@@ -790,9 +792,10 @@ class BuildRemake(unittest.TestCase):
             self.assertEqual(f.read(), b"old pak")
         self.assertEqual([n for n in os.listdir(self.tmp.name) if n.startswith("keep.pk3")], ["keep.pk3"])
 
-    def test_modern_pak_unchanged(self):
-        with zipfile.ZipFile(os.path.join(self.tmp.name, "zzz-plus.pk3")) as modern:
-            self.assertFalse([n for n in modern.namelist() if "remake" in n])
+    def test_fonts_pak_has_no_menu(self):
+        # zzz-plus.pk3 holds the fonts only: without the Remake pak the game's own menus show
+        with zipfile.ZipFile(os.path.join(self.tmp.name, "zzz-plus.pk3")) as fonts:
+            self.assertFalse([n for n in fonts.namelist() if not n.startswith(("fonts/", "gfx/fonts/"))])
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ Blender export (export_hotspots.py): per exported screen a generated ui/<menu>.u
 as two 2048x2048 JPEG tiles and one power-of-two JPEG per hotspot hover: the export's render of the
 hotspot with its own lamps on (zone_lit), or for a hotspot without lamps the background under it with
 the object (its mask from the export) lit, all under
-textures/menu_plus/remake/ (read on pure servers too). The pak needs zzz-plus.pk3 (font, clear.tga).
+textures/menu_plus/remake/ (read on pure servers too). zzz-plus.pk3 brings the accented fonts; the pak itself carries clear.tga (build_pk3.py).
 """
 import glob
 import io

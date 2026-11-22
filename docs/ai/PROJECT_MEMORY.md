@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Remake is the only fork menu
+- The Plus ("Modern") menu is gone (`data/ui/`, its backgrounds, `PlusMenu` tests); `zzz-plus.pk3` holds the fonts, the Remake pak carries `clear.tga` and `ART-LICENSE.md` (renders CC BY-SA 4.0) and is attached to each release by hand. Spec `docs/superpowers/specs/2026-11-22-remake-only-menu-design.md`.
+- The fork's settings moved onto the units (`opciones_detalle_1940.blend`): video got display mode, max FPS, anisotropy, vsync where the jacks and danger plate were; advanced grew two rows for renderer, language, FOV, HUD scale, crosshair size/scale, 4:3 menus; audio got ambience. The anisotropy list links `r_ext_texture_filter_anisotropic`: linked to the max, the renderer's defaults (filter off, max 2) showed "2". Favourites/Recent plates set `dm_browser_show`; the board's Favourite plate toggles.
+- Open: the options room renders from `opciones_1940_v3.blend`, older than the close-ups; engine parts only the Plus menu used wait for a cleanup (`debt.md`). Export uses the scene camera for room mappings: leave a room `.blend` saved with its room camera active.
+
 ## 2026-11-22 — Legacy menu renamed Remake
 - The 3D rebuild of the original menus is the Remake menu: `misc/plus-pk3/remake/`, `zzzz-plus-remake.pk3`, `build_pk3.py --remake`, textures under `textures/menu_plus/remake/`, the credits menu `remake_credits`, the client tests `RemakeMenu`. Earlier stages and design specs keep the old name as history.
 - Only friends had tried it, so no migration: an old `zzzz-plus-legacy.pk3` left installed would load beside the new one and must be deleted by hand.

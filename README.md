@@ -58,7 +58,7 @@ the original assets, scripts and servers
   Wine), an AppImage for Linux and the Steam Deck
 - HRTF audio for headphones (`s_hrtf 1`)
 - an experimental [Vulkan renderer](docs/markdown/03-configuration/12-plus-vulkan.md) (`cl_renderer vulkan`, Linux and Windows builds)
-- the [Plus menu](docs/markdown/03-configuration/14-plus-menu.md): main menu, server browser and options screen that adapt to any screen shape (`plus/zzz-plus.pk3`, `fs_pluspath`, `ui_plusscale`); every menu shows the build (version and commit) in its bottom right corner
+- the [Remake menu](docs/markdown/03-configuration/14-plus-menu.md): the original menu rooms rebuilt in 3D, with the fork's settings on the option units and favourite and recent server lists (`plus/zzzz-plus-remake.pk3`, a release asset; `fs_pluspath`); every menu shows the build (version and commit) in its bottom right corner
 
 ### For servers and competitive play
 

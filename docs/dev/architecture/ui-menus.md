@@ -1,8 +1,10 @@
-# UI and the Plus menu
+# UI and the Remake menu
 
-The menus are `.urc` files read by `code/uilib` inside the client. The Plus menu is fork data in
-`plus/zzz-plus.pk3`, plus engine changes that are opt-in (a keyword or flag), so the original
-menus keep their geometry. Keywords, commands and cvars for menu authors:
+The menus are `.urc` files read by `code/uilib` inside the client. The fork's menu is the Remake
+menu, fork data in `plus/zzzz-plus-remake.pk3` (the fonts are in `plus/zzz-plus.pk3`), plus engine
+changes that are opt-in (a keyword or flag), so the original menus keep their geometry. The Plus
+("Modern") menu was dropped on 2026-11-22; the engine parts only it used (anchored server list
+columns, `replacemenu`, the `plus_options*` Esc hook, `plus_browser_refresh`) wait for a cleanup. Keywords, commands and cvars for menu authors:
 [the user page](../../markdown/03-configuration/14-plus-menu.md). Decision on the data folder:
 [ADR 0007](adr/0007-fork-data-folder.md).
 
@@ -14,10 +16,9 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 | Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`; `ui_testmouse` in `cl_input.cpp`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
 | Server list widget (columns, favourites) | `code/client/cl_uiserverlist.cpp` |
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
-| Menu files | `misc/plus-pk3/data/ui/` (`main.urc`, `plus_browser.urc`, `plus_options*.urc`) |
-| Pak build, generated textures (background tiles: `bg_*` main menu and browser, `opt_*` options, JPEG; bar and hover gradients, pulldown field, clear) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
-| Remake menu (prototype): mappings `<menu>.json`, Blender export `export_hotspots.py` (checked by hand with `check_export.py` in `blender -b`), pak build `pak.py` (generated `.urc`, tiles, hovers) | `misc/plus-pk3/remake/`; `build_pk3.py --remake <export>` writes `zzzz-plus-remake.pk3`; design `docs/superpowers/specs/2026-11-17-legacy-menu-design.md` |
-| Tests | `PlusMenu` and `RemakeMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py`, `misc/plus-pk3/test_remake.py` |
+| Pak build (fonts pak; the Remake pak with `clear.tga` and the art licence) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
+| Remake menu: mappings `<menu>.json`, Blender export `export_hotspots.py` (checked by hand with `check_export.py` in `blender -b`), pak build `pak.py` (generated `.urc`, tiles, hovers) | `misc/plus-pk3/remake/`; `build_pk3.py --remake <export>` writes `zzzz-plus-remake.pk3`; design `docs/superpowers/specs/2026-11-17-legacy-menu-design.md` |
+| Tests | `MenuWidgets` (engine widget features on test menus) and `RemakeMenu` in `tests/test_client.py`; `misc/plus-pk3/test_build_pk3.py`, `misc/plus-pk3/test_remake.py` |
 
 ## Rules
 
@@ -28,8 +29,7 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
 - Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
   the user page, "Writing menus".
 - Textures in the pak are powers of two. Paintings go in as JPEG (the renderer tries `.jpg` before `.tga`; a 2048x2048 TGA of a painting deflates to about 10 MB). Widget art meant to follow the widget's colour is
-  generated white, so `fgcolor` tints it (`field.tga`, `checkbox_on/off.tga`); the bar and hover gradients carry their
-  own colour.
+  generated white, so `fgcolor` tints it.
 - New user-visible behaviour is documented on the user page in the same commit.
 - Remake menu `.urc` files are generated: change the mapping (`misc/plus-pk3/remake/<menu>.json`) or
   the Blender scene and build again. Their widgets sit in picture units with `cover` (exact at any
