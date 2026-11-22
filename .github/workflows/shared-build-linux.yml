@@ -247,7 +247,7 @@ jobs:
         if [ -d ${{github.workspace}}/install/bin/openmohaa ]; then cp -r ${{github.workspace}}/install/bin/openmohaa/. '${{github.workspace}}/package'; fi
         if [ -d ${{github.workspace}}/install/lib ]; then cp -r ${{github.workspace}}/install/lib/openmohaa/. '${{github.workspace}}/package'; fi
 
-    # Added in OpenMOHAA Plus: data pack (menus, fonts with accented letters, menu art) in plus/ next to the binary
+    # Added in OpenMOHAA Plus: data pack (fonts with accented letters) in plus/ next to the binary; the Remake menu pak is a hand-attached release asset
     - name: Plus pk3
       working-directory: ${{github.workspace}}
       run: |

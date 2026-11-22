@@ -104,11 +104,12 @@ otherwise). The renders are under CC BY-SA 4.0 (`misc/plus-pk3/ART-LICENSE.md`, 
 
 ## Writing menus (`.urc`)
 
-Two opt-in keywords for fork menus; the original files do not use them:
+Opt-in keywords for fork menus; the original files do not use them:
 
 | Keyword | Effect |
 |---|---|
 | `anchor <left> <top> <right> <bottom>` | Margins from the screen edges, in virtual units (1/480 of the screen height, times `ui_plusscale`). `-1` keeps the value of the `rect`. |
+| `escapecommand "<command>"` | A menu keyword (before its widgets): Esc runs the command instead of closing the menu and restoring its widgets' cvars. The Remake's option screens give it their Back command, `ui_discardlatched; popmenu 0`. |
 | `cover <w> <h>` | The widget is the `rect` part of a `w` x `h` picture that covers the whole screen without distortion, centred, cropping the excess. With `rect 0 0 w h` it is the background; with a smaller `rect` (in picture units) it stays on that part of the picture at any screen shape and `ui_plusscale`. A label's text scales with the picture too, shrunk if needed to 90% of the `rect`'s width and 50% of its height. |
 
 A widget with neither `align`, `anchor` nor `cover` is placed in the menu's own frame, which on a
@@ -160,7 +161,8 @@ a restart, else `snd_restart` for a changed sound cvar and `ter_restart` (in a g
 terrain cvar, and nothing when nothing changed (`ui_checkrestart` only looks at the current menu's
 widgets). `ui_discardlatched` drops the changes since the mark that need a restart and puts the
 sound and terrain cvars back. Esc on a menu whose name starts with `plus_options` does what
-`ui_discardlatched;popmenu 0` does (the Remake's option screens have a Back corner for it).
+`ui_discardlatched;popmenu 0` does (a leftover of the dropped Plus options; new menus use
+`escapecommand`).
 
 The console command `ui_printwidgets` prints, for the menu on top, every widget with its class,
 whether it is shown, its rectangle on the screen in pixels and the rectangle of its text; for a
@@ -168,4 +170,5 @@ pulldown with `linkcvar` the value it shows and the width of what it draws (`pul
 slider with `showvalue` the value shown and where its track and value text run (`slider value`); the
 build label and its rectangle (`build label`); for a server list also the header and row heights, the scale its rows are drawn at (`items scale`) and
 each column's position, width and title width.
-The tests use it to check the layout.
+The tests use it to check the layout. `ui_testmouse <x> <y> <buttons>` and `ui_testkey <key>` (a key
+name as `bind` takes it, e.g. `escape`) stand in for the mouse and the keyboard of a headless client.

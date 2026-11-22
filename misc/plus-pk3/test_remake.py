@@ -355,6 +355,24 @@ class Screens(unittest.TestCase):
             bad = json.loads(json.dumps(mapping)); bad["controls"][0]["class"] = "Button"
             self.load(bad)
 
+    def test_option_screen_escape_runs_back(self):
+        # an option screen whose Back drops the unapplied changes gets the same command for Esc
+        from remake import pak
+        self.assertNotIn("escapecommand", pak.screen_urc(self.load(self.SCREEN), self.EXPORT))  # Back: popmenu 0
+        screen = json.loads(json.dumps(self.SCREEN))
+        back = "ui_discardlatched; popmenu 0"
+        screen["corners"][0]["command"] = back
+        urc = pak.screen_urc(self.load(screen), self.EXPORT)
+        self.assertIn(f'escapecommand "{back}"', urc.split("resource", 1)[0])  # a menu keyword, before any widget
+
+    def test_real_video_defaults_reset_every_list_cvar(self):
+        # Defaults resets each list's linked cvar only: the second cvars of display mode and
+        # anisotropy are reset by name, or Borderless then Defaults left r_noborder 1
+        screen = hotspots.load_mapping(os.path.join(HERE, "remake", "video_options.json"))
+        defaults = next(c["command"] for c in screen["corners"] if c["title"] == "Defaults")
+        self.assertIn("reset r_noborder", defaults)
+        self.assertIn("reset r_ext_max_anisotropy", defaults)
+
     def test_real_internet_rooms(self):
         # the Plus browser's lists live on the internet room's plates (added in OPM): each sets
         # dm_browser_show and refreshes the big board; the board toggles a server's favourite

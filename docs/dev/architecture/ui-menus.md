@@ -13,7 +13,7 @@ columns, `replacemenu`, the `plus_options*` Esc hook, `plus_browser_refresh`) wa
 | Part | Location |
 |---|---|
 | Widgets (labels, lists, pulldowns, bind list), layout, menu stack | `code/uilib` (`uiwidget.cpp`, `uimenu.cpp`, `uipulldownmenu*.cpp`, `uibindlist.cpp`) |
-| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`; `ui_testmouse` in `cl_input.cpp`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
+| Console commands (`replacemenu`, `ui_*latched`, `ui_printwidgets`; `ui_testmouse` in `cl_input.cpp`, `ui_testkey` in `cl_keys.cpp`), Esc hook (`UI_MenuEscape`), `ui_plusscale`, build label (`UI_DrawBuildLabel`) | `code/client/cl_ui.cpp` |
 | Server list widget (columns, favourites) | `code/client/cl_uiserverlist.cpp` |
 | `plus/` paks, pure-server exemption (`ui/`, `fonts/`, `gfx/fonts/`, `textures/menu_plus/`) | `code/qcommon/files.cpp` (`fs_pluspath`) |
 | Pak build (fonts pak; the Remake pak with `clear.tga` and the art licence) | `misc/plus-pk3/build_pk3.py`; fonts from `misc/fonts/make_fonts.py`; art licence `misc/plus-pk3/ART-LICENSE.md` |
@@ -24,7 +24,7 @@ columns, `replacemenu`, the `plus_options*` Esc hook, `plus_browser_refresh`) wa
 
 - Fork behaviour is opt-in: `anchor` sets `WF_ANCHORED` (also sizes a checkbox's box), `cover`
   sets `WF_COVER`, `scalecvar` sets `m_scaleCvar`, `linkcvar` turns on the pulldown value and its styled list,
-  `showvalue` the flat slider. The build label is the one exception that shows in every menu. Branch on those, never on menu names; the one exception
+  `showvalue` the flat slider, `escapecommand` (a menu keyword) Esc's command. The build label is the one exception that shows in every menu. Branch on those, never on menu names; the one exception
   is the Esc hook on `plus_options*` menus.
 - Units, the 2048-unit menu frame and why every placed widget needs `anchor`, `align` or `cover`:
   the user page, "Writing menus".

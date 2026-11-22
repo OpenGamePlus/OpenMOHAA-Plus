@@ -325,7 +325,7 @@
    "title": "Defaults",
    "side": "right",
    "slot": 1,
-   "command": "ui_resetcvars"
+   "command": "ui_resetcvars; reset r_noborder; reset r_ext_max_anisotropy"
   }
  ]
 }

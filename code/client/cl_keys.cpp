@@ -979,6 +979,33 @@ void Key_KeynameCompletion(void (*callback)(const char *s))
 
 /*
 ===================
+CL_TestKey_f
+
+Added in OpenMOHAA Plus: "ui_testkey <key>" presses and releases a key (a key name as bind takes
+it, e.g. escape), for the tests: a headless client has no keyboard.
+===================
+*/
+static void CL_TestKey_f(void)
+{
+    int key;
+
+    if (Cmd_Argc() != 2) {
+        Com_Printf("usage: ui_testkey <key>\n");
+        return;
+    }
+
+    key = Key_StringToKeynum(Cmd_Argv(1));
+    if (key == -1) {
+        Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+        return;
+    }
+
+    CL_KeyEvent(key, qtrue, Sys_Milliseconds());
+    CL_KeyEvent(key, qfalse, Sys_Milliseconds());
+}
+
+/*
+===================
 CL_InitKeyCommands
 ===================
 */
@@ -988,6 +1015,7 @@ void CL_InitKeyCommands(void)
 
     // register our functions
     Cmd_AddCommand("bind", Key_Bind_f);
+    Cmd_AddCommand("ui_testkey", CL_TestKey_f); // Added in OpenMOHAA Plus
     Cmd_AddCommand("unbind", Key_Unbind_f);
     Cmd_AddCommand("altbind", Key_AltBind_f);
     Cmd_AddCommand("unaltbind", Key_Unaltbind_f);

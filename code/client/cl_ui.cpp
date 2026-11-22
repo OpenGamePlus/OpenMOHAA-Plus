@@ -3142,6 +3142,15 @@ void UI_MenuEscape(const char *name)
         return;
     }
 
+    // Added in OpenMOHAA Plus: a menu with "escapecommand" runs it instead (the Remake's option
+    //  screens: what their Back button does)
+    UIWidget *escapeContainer = menuManager.CurrentMenu() ? menuManager.CurrentMenu()->GetContainerWidget() : NULL;
+    if (escapeContainer && escapeContainer->isSubclassOf(UIWidgetContainer)
+        && static_cast<UIWidgetContainer *>(escapeContainer)->m_escapeCommand.length()) {
+        Cbuf_AddText(va("%s\n", static_cast<UIWidgetContainer *>(escapeContainer)->m_escapeCommand.c_str()));
+        return;
+    }
+
     if (menuManager.CurrentMenu() && !menuManager.CurrentMenu()->m_name.icmpn("plus_options", 12)) {
         // Added in OpenMOHAA Plus: ESC on a Plus options tab does what its Back button does (drop the
         //  unapplied changes that need a restart, keep the others) instead of restoring only this

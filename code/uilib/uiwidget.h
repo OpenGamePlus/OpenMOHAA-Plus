@@ -395,6 +395,7 @@ class UIWidgetContainer : public UIWidget
 
 public:
     class UILayout *m_layout;
+    str             m_escapeCommand; // Added in OpenMOHAA Plus: "escapecommand", run by Esc instead of popmenu
 
     CLASS_PROTOTYPE(UIWidgetContainer);
 
@@ -409,6 +410,7 @@ public:
     void      SetBGFill(Event *ev);
     void      SetFullscreen(Event *ev);
     void      SetVidMode(Event *ev);
+    void      SetEscapeCommand(Event *ev); // Added in OpenMOHAA Plus
     int       getVidMode(void);
     qboolean  isFullscreen(void);
     UIWidget *GetNextWidgetInOrder(void);
@@ -464,6 +466,7 @@ extern Event EV_Layout_AliasCache;
 extern Event EV_Layout_BGFill;
 extern Event EV_Layout_Fullscreen;
 extern Event EV_Layout_VidMode;
+extern Event EV_Layout_EscapeCommand; // Added in OpenMOHAA Plus
 
 void SetColor(const UColor& color, float alpha);
 void DrawBox(const UIRect2D& rect, const UColor& color, float alpha);

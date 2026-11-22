@@ -1479,6 +1479,26 @@ class RemakeMenu(GameTestCase):
             self.assertEqual(self.top_menu(c, "main"), "main")
         self.assertEqual(c.quit(), 0)
 
+    def test_option_screen_escape_is_back(self):
+        # Esc on an option screen does what its Back corner does (escapecommand, added in OPM): the
+        # game's own Esc restored only each list's linked cvar, so Borderless then Esc left
+        # r_noborder 1 waiting for the next restart; volumes and other immediate settings stay
+        c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "s_volume", "0.5")
+        c.send("ui_marklatched; pushmenu video_options")
+        self.assertEqual(self.top_menu(c, "video_options"), "video_options")
+        c.send("set r_fullscreen 0; set r_noborder 1; set s_volume 0.3")
+        time.sleep(1)
+        c.send("ui_testkey escape")
+        self.assertEqual(self.top_menu(c, "main"), "main")
+        mark = len(c.log())
+        c.send("r_noborder")
+        c.send("r_fullscreen")
+        c.send("s_volume")
+        out = c.wait_for(r'"s_volume" is:"[^"]*"', start=mark, timeout=20)[mark:]
+        self.assertNotIn("latched", out)
+        self.assertIn('"s_volume" is:"0.3', out)
+        self.assertEqual(c.quit(), 0)
+
     def test_option_screen_check_toggles(self):
         # a click on a lamp's checkbox sets its cvar (the original screen's behaviour)
         c = self.start(1280, 720, "+set", "ui_console", "0", "+set", "r_ext_compressed_textures", "0")

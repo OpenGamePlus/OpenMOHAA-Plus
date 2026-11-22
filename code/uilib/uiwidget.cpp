@@ -486,6 +486,16 @@ Event EV_Layout_VidMode
     "Set container's vidmode to change to when it's active"
 );
 
+// Added in OpenMOHAA Plus: opt-in, the original menus do not use it
+Event EV_Layout_EscapeCommand
+(
+    "escapecommand",
+    EV_DEFAULT,
+    "s",
+    "command",
+    "Command run when Esc leaves this menu, instead of closing it and restoring its cvars"
+);
+
 CLASS_DECLARATION(USignal, UIWidget, NULL) {
     {&EV_Widget_Hide,               &UIWidget::Hide                    },
     {&EV_Widget_Activate,           &UIWidget::Activate                },
@@ -2638,6 +2648,7 @@ CLASS_DECLARATION(UIWidget, UIWidgetContainer, NULL) {
     {&EV_Layout_BGFill,     &UIWidgetContainer::SetBGFill    },
     {&EV_Layout_Fullscreen, &UIWidgetContainer::SetFullscreen},
     {&EV_Layout_VidMode,    &UIWidgetContainer::SetVidMode   },
+    {&EV_Layout_EscapeCommand, &UIWidgetContainer::SetEscapeCommand}, // Added in OpenMOHAA Plus
     {NULL,                  NULL                             }
 };
 
@@ -2722,6 +2733,12 @@ void UIWidgetContainer::SetFullscreen(Event *ev)
 void UIWidgetContainer::SetVidMode(Event *ev)
 {
     m_vidmode = ev->GetInteger(1);
+}
+
+// Added in OpenMOHAA Plus
+void UIWidgetContainer::SetEscapeCommand(Event *ev)
+{
+    m_escapeCommand = ev->GetString(1);
 }
 
 int UIWidgetContainer::getVidMode(void)

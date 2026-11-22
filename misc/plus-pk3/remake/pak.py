@@ -361,6 +361,9 @@ def screen_urc(mapping, export):
            f'menu "{menu}" 2048 480 NONE 0',
            "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1", "fullscreen 1", "virtualres 1",
            "scalecvar ui_plusscale"]
+    back = next((c["command"] for c in mapping.get("corners", []) if c["title"] == "Back"), "")
+    if "ui_discardlatched" in back:  # Esc does what Back does: the game's Esc restores only linked cvars
+        out.append(f'escapecommand "{back}"')
     if mapping.get("include"):  # a background other menus include (the briefing slides'): no menu of its own
         out = out[:6]
 
