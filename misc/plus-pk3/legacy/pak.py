@@ -368,6 +368,8 @@ def screen_urc(mapping, export):
             widget("Button", lines + [
                 'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/{hover}"',
                 'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"'])
+        elif control["kind"] == "servers":  # the game's server list, by name (langamelist, netgamelist)
+            widget(control["class"], common(name, rects["plate"]))
         elif control["kind"] == "saves":  # the game's save list, by name
             lines = common(name, rects["plate"])
             lines[2] = "fgcolor 0 0 0 1"

@@ -333,6 +333,19 @@ class Screens(unittest.TestCase):
         self.assertIn('title "Select Model"', text)
         self.assertEqual(text.count("rendermodel 1"), 2)
 
+    def test_server_list_control(self):
+        # the game's server lists, found by name: langamelist (LANGameClass), netgamelist (FAKKServerList)
+        from legacy import pak
+        mapping = {"menu": "joinnetgame", "screen": True, "camera": "C", "controls": [
+            {"name": "netgamelist", "kind": "servers", "class": "FAKKServerList", "plate": ["P"]}]}
+        export = {"menu": "joinnetgame", "picture": [854, 480], "background": "background.png",
+                  "controls": {"netgamelist": {"plate": [50, 40, 700, 300]}}}
+        text = pak.screen_urc(self.load(mapping), export)
+        self.assertIn("\nFAKKServerList\n{\nname \"netgamelist\"\nrect 50 40 700 300\n", text)
+        with self.assertRaises(ValueError):  # only the game's two list classes
+            bad = json.loads(json.dumps(mapping)); bad["controls"][0]["class"] = "Button"
+            self.load(bad)
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's

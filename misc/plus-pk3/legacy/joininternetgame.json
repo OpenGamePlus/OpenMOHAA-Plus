@@ -1,0 +1,55 @@
+{
+ "menu": "joininternetgame",
+ "screen": true,
+ "camera": "Cam_JoinInternet",
+ "controls": [
+  {
+   "name": "browse internet servers",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Browse"
+   ],
+   "lit": [
+    "MPI_P_Browse_Lit"
+   ],
+   "command": "pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "name": "plus server browser",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Plus"
+   ],
+   "lit": [
+    "MPI_P_Plus_Lit"
+   ],
+   "command": "pushmenu plus_browser"
+  },
+  {
+   "name": "connect to ip address",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Connect"
+   ],
+   "lit": [
+    "MPI_P_Connect_Lit"
+   ],
+   "command": "menuconnect ui_connectip"
+  },
+  {
+   "name": "ip address",
+   "kind": "field",
+   "plate": [
+    "MPI_P_IP"
+   ],
+   "cvar": "ui_connectip"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

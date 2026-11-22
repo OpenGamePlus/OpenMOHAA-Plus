@@ -53,7 +53,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   `field` (typed into), `text` (a cvar's text) and `model` (the engine draws a model standing in the
   picture; its rect is made square, as `CL_Draw3DModel`'s view is 30 by 30 degrees) make the player options; an action with a `lit` render has its text in the picture, as
   a title's label over the button would take the pointer (`FindResponder` picks the topmost widget);
-  `shot`, `action` and `saves` make the load/save folder (an action's `lit` objects show only in its
+  `servers` is the game's server list by name (`langamelist`, a `LANGameClass`; `netgamelist`, a
+  `FAKKServerList`); `shot`, `action` and `saves` make the load/save folder (an action's `lit` objects show only in its
   own full-frame render, cut by the pak as its hover picture, like a medal) (the game finds `LoadSaveShot` and
   `LoadSaveList` by name; its list's column titles are `facfont-20`, so the sheet must be wide). A room copied from another (war records is the main room's desk up close) lists the
   other room's lamps in `"off"`: dark in every render. Hotspot buttons go from the largest rect to the smallest, so where

@@ -130,8 +130,8 @@ def _check_corners(menu, mapping):
 
 CONTROL_PARTS = {"list": ("knob", "plate"), "check": ("lamp", "plate"), "slider": ("plate",), "binds": ("plate",),
                  "medal": ("medal",), "shot": ("plate",), "action": ("plate",), "saves": ("plate",),
-                 "field": ("plate",), "text": ("plate",), "model": ("plate",)}
-NO_CVAR = ("binds", "shot", "action", "saves")  # controls the game drives by name or by command
+                 "field": ("plate",), "text": ("plate",), "model": ("plate",), "servers": ("plate",)}
+NO_CVAR = ("binds", "shot", "action", "saves", "servers")  # controls the game drives by name or by command
 
 
 def picture(control):
@@ -178,6 +178,8 @@ def _check_screen(path, mapping):
         if kind == "model" and (not control.get("anim") or '"' in "".join(str(control.get(k, "")) for k in
                                                                      ("anim", "offset", "angles"))):
             raise ValueError(f"{menu}: model {name} needs an anim, and no quotes in anim, offset or angles")
+        if kind == "servers" and control.get("class") not in ("LANGameClass", "FAKKServerList"):
+            raise ValueError(f"{menu}: servers {name} is a LANGameClass or a FAKKServerList")
         if kind == "medal":
             for key in ("title", "desc"):
                 text = control.get(key, "")

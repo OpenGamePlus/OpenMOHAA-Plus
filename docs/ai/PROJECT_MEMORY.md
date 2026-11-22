@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-21 — Legacy player options and join screens
+- Copies of the multiplayer room with boards hung from the ceiling (`mpboard.py`): the player options (name, models, connection; the engine draws both soldiers in the room), and the join screens: LAN or internet, the server lists (`servers` control: `langamelist`, `netgamelist`), an address, the Plus browser where GameSpy was. The free-for-all model dialog frames the room's view.
+- `CL_Draw3DModel` uses a 30x30 degree view whatever the rect: narrow model rects squeezed the soldiers, so the pak makes them square. A title's label over a button takes the pointer (`FindResponder` picks the topmost widget), so lit buttons carry their text in the picture.
+- Not checked: joining a server, typing an address, the dialog in a real free-for-all game.
+
 ## 2026-11-21 — Legacy multiplayer room
 - The main room's multiplayer door opens a corridor built from a copy of the main room (`mp_build.py` rebuilds it from that file each run), framed on the original by overlaying it: map-room doorway, locker (player options, three Sketchfab jackets), red door (join), board and chest (start or change map). Hotspot and corner names stay the original's (`startnew`, `changemap`, `joinlan`, `disconnect`): the game enables them by name.
 - Zone hovers are now rendered over the whole frame and cut by the pak: a border render lit the room darker, so a hover could darken its zone. Hotspots sharing a lamp (start and change map) keep it on for both.

@@ -1,0 +1,56 @@
+{
+ "menu": "joinnetgame",
+ "screen": true,
+ "camera": "Cam_ServerList",
+ "controls": [
+  {
+   "name": "netgamelist",
+   "kind": "servers",
+   "class": "FAKKServerList",
+   "plate": [
+    "MPL_P_List"
+   ]
+  },
+  {
+   "name": "status",
+   "kind": "text",
+   "plate": [
+    "MPL_P_Status"
+   ],
+   "cvar": "dm_serverstatus"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  },
+  {
+   "title": "Refresh",
+   "widget": "refresh",
+   "side": "right",
+   "command": "widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "title": "Cancel",
+   "widget": "cancelrefresh",
+   "side": "right",
+   "command": "widgetcommand netgamelist cancelrefresh"
+  },
+  {
+   "title": "Join Game",
+   "widget": "join game",
+   "side": "right",
+   "slot": 1,
+   "command": "widgetcommand netgamelist connect"
+  },
+  {
+   "title": "Update",
+   "widget": "update server",
+   "side": "right",
+   "slot": 2,
+   "command": "widgetcommand netgamelist updateserver"
+  }
+ ]
+}
