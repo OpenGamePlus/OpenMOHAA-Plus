@@ -60,6 +60,29 @@ compatibilidad con los assets, scripts y servidores originales
 - un [renderer Vulkan](docs/markdown/03-configuration/12-plus-vulkan.md) experimental (`cl_renderer vulkan`, en los builds de Linux y Windows)
 - el [menú Remake](docs/markdown/03-configuration/14-plus-menu.md): las salas del menú original reconstruidas en 3D, con los ajustes del fork en las unidades de opciones y listas de servidores favoritos y recientes (`plus/zzzz-plus-remake.pk3`, un asset de la release; `fs_pluspath`); todos los menús muestran la compilación (versión y commit) abajo a la derecha
 
+### El menú Remake
+
+Los menús originales reconstruidos en Blender, sala por sala, conservando su ambiente: cada ajuste
+del fork está en las unidades de opciones, la pizarra de servidores lleva todos los filtros del
+navegador, los mensajes del juego llegan como telegramas y la pantalla de carga de cada misión es
+una mesa con una carta que escribe el juego, en inglés o traducida (`cl_language es`).
+
+<table>
+  <tr>
+    <td><img src="docs/assets/images/remake/main.jpg" alt="Sala principal del Remake"></td>
+    <td><img src="docs/assets/images/remake/video_options.jpg" alt="Unidad de opciones de vídeo"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/images/remake/server_board.jpg" alt="Pizarra de servidores con filtros"></td>
+    <td><img src="docs/assets/images/remake/telegram.jpg" alt="Un mensaje en un telegrama"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/images/remake/loading_m1l1.jpg" alt="Pantalla de carga de la primera misión"></td>
+    <td><img src="docs/assets/images/remake/loading_m3l1a.jpg" alt="Pantalla de carga de Omaha, la orden del día de Eisenhower"></td>
+  </tr>
+</table>
+<p align="center"><sub>Capturas del menú Remake (renders CC BY-SA 4.0, ver misc/plus-pk3/ART-LICENSE.md).</sub></p>
+
 ### Para servidores y juego competitivo
 
 - servidores a 40 Hz (`sv_fps 40`) con la cadencia de disparo original de 20 Hz, y tiempos por

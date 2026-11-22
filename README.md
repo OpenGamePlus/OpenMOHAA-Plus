@@ -60,6 +60,29 @@ the original assets, scripts and servers
 - an experimental [Vulkan renderer](docs/markdown/03-configuration/12-plus-vulkan.md) (`cl_renderer vulkan`, Linux and Windows builds)
 - the [Remake menu](docs/markdown/03-configuration/14-plus-menu.md): the original menu rooms rebuilt in 3D, with the fork's settings on the option units and favourite and recent server lists (`plus/zzzz-plus-remake.pk3`, a release asset; `fs_pluspath`); every menu shows the build (version and commit) in its bottom right corner
 
+### The Remake menu
+
+The original menus rebuilt in Blender, room by room, keeping their atmosphere: every fork setting
+sits on the option units, the server board carries every browser filter, the game's messages arrive
+as telegrams, and each mission's loading screen is a desk with a letter the game types, in English
+or translated (`cl_language es`).
+
+<table>
+  <tr>
+    <td><img src="docs/assets/images/remake/main.jpg" alt="Remake main room"></td>
+    <td><img src="docs/assets/images/remake/video_options.jpg" alt="Video options unit"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/images/remake/server_board.jpg" alt="Server board with filters"></td>
+    <td><img src="docs/assets/images/remake/telegram.jpg" alt="A message on a telegram"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/images/remake/loading_m1l1.jpg" alt="First mission's loading screen"></td>
+    <td><img src="docs/assets/images/remake/loading_m3l1a.jpg" alt="Omaha loading screen, Eisenhower's order of the day"></td>
+  </tr>
+</table>
+<p align="center"><sub>Screenshots of the Remake menu (renders CC BY-SA 4.0, see misc/plus-pk3/ART-LICENSE.md).</sub></p>
+
 ### For servers and competitive play
 
 - 40 Hz servers (`sv_fps 40`) with the original 20 Hz fire rates, and `sv_perf` frame timings
