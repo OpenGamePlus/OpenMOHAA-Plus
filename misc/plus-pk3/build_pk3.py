@@ -71,11 +71,14 @@ def _write_legacy_zip(out, build_legacy, make_fonts, export_root, mapping_dir):
             z.writestr(name, data)
         # the sign font ships here too: it is not in the game, and without it next to an older or
         # --skip-fonts zzz-plus.pk3 the menu stops with "Couldn't load font"
-        font = "plussign-32"
-        text, tga, _ = make_fonts.build(font, 32, os.path.join(make_fonts.DEJAVU, make_fonts.DEFAULT_SET[font]),
-                                        make_fonts.FONT_SCALES[font])
-        z.writestr(f"fonts/{font}.RitualFont", text.encode("ascii"))
-        z.writestr(f"gfx/fonts/{font}.tga", tga)
+        chalk = os.path.join(HERE, "..", "fonts", "ofl", "cabinsketch")
+        for font, ttf in (("plussign-32", os.path.join(make_fonts.DEJAVU, make_fonts.DEFAULT_SET["plussign-32"])),
+                          ("pluschalk-32", os.path.join(chalk, "CabinSketch-Bold.ttf"))):   # the credits board's chalk
+            text, tga, _ = make_fonts.build(font, 32, ttf, 3)
+            z.writestr(f"fonts/{font}.RitualFont", text.encode("ascii"))
+            z.writestr(f"gfx/fonts/{font}.tga", tga)
+        with open(os.path.join(chalk, "OFL.txt"), "rb") as f:   # the OFL goes with the font made from it
+            z.writestr("fonts/pluschalk-32-OFL.txt", f.read())
 
 
 def bar_alpha(x):

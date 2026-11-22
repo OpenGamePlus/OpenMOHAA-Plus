@@ -43,7 +43,8 @@ menus keep their geometry. Keywords, commands and cvars for menu authors:
   (`UI_MultiplayerMenuWidgetsUpdate`). `dm_ffamodelselect.urc` (the free-for-all model dialog) is the original's on a backdrop the pak
   composes from `selectmodel/frame.png` in the export and the multiplayer room's render.
   `legacy_credits.urc` (model credits) is generated from
-  `legacy/credits/models.json` (ten fit the board; more is a build error). Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
+  `legacy/credits/models.json` (ten fit the board; more is a build error), written in chalk (`pluschalk-32`,
+  made from Cabin Sketch, OFL, in `misc/fonts/ofl/`) on the chalkboard's picture when its export exists (a screen with `"credits": true` and a `slate_plate`). Option screens (`"screen": true` mappings, `export_screen`, `screen_urc`) are
   close-ups whose controls sit on the units: a list is a transparent pulldown over the knob and one
   over the plate (which shows the value; when every item sets the list's cvar to a value of its
   own, a label maps that value as the original did, so the item's other cvars need not match), a check lights its lamp (`lamp_on`), a slider sits on its

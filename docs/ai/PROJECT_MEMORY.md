@@ -3,6 +3,11 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Legacy credits chalkboard
+- The model credits are written in chalk on the main room's chalkboard up close (ComfyUI slate, wooden frame and chalk tray), with the CC BY licence's link; the chalk font `pluschalk-32` is made from Cabin Sketch (OFL, in `misc/fonts/ofl/`, its licence shipped beside it; "Cabin Sketch" is a reserved name).
+- The client tests build the pak from the fake export, whose default plate was too small for a board: the build stopped with "do not fit". The pak fixture now has the chalkboard. A label draws its text at about half its rect's height, so the board's rects overlap.
+- The lit planks of every board now glow in the wood's own colours (a flat colour turned them pink); the main, options and war records rooms were re-exported with full-frame hovers.
+
 ## 2026-11-21 — Legacy briefing room
 - New Game and Briefing open a room built from the main room: a wall map from Norway to Algeria drawn from Natural Earth (public domain; the ComfyUI maps invented the geography), the missions as names with stars at their real places (`mission` control: shown when `g_mXl1` is set, red under the pointer, named on the sign), Basic Training, a difficulty board, the slides over the darkened room (`missionbriefingback.inc` from an `"include"` screen).
 - The game stretches a 640x480 menu to the screen: the 61 slide menus are generated from `legacy/briefing/slides.json` with the slide in picture units. The export hides and measures mesh objects only: text objects stayed in every render until converted.

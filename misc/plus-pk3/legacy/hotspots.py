@@ -150,8 +150,9 @@ def pictures(control):
 def _check_screen(path, mapping):
     """An option screen: a close-up whose controls (list, check, slider) sit on Blender objects."""
     for key in ("menu", "camera", "controls"):
-        if not mapping.get(key) and not (key == "controls" and mapping.get("include") and mapping.get(key) == []):
-            raise ValueError(f"{path}: missing {key}")   # an include may be just its background
+        if not mapping.get(key) and not (key == "controls" and (mapping.get("include") or mapping.get("credits"))
+                                         and mapping.get(key) == []):
+            raise ValueError(f"{path}: missing {key}")   # an include or the credits board may be just a background
     menu, names = mapping["menu"], set()
     for control in mapping["controls"]:
         name, kind = control.get("name", ""), control.get("kind")

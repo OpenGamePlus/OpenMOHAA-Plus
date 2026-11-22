@@ -407,6 +407,23 @@ class Screens(unittest.TestCase):
         self.assertIn('stuffcommand "spmap m1l1"', first)
         self.assertIn('title "Skip Briefing"', first)
 
+    def test_credits_on_the_chalkboard(self):
+        # with the board's export: its picture behind, the credits in chalk on the slate, in picture units
+        from legacy import pak
+        models = [{"title": f"Model {i}", "author": "a", "url": f"https://example.org/{i}", "license": "CC0 1.0"}
+                  for i in range(10)]
+        export = {"menu": "legacy_credits", "picture": [854, 480], "background": "background.png", "controls": {},
+                  "plates": {"slate": [140, 40, 574, 380]}}
+        text = pak.credits_urc({"license_url": "https://example.org/by", "models": models}, export)
+        self.assertIn('shader "textures/menu_plus/legacy/legacy_credits_l"', text)
+        title, last = self.block(text, "title"), self.block(text, "source 9")
+        for block in (title, last):
+            self.assertIn("\ncover 854 480\n", block + "\n")
+            self.assertIn("\nfont pluschalk-32\n", block + "\n")
+        x, y, w, h = (int(v) for v in re.search(r"\nrect (\d+) (\d+) (\d+) (\d+)", last).groups())
+        self.assertTrue(140 <= x and x + w <= 714 and 40 <= y and y + h <= 420, (x, y, w, h))   # on the slate
+        self.assertIn('stuffcommand "popmenu 0"', text)
+
     def test_real_medal_case(self):
         case = hotspots.load_mapping(os.path.join(HERE, "legacy", "medals.json"))
         self.assertEqual({c["cvar"] for c in case["controls"]},  # the original's
@@ -528,6 +545,8 @@ class BuildLegacy(unittest.TestCase):
         write_json(mappings, "video_options.json", Screens.SCREEN)
         write_json(mappings, "medals.json", Screens.MEDALS)
         write_json(mappings, "briefingroom.json", Screens.BRIEFING)
+        write_json(mappings, "legacy_credits.json", {"menu": "legacy_credits", "screen": True, "credits": True,
+                                                      "camera": "C", "slate_plate": ["S"], "controls": []})
         os.makedirs(os.path.join(mappings, "briefing"))
         write_json(os.path.join(mappings, "briefing"), "slides.json", {"slides": {"briefing1b": "sabotage"},
                                                                        "skip": {"mission1_briefing": ["briefing1a", "spmap m1l1"]}})
@@ -568,6 +587,9 @@ class BuildLegacy(unittest.TestCase):
             "ui/main.urc", "textures/menu_plus/legacy/main_l.jpg", "textures/menu_plus/legacy/main_r.jpg",
             "textures/menu_plus/legacy/main_a_b_h.jpg", "textures/menu_plus/legacy/main_c_h.jpg",
             "fonts/plussign-32.RitualFont", "gfx/fonts/plussign-32.tga", "ui/legacy_credits.urc",
+            # the credits board's chalk font (Cabin Sketch, OFL: its licence goes with it)
+            "fonts/pluschalk-32.RitualFont", "gfx/fonts/pluschalk-32.tga", "fonts/pluschalk-32-OFL.txt",
+            "textures/menu_plus/legacy/legacy_credits_l.jpg", "textures/menu_plus/legacy/legacy_credits_r.jpg",
             "textures/menu_plus/legacy/button.jpg", "textures/menu_plus/legacy/button_h.jpg",
             "ui/video_options.urc", "textures/menu_plus/legacy/video_options_l.jpg",
             "textures/menu_plus/legacy/video_options_r.jpg", "textures/menu_plus/legacy/lamp_on.tga",

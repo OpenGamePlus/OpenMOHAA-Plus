@@ -1,0 +1,10 @@
+{
+ "menu": "legacy_credits",
+ "screen": true,
+ "credits": true,
+ "camera": "Cam_Credits",
+ "slate_plate": [
+  "CR_Slate"
+ ],
+ "controls": []
+}
