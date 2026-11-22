@@ -524,6 +524,12 @@ void R_LoadFontShader(fontheader_sgl_t* font)
     r_sequencenumber = -1;
     Com_sprintf(filename, sizeof(filename), "gfx/fonts/%s", font->name);
     font->shader = R_FindShader(filename, -1, qfalse, qfalse, qfalse, qfalse);
+    // Added in OpenMOHAA Plus: a font without a .shader script (a fork font; scripts/ is not read
+    //  from fork paks on pure servers) gets the 2D GUI shader instead of a lit world shader,
+    //  which crashed the renderer when text was drawn
+    if (font->shader && !((shader_t*)font->shader)->explicitlyDefined) {
+        font->shader = R_FindShader(filename, LIGHTMAP_2D, qfalse, qfalse, qfalse, qfalse);
+    }
     r_sequencenumber = save;
 
     if (!font->shader) {

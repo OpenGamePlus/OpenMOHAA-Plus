@@ -11,7 +11,7 @@ Last updated: 2026-11-15. Live snapshot; update when the facts below change.
 | User docs site | GitHub Pages from `.github/workflows/doxygen-publish.yml` (source "GitHub Actions", on push to `main`) |
 | Upstream base | `a2f34019` (docs: clarify contribution guidelines) |
 | Fork-only files | `AGENTS.md`, `LICENSE` (AGPL-3.0), `README.es.md`, `docs/banner.svg`, `docs/dev/`, `docs/ai/`, `tests/`, `misc/docs-check/`, `misc/scr-tools/`, `misc/vscode-mohaa/`, `misc/mods/`, `misc/fonts/`, `misc/plus-pk3/`, `misc/i18n/`, `misc/linux/`, `code/renderervk/`, `cmake/renderer_vulkan.cmake`, `code/fgame/g_antilag.*`, `docs/markdown/**/*plus-*.md`, `docs/superpowers/specs/`, `.github/workflows/docs-check.yml`, `.github/workflows/upstream-sync.yml` |
-| Upstream files modified (merge conflict risk) | `LAYOUT.md` (pointer), `.gitignore`, `README.md`, `docs/markdown/04-coding/02-coding.md`, `.github/workflows/{branches-build,shared-build-linux,tags-publish-release}.yml`, the files touched by the fixes below |
+| Upstream files modified (merge conflict risk) | `LAYOUT.md` (pointer), `.gitignore`, `README.md`, `docs/markdown/04-coding/02-coding.md`, `.github/workflows/{branches-build,shared-build-linux,tags-publish-release}.yml`, `cmake/version.cmake`, the files touched by the fixes below |
 
 ## Build outputs
 
@@ -38,7 +38,7 @@ Details: [overview.md](../dev/architecture/overview.md).
 | CI | Executable bits restored before release zips | #923 |
 | Diagnostics | `com_freezeWatch` freeze watchdog (`code/sys/sys_watchdog.cpp`), crash reports to `crash.log`, fixed Unix backtrace | (phase 0) |
 | Profiling | `sv_perf` server frame timings, `Sys_Microseconds` | (phase 1) |
-| Identity | Version `0.83.0-plus.1`; update checker reads the fork's releases (`-plus.N` tags) | (phase 0) |
+| Identity | Version `0.83.0-plus.1`; update checker reads the fork's releases (`-plus.N` tags); every menu shows the build (version and commit); the embedded git hash follows HEAD (`cmake/version.cmake` reconfigures when it moves) | (phase 0) |
 | Client audio | Sound callback reads the right entity slot (ASan out-of-bounds read) | (phase 1) |
 | Script VM | Unsigned hash arithmetic (UBSan) | (phase 1) |
 | Build | `HAS_LIBCURL` defined again, so libcurl loads (update checker, libmoh, downloads) | (phase 2) |
@@ -52,8 +52,8 @@ Details: [overview.md](../dev/architecture/overview.md).
 | Filesystem | GOG lookup uses MOHAA's ID (was Quake 3), Steam/Microsoft Store lookups off, `fs_eapath` (EA folder, also in Wine), clear error when the game data is missing | (phase 4) |
 | Server browser | Master lookups in the background (`code/gamespy/gs_resolve.cpp`), next master on DNS failure, unused master sockets start as `INVALID_SOCKET` | #376 |
 | Server browser | Favorites and history (`code/client/cl_serverbook.cpp`), queried directly on refresh; `dm_browser_show`, `dm_browser_search`, `dm_max_ping`, game type / pure / sprint filters; servers publish `net_gamespy_port` | (phase 4) |
-| Plus menu | `plus/zzz-plus.pk3` (`misc/plus-pk3/`): adaptive main menu, server browser and six option tabs (Video, Detail, Audio, Controls, Game, Plus); engine side: `fs_pluspath` data folder (above base, below `fs_game`, pure exemption for UI/fonts only, ADR 0007), `.urc` `anchor` and `cover`, server list `togglefavorite`/`selectitem`, `linkcvar` pulldowns matching every `set` (drawn as a bordered field, list stays open on click), `replacemenu`, `ui_applylatched`/`ui_discardlatched`, scaled `FakkBindList`; `ui_plusscale`; `ui_printwidgets` (layout geometry for tests) | (phase 4) |
-| Fonts | `misc/fonts/make_fonts.py`: DejaVu-based RitualFont replacements with Latin-1, 2x textures, original widths; `plus/zzz-plus.pk3` built in CI by `misc/plus-pk3/build_pk3.py` (data tree, fonts, menu art) | (phase 4) |
+| Remake menu | `plus/zzzz-plus-remake.pk3` (`misc/plus-pk3/remake/`, a release asset built from renders outside the repo): the original rooms in 3D, the fork's settings on the option units, favourite/recent server plates, the server board with every browser filter and add/remove favourite plates; `plus/zzz-plus.pk3` holds the fonts. The Plus ("Modern") menu was dropped on 2026-11-22. Engine side: `fs_pluspath` data folder (above base, below `fs_game`, pure exemption for UI/fonts only, ADR 0007), `.urc` `anchor` and `cover`, server list `togglefavorite`/`addfavorite`/`removefavorite`/`restartrefresh`/`selectitem`, `linkcvar` pulldowns matching every `set` (drawn as a bordered field, list stays open on click; fork lists yellow on green in the pulldown's font), sliders showing their value (`showvalue`), tick checkboxes, `replacemenu`, `ui_applylatched`/`ui_discardlatched`, scaled `FakkBindList`; `ui_plusscale`; `ui_printwidgets` (layout geometry for tests) | (phase 4) |
+| Fonts | `misc/fonts/make_fonts.py`: DejaVu-based RitualFont replacements with Latin-1, 2x textures, original widths, plus the `plussign-32` serif for Legacy signs (3x); `plus/zzz-plus.pk3` built in CI by `misc/plus-pk3/build_pk3.py` (data tree, fonts, menu art) | (phase 4) |
 | Localization | `cl_language` overlay (`lang/<code>/`), UTF-8 to Latin-1, `localize` command, labels localized, missing Latin-1 glyphs drawn as base letters (`code/renderercommon/tr_fontfold.h`), sorted localization files | (phase 4) |
 | Packaging | Linux AppImage (x86_64, aarch64) built in CI, `misc/linux/AppRun` picks the game folder | #890 |
 | Competition mod | `misc/mods/plus-match` (scripts only): rounds, halftime side swap, draw, team timeouts | (phase 3) |

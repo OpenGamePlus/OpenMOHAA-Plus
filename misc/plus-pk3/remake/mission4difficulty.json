@@ -1,0 +1,51 @@
+{
+ "menu": "mission4difficulty",
+ "screen": true,
+ "camera": "Cam_Briefing",
+ "controls": [
+  {
+   "name": "easy",
+   "kind": "action",
+   "plate": [
+    "BRD_P_Easy"
+   ],
+   "lit": [
+    "BRD_P_Easy_Lit"
+   ],
+   "command": "difficultyeasy; spmap briefing/briefing4"
+  },
+  {
+   "name": "medium",
+   "kind": "action",
+   "plate": [
+    "BRD_P_Medium"
+   ],
+   "lit": [
+    "BRD_P_Medium_Lit"
+   ],
+   "command": "difficultymedium; spmap briefing/briefing4"
+  },
+  {
+   "name": "hard",
+   "kind": "action",
+   "plate": [
+    "BRD_P_Hard"
+   ],
+   "lit": [
+    "BRD_P_Hard_Lit"
+   ],
+   "command": "difficultyhard; spmap briefing/briefing4"
+  },
+  {
+   "name": "cancel",
+   "kind": "action",
+   "plate": [
+    "BRD_P_Cancel"
+   ],
+   "lit": [
+    "BRD_P_Cancel_Lit"
+   ],
+   "command": "popmenu 0"
+  }
+ ]
+}

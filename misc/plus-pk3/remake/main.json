@@ -1,0 +1,139 @@
+{
+ "menu": "main",
+ "sign_cvar": "ui_signshader",
+ "highlight": {
+  "gain": 1.2,
+  "color": [
+   255,
+   214,
+   150
+  ]
+ },
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board_Frame",
+    "Board_Felt"
+   ]
+  },
+  {
+   "name": "new game",
+   "objects": [
+    "Map_Europe"
+   ],
+   "command": "set ui_briefingsign briefing;pushmenu briefingroom",
+   "sign": "newgame_sign",
+   "text": "New Game",
+   "lights": [
+    "Map_Spot",
+    "Pend_Metal_Map",
+    "Board_Accent"
+   ]
+  },
+  {
+   "name": "briefing",
+   "objects": [
+    "DoorB_root",
+    "DoorL_*"
+   ],
+   "command": "set ui_briefingsign briefing;pushmenu briefingroom",
+   "sign": "briefingroom_sign",
+   "text": "Briefing",
+   "lights": [
+    "BackRoom_Light",
+    "Pend_A_Light",
+    "Pend_Metal_A",
+    "Hover_Briefing"
+   ],
+   "glow": "frame"
+  },
+  {
+   "name": "multiplayer",
+   "objects": [
+    "DoorR_root"
+   ],
+   "command": "pushmenu multiplayer",
+   "sign": "multiplayer_sign",
+   "text": "Multiplayer",
+   "lights": [
+    "SideRoom_Light",
+    "Wall_Lamp_R0*",
+    "Wall_Lamp_R1*",
+    "Hover_Multiplayer"
+   ]
+  },
+  {
+   "name": "options",
+   "objects": [
+    "Options_Root"
+   ],
+   "command": "pushmenu options_main",
+   "sign": "options_sign",
+   "text": "Options",
+   "lights": [
+    "Wall_Lamp_L",
+    "Wall_Lamp_L_Light",
+    "SideLamp_Light",
+    "Unit_Speaker_l0.34-0.12"
+   ]
+  },
+  {
+   "name": "records",
+   "objects": [
+    "WarRecords_Root"
+   ],
+   "command": "pushmenu war_records",
+   "sign": "warrecords_sign",
+   "text": "War Records",
+   "lights": [
+    "Lamp_L_*",
+    "Lamp_R_*",
+    "Lamp_F_*",
+    "Pend_Green_*",
+    "Hover_Records"
+   ]
+  },
+  {
+   "name": "credits",
+   "objects": [
+    "Projector_Deco"
+   ],
+   "command": "spmap credits",
+   "sign": "credits_sign",
+   "text": "Credits",
+   "lights": [
+    "Bench_Soft",
+    "Lamp_Mid_Light",
+    "DeskLamp_Light",
+    "Hover_Credits"
+   ]
+  },
+  {
+   "name": "model credits",
+   "objects": [
+    "Chalkboard"
+   ],
+   "command": "pushmenu remake_credits",
+   "sign": "modelcredits_sign",
+   "text": "Model Credits",
+   "lights": [
+    "Hover_Board"
+   ],
+   "glow": "frame"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back to game",
+   "side": "left",
+   "command": "popmenu 0;popmenu 0;popmenu 0;popmenu 0"
+  },
+  {
+   "title": "Quit",
+   "side": "right",
+   "command": "quit"
+  }
+ ]
+}

@@ -30,6 +30,10 @@ translations are made and shared by the community.
 4. Check the file: `python3 misc/i18n/loc_tool.py check <file> --game-dir <GAME_DIR>` reports
    progress, broken `&&&`, unknown texts and characters the game cannot show.
 
+The Remake pak brings its own texts' translations (`lang/es/remake_loading.txt`, the typed letter
+of the first mission's loading screen); they load beside yours, as every `.txt` in `lang/<code>/`
+is read. A text the game reads from a localization file is cut at 255 characters.
+
 ## Characters
 
 The game uses single-byte text (Latin-1 / Windows-1252) and its fonts only contain English letters.

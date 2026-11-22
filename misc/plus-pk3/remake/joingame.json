@@ -1,0 +1,40 @@
+{
+ "menu": "joingame",
+ "screen": true,
+ "camera": "Cam_JoinGame",
+ "controls": [
+  {
+   "name": "join lan game",
+   "kind": "action",
+   "plate": [
+    "MPJ_P_LAN"
+   ],
+   "lit": [
+    "MPJ_P_LAN_Lit"
+   ],
+   "command": "pushmenu joinlangame;wait 100;localservers"
+  },
+  {
+   "name": "join internet game",
+   "kind": "action",
+   "plate": [
+    "MPJ_P_Internet"
+   ],
+   "lit": [
+    "MPJ_P_Internet_Lit"
+   ],
+   "command": "pushmenu joininternetgame"
+  },
+  {
+   "name": "cancel",
+   "kind": "action",
+   "plate": [
+    "MPJ_P_Cancel"
+   ],
+   "lit": [
+    "MPJ_P_Cancel_Lit"
+   ],
+   "command": "popmenu 0"
+  }
+ ]
+}

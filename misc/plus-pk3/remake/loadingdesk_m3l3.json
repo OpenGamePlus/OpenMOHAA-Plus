@@ -1,0 +1,60 @@
+{
+ "menu": "loadingdesk_m3l3",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM3L3",
+ "controls": [],
+ "heading_plate": [
+  "M3L3_Heading"
+ ],
+ "body_plate": [
+  "M3L3_Body"
+ ],
+ "sign_plate": [
+  "M3L3_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m3l3",
+    "menu": "m3l3",
+    "heading": {
+     "en": "The Nebelwerfer Hunt - Normandy, France\nJune 7, 1944",
+     "es": "La caza del Nebelwerfer - Normandía, Francia\n7 de junio de 1944"
+    },
+    "body": [
+     {
+      "en": "Good job on those 88s. The photograph shows your next quarry: the Nebelwerfer 41, a six-barrelled rocket launcher. In batteries they saturate a target with rockets.",
+      "es": "Buen trabajo con esos 88. La fotografía muestra su próxima presa: el Nebelwerfer 41, un lanzacohetes de seis tubos. Agrupados en baterías, saturan un objetivo con cohetes."
+     },
+     "\n\n",
+     {
+      "en": "One battery guards the approach to Carentan, and they could move it south, out of reach, at any time. Taking it now will save a great many lives on the road to Saint-Lô.",
+      "es": "Una batería defiende el acceso a Carentan, y podrían llevarla al sur, fuera de alcance, en cualquier momento. Tomarla ahora salvará muchas vidas en el camino a Saint-Lô."
+     },
+     "\n\n",
+     {
+      "en": "The only way in is through a small town. A large church on its edge tells you that you are close. The launchers stand in a field ringed by MG42 nests. Thin the crews out with the sniper rifle before you move in,",
+      "es": "El único acceso es por un pueblo pequeño. Una gran iglesia en las afueras le dirá que está cerca. Los lanzacohetes están en un campo rodeado de nidos de MG42. Diezme a los sirvientes con el fusil de francotirador antes de entrar,"
+     },
+     {
+      "en": "then set charges on the Nebelwerfers and get clear.",
+      "es": "y luego coloque cargas en los Nebelwerfer y póngase a cubierto."
+     },
+     "\n\n",
+     {
+      "en": "It will be hard, but I know you can do it. Good luck, Lieutenant.",
+      "es": "Será difícil, pero sé que puede hacerlo. Buena suerte, teniente."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

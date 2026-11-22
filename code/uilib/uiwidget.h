@@ -186,6 +186,7 @@ protected:
     float    m_coverSize[2];
     UIRect2D m_coverRect;
     bool     m_coverRectSet;
+    vec2_t   m_coverTextScale; // the picture's scale: text drawn under "cover" follows the picture
 
 public:
     CLASS_PROTOTYPE(UIWidget);
@@ -380,6 +381,8 @@ public:
     bool          isVirtual() const;
     const vec2_t& getVirtualScale() const;
     const vec2_t& getHighResScale() const;
+    // Added in OpenMOHAA Plus: the scale this text is drawn at (under "cover": the picture's, fitted)
+    void getTextScale(const char *text, vec2_t out) const;
 };
 
 class UIWidgetContainer : public UIWidget
@@ -392,6 +395,7 @@ class UIWidgetContainer : public UIWidget
 
 public:
     class UILayout *m_layout;
+    str             m_escapeCommand; // Added in OpenMOHAA Plus: "escapecommand", run by Esc instead of popmenu
 
     CLASS_PROTOTYPE(UIWidgetContainer);
 
@@ -406,6 +410,7 @@ public:
     void      SetBGFill(Event *ev);
     void      SetFullscreen(Event *ev);
     void      SetVidMode(Event *ev);
+    void      SetEscapeCommand(Event *ev); // Added in OpenMOHAA Plus
     int       getVidMode(void);
     qboolean  isFullscreen(void);
     UIWidget *GetNextWidgetInOrder(void);
@@ -461,6 +466,7 @@ extern Event EV_Layout_AliasCache;
 extern Event EV_Layout_BGFill;
 extern Event EV_Layout_Fullscreen;
 extern Event EV_Layout_VidMode;
+extern Event EV_Layout_EscapeCommand; // Added in OpenMOHAA Plus
 
 void SetColor(const UColor& color, float alpha);
 void DrawBox(const UIRect2D& rect, const UColor& color, float alpha);

@@ -1,0 +1,145 @@
+{
+ "menu": "mpoptions",
+ "screen": true,
+ "camera": "Cam_MPOptions",
+ "controls": [
+  {
+   "name": "player name",
+   "kind": "field",
+   "plate": [
+    "MPO_P_Name"
+   ],
+   "cvar": "ui_name",
+   "ink": "light"
+  },
+  {
+   "name": "allies player model",
+   "kind": "action",
+   "plate": [
+    "MPO_P_AlliesBtn"
+   ],
+   "command": "playermodel 0",
+   "lit": [
+    "MPO_P_AlliesBtn_Lit"
+   ]
+  },
+  {
+   "name": "axis player model",
+   "kind": "action",
+   "plate": [
+    "MPO_P_AxisBtn"
+   ],
+   "command": "playermodel 1",
+   "lit": [
+    "MPO_P_AxisBtn_Lit"
+   ]
+  },
+  {
+   "name": "allies model name",
+   "kind": "text",
+   "plate": [
+    "MPO_P_AlliesModel"
+   ],
+   "cvar": "ui_dm_playermodel",
+   "ink": "light"
+  },
+  {
+   "name": "axis model name",
+   "kind": "text",
+   "plate": [
+    "MPO_P_AxisModel"
+   ],
+   "cvar": "ui_dm_playergermanmodel",
+   "ink": "light"
+  },
+  {
+   "name": "net connection",
+   "kind": "list",
+   "knob": [
+    "MPO_K_Net"
+   ],
+   "plate": [
+    "MPO_P_Net"
+   ],
+   "cvar": "rate",
+   "items": [
+    [
+     "28.8k modem",
+     "set rate 2500"
+    ],
+    [
+     "33.6k modem",
+     "set rate 3000"
+    ],
+    [
+     "56k modem",
+     "set rate 4000"
+    ],
+    [
+     "ISDN",
+     "set rate 5000"
+    ],
+    [
+     "Cable",
+     "set rate 20000"
+    ],
+    [
+     "xDSL",
+     "set rate 25000"
+    ],
+    [
+     "LAN",
+     "set rate 30000"
+    ]
+   ],
+   "ink": "light"
+  },
+  {
+   "name": "force models",
+   "kind": "check",
+   "lamp": [
+    "MPO_L_Force"
+   ],
+   "plate": [
+    "MPO_P_Force"
+   ],
+   "cvar": "cg_forceModel"
+  },
+  {
+   "name": "allies model",
+   "kind": "model",
+   "plate": [
+    "MPO_Stand_Allies"
+   ],
+   "cvar": "ui_disp_playermodel",
+   "anim": "americanselectionidle",
+   "offset": "60 8 0",
+   "angles": "10 180 0",
+   "scale": 1.0
+  },
+  {
+   "name": "axis model",
+   "kind": "model",
+   "plate": [
+    "MPO_Stand_Axis"
+   ],
+   "cvar": "ui_disp_playergermanmodel",
+   "anim": "germanselectionidle",
+   "offset": "60 -8 0",
+   "angles": "10 180 0",
+   "scale": 1.0
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  },
+  {
+   "title": "Apply",
+   "side": "right",
+   "command": "ui_applyplayermodel;ui_checkrestart;popmenu 0"
+  }
+ ]
+}

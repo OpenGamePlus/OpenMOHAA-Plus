@@ -471,6 +471,31 @@ void CL_JoystickEvent( int axis, int value, int time ) {
 	cl.joystickAxis[axis] = value;
 }
 
+// Added in OpenMOHAA Plus: set by ui_testmouse, the pointer stays where the test put it
+static qboolean cl_testMouse;
+
+/*
+=================
+CL_TestMouse_f
+
+Added in OpenMOHAA Plus: "ui_testmouse <x> <y> <buttons>" puts the menu pointer at x y (pixels)
+with the given buttons held (1 = left), for the tests: a headless client has no mouse. From then
+on the window's mouse position is ignored; the window manager sees the change on the next frame
+like a real move or click.
+=================
+*/
+static void CL_TestMouse_f(void) {
+	if (Cmd_Argc() != 4) {
+		Com_Printf("usage: ui_testmouse <x> <y> <buttons>\n");
+		return;
+	}
+
+	cl_testMouse    = qtrue;
+	cl.mousex       = atoi(Cmd_Argv(1));
+	cl.mousey       = atoi(Cmd_Argv(2));
+	cl.mouseButtons = atoi(Cmd_Argv(3));
+}
+
 /*
 =================
 CL_UpdateMouse
@@ -482,6 +507,10 @@ when the UI catcher is active.
 */
 void CL_UpdateMouse() {
     if (!(Key_GetCatcher() & KEYCATCH_UI)) {
+        return;
+    }
+
+    if (cl_testMouse) {
         return;
     }
 
@@ -1133,6 +1162,7 @@ CL_InitInput
 */
 void CL_InitInput( void ) {
 	Cmd_AddCommand("centerview", IN_CenterView);
+	Cmd_AddCommand("ui_testmouse", CL_TestMouse_f); // Added in OpenMOHAA Plus
 
 	Cmd_AddCommand("+moveup", IN_UpDown);
 	Cmd_AddCommand("-moveup", IN_UpUp);
@@ -1220,6 +1250,7 @@ CL_ShutdownInput
 void CL_ShutdownInput(void)
 {
 	Cmd_RemoveCommand("centerview");
+	Cmd_RemoveCommand("ui_testmouse"); // Added in OpenMOHAA Plus
 
 	Cmd_RemoveCommand("+moveup");
 	Cmd_RemoveCommand("-moveup");

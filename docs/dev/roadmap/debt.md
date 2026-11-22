@@ -92,11 +92,15 @@ C/CXX flags and `-fsanitize=address,undefined` in linker flags, in a scratch dir
 | Client hang on shutdown | Not reproducible | 2026-11-11: `quit` after a kick (3 runs) exits in 0.2 s with 0; SIGTERM exits in 0.1 s with 1 (headless, glibc) |
 | `Item::SetDMMaxAmount` sets the amount | Kept | Reimplemented from the original game; changing it alters DM ammo amounts, and the original `gamex86.dll` was not compared |
 | `G_SetTime` compares `level.svsStartTime != svsTime` | Kept | Only rewrites `CS_LEVEL_START_TIME` more often than needed; no visible symptom, and it sits on the #916 stopwatch path |
-| Windows `.msi` installers | Not shipping the plus pk3 | The `.msi` (`deploy_installer_windows`) does not carry `plus/zzz-plus.pk3` yet; users copy it from the release by hand (the `.zip` does carry it) |
-| Plus menu: macOS | `plus/` folder next to the app unchecked | `fs_pluspath` defaults to the binary folder; the macOS bundle path was not tried on a real Mac |
-| Plus menu: entries | Hover and click of entries not tested | Tests open the screens and drive cvars/commands; no pointer events were simulated |
-| Plus menu: install | `plus/` not found from symlinks | `Sys_BinaryPath` does not resolve symlinks, so `cmake --install` and launcher symlinks need `fs_pluspath` |
-| Plus menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
+| Windows `.msi` installers | Not shipping the plus paks | The `.msi` (`deploy_installer_windows`) does not carry `plus/zzz-plus.pk3` yet; users copy it and the Remake pak from the release by hand (the `.zip` carries the fonts pak) |
+| Plus paks: macOS | `plus/` folder next to the app unchecked | `fs_pluspath` defaults to the binary folder; the macOS bundle path was not tried on a real Mac |
+| Plus paks: install | `plus/` not found from symlinks | `Sys_BinaryPath` does not resolve symlinks, so `cmake --install` and launcher symlinks need `fs_pluspath` |
+| Remake menu: renders | Not in the repo | The Blender renders (CC BY-SA 4.0) stay outside the repository; the maintainer builds `zzzz-plus-remake.pk3` locally and attaches it to each release, CI cannot build it |
+| Remake menu: options room | Older than its close-ups | The room is rendered from `opciones_1940_v3.blend`, which predates the units' lamps, blank plates and the 2026-11-22 controls (video unit without the danger plate, taller advanced panel); the close-ups come from `opciones_detalle_1940.blend` |
+| Remake menu: cgame settings | Shown as 0 or blank before a map | Field of view, crosshair size and scale, and some advanced lists read cgame cvars that exist only once a game has loaded (also so in the dropped Plus options) |
+| Engine: Plus menu leftovers | Kept until a cleanup | Anchored server list columns, `replacemenu`, the `plus_options*` Esc hook and `plus_browser_refresh` were used only by the dropped Plus menu |
+| Remake menu: text | Render text is English only | LOAD/SAVE trays and the options radio labels are painted; the signs are engine text and translate |
+| Remake menu: Spanish | Language option needs files the fork does not ship | `cl_language es` needs `lang/es/` translation files (see `07-plus-translations.md`) |
 
 ## Not attempted (needs data or hardware not available)
 

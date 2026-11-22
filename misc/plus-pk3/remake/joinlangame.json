@@ -1,0 +1,45 @@
+{
+ "menu": "joinlangame",
+ "screen": true,
+ "camera": "Cam_ServerList",
+ "controls": [
+  {
+   "name": "langamelist",
+   "kind": "servers",
+   "class": "LANGameClass",
+   "plate": [
+    "MPL_P_List"
+   ],
+   "ink": "light"
+  },
+  {
+   "name": "status",
+   "kind": "text",
+   "plate": [
+    "MPL_P_Status"
+   ],
+   "cvar": "cl_langamerefreshstatus",
+   "ink": "light"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  },
+  {
+   "title": "Refresh",
+   "widget": "refresh",
+   "side": "right",
+   "command": "localservers"
+  },
+  {
+   "title": "Join Game",
+   "widget": "join game",
+   "side": "right",
+   "slot": 1,
+   "command": "widgetcommand langamelist joingame"
+  }
+ ]
+}

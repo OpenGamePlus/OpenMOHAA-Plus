@@ -1,0 +1,55 @@
+{
+ "menu": "loadingdesk_m1l2b",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM1L2B",
+ "controls": [],
+ "heading_plate": [
+  "M1L2B_Heading"
+ ],
+ "body_plate": [
+  "M1L2B_Body"
+ ],
+ "sign_plate": [
+  "M1L2B_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m1l2b",
+    "menu": "m1l2b",
+    "heading": {
+     "en": "Sabotage the Motorpool - Algeria, North Africa\nNovember 7, 1942",
+     "es": "Sabotaje en el parque móvil - Argelia, norte de África\n7 de noviembre de 1942"
+    },
+    "body": [
+     {
+      "en": "Good work. The Germans never got their hands on our secrets, and you found a way out. Knocking out the 88s over Arzew harbour keeps Operation Torch on schedule.",
+      "es": "Buen trabajo. Los alemanes no se hicieron con nuestros secretos y usted encontró una salida. Eliminar los 88 sobre el puerto de Arzew mantiene la Operación Antorcha en plazo."
+     },
+     {
+      "en": "Major Grillo is on his way to one of our hidden supply points to find transport for you both.",
+      "es": "El mayor Grillo va de camino a uno de nuestros depósitos ocultos para conseguirles transporte."
+     },
+     "\n\n",
+     {
+      "en": "Until then you have two jobs. Stop the Germans from following you, and cripple their transport in the port. Cut the wires on every Opel truck you find, and put any Panzer or Tiger out of action with a radio bomb.",
+      "es": "Mientras tanto tiene dos tareas. Impida que los alemanes lo sigan y deje inutilizado su transporte en el puerto. Corte los cables de cada camión Opel que encuentre y deje fuera de combate cualquier Panzer o Tiger con una bomba de radio."
+     },
+     "\n\n",
+     {
+      "en": "Blow up the ammunition dumps, then meet Grillo once you are clear of the motorpool. Pick your fights. They are hunting you, and they outnumber you.",
+      "es": "Vuele los depósitos de munición y reúnase con Grillo al salir del parque. Elija sus combates. Lo están buscando y lo superan en número."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

@@ -391,13 +391,13 @@ str UIPulldownMenuContainer::getValueTitle(void) const
 //  widget's font; the container itself draws nothing, as before
 void UIPulldownMenuContainer::Draw(void)
 {
-    m_menu->setValue(getValueTitle(), m_font);
+    m_menu->setValue(getValueTitle(), m_font, (m_flags & WF_COVER) != 0);
 }
 
 // Added in OpenMOHAA Plus: "ui_printwidgets"; the value is set first so the pulldown (a child)
 //  prints what the next frame draws
 void UIPulldownMenuContainer::PrintGeometry(int depth)
 {
-    m_menu->setValue(getValueTitle(), m_font);
+    m_menu->setValue(getValueTitle(), m_font, (m_flags & WF_COVER) != 0);
     UIWidget::PrintGeometry(depth);
 }

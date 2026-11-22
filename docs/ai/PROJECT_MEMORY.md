@@ -3,6 +3,106 @@
 Append-only operational memory. Newest first, at most 3 bullets per stage, never rewrite history.
 Template: [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md#memory-entry-template).
 
+## 2026-11-22 — Every mission's loading desk
+- The 21 mission screens are typed letters on top-down collages (`07_carga/mision.py` builds each zone from `misiones.py`, zones 2 m apart: at 0.8 m each desk's key light lit its neighbour); objects and photos from ComfyUI on chroma green, maps from Natural Earth (`herramientas/mapa_region.py`, specs in `herramientas/mapas/`): Klein invents coastlines. Letters are ours (paired English/Spanish sentences, grouped under 255 bytes); Eisenhower's order of the day is a US government work (public domain), its Spanish ours.
+- The cut-out letter desk (`loadingdesk_letter`, `tcMod` crops of the player's briefing textures) is gone with its code: nothing used it.
+
+## 2026-11-22 — Typed, translatable loading letter (m1l1 test)
+- `m1l1` is a top-down collage in the spirit of the original (own ComfyUI cut-outs on chroma green, OSS letterhead as Blender text) with our own letter, typed by the engine: `Label` `wordwrap <height>` (fixed type size, more lines for longer text) and `addtext` pieces (each translated alone); English in the `.urc`, Spanish in `lang/es/remake_loading.txt` generated from `loadingdesk_m1l1.json`.
+- Limits found: a `.urc` token is 511 characters and a localization text 255 (the TIKI reader cuts silently), so the body goes in sentence pieces; `ui_printwidgets` now prints a line break as `\n`. Idea left for later: a script that reads the letters from the player's own textures and writes their translation file locally (never shipped).
+
+## 2026-11-22 — Remake loading screens
+- The 34 loading screens are three top-down desks (`07_carga/carga_1940.blend`): a mission's letter is cut from the player's own briefing textures by a shader of ours (`clampMap` + `tcMod transform`, rects measured by hand; the auto-detection failed on photos lying over the letters), a map's picture is its original shader, so the pak ships no game art and letters follow the player's language pak. Spec `docs/superpowers/specs/2026-11-22-remake-loading-screens-design.md`.
+- Checked with a real load of `m1l2a`: bar during the load, Continue at the end, the click starts the mission. The credits board is full (10 models): new scenes use own props or already credited models.
+
+## 2026-11-22 — Remake telegram message screens
+- The nine original message menus (connecting, serverfull, servertimeout, wrongversion, errormessage...) shared one picture, the sepia box art; the Remake draws them all on one include background, a telegram on the options desk (`05_mensajes/telegrama_1940.blend`, copied from the options close-up scene), from `telegram.json`'s `dialogs` (`dialog_urc`). Spec `docs/superpowers/specs/2026-11-22-telegram-messages-design.md`.
+- A label fits its text into half its rect: a plate sized to the slip made one line huge, so lines are 26 units tall, centred on the plate.
+
+## 2026-11-22 — Remake server board filters
+- The server board (`serverlist_1940.blend`) is wider and the camera closer (list taller, a filter column right of it): search field, max ping / min / max players lists, lamps for game types, empty, full, sprint, pure; each change runs `restartrefresh` (halts the query, refreshes once idle: `ServerListHalt` is asynchronous and `wait N` counts milliseconds already spent in the frame, so `cancelrefresh;wait 5;refreshserverlist` refreshed nothing). Separate ADD / REMOVE FAVOURITE plates (`addfavorite`/`removefavorite`). Spec `docs/superpowers/specs/2026-11-22-server-board-filters-design.md`.
+- A list placed with `cover` uses the placed column layout (the original's big header overlapped); every fork pulldown list (value shown, or Remake with `cover`) is yellow on green in its own font; the knob no longer opens a list (no click picture). The board's pendant lamp hung in front of it once the camera moved: raised 0.45.
+- The 1.11 servers (most of the real list) send no `gametype_i`, `sprinton` or `pure`, and the master ignores the player filters: type comes from the gametype text, empty/full/players are checked on each answer (`test_filters_on_original_servers` with fake 1.11 responders). Checked against the real master; 4:3 screens crop the board's frame edges only.
+
+## 2026-11-22 — Remake is the only fork menu
+- The Plus ("Modern") menu is gone (`data/ui/`, its backgrounds, `PlusMenu` tests); `zzz-plus.pk3` holds the fonts, the Remake pak carries `clear.tga` and `ART-LICENSE.md` (renders CC BY-SA 4.0) and is attached to each release by hand. Spec `docs/superpowers/specs/2026-11-22-remake-only-menu-design.md`.
+- The fork's settings moved onto the units (`opciones_detalle_1940.blend`): video got display mode, max FPS, anisotropy, vsync where the jacks and danger plate were; advanced grew two rows for renderer, language, FOV, HUD scale, crosshair size/scale, 4:3 menus; audio got ambience. The anisotropy list links `r_ext_texture_filter_anisotropic`: linked to the max, the renderer's defaults (filter off, max 2) showed "2". Favourites/Recent plates set `dm_browser_show`; the board's Favourite plate toggles.
+- Open: the options room renders from `opciones_1940_v3.blend`, older than the close-ups; engine parts only the Plus menu used wait for a cleanup (`debt.md`). Export uses the scene camera for room mappings: leave a room `.blend` saved with its room camera active.
+
+## 2026-11-22 — Legacy menu renamed Remake
+- The 3D rebuild of the original menus is the Remake menu: `misc/plus-pk3/remake/`, `zzzz-plus-remake.pk3`, `build_pk3.py --remake`, textures under `textures/menu_plus/remake/`, the credits menu `remake_credits`, the client tests `RemakeMenu`. Earlier stages and design specs keep the old name as history.
+- Only friends had tried it, so no migration: an old `zzzz-plus-legacy.pk3` left installed would load beside the new one and must be deleted by hand.
+
+## 2026-11-22 — Legacy credits chalkboard
+- The model credits are written in chalk on the main room's chalkboard up close (ComfyUI slate, wooden frame and chalk tray), with the CC BY licence's link; the chalk font `pluschalk-32` is made from Cabin Sketch (OFL, in `misc/fonts/ofl/`, its licence shipped beside it; "Cabin Sketch" is a reserved name).
+- The client tests build the pak from the fake export, whose default plate was too small for a board: the build stopped with "do not fit". The pak fixture now has the chalkboard. A label draws its text at about half its rect's height, so the board's rects overlap.
+- The lit planks of every board now glow in the wood's own colours (a flat colour turned them pink); the main, options and war records rooms were re-exported with full-frame hovers.
+
+## 2026-11-21 — Legacy briefing room
+- New Game and Briefing open a room built from the main room: a wall map from Norway to Algeria drawn from Natural Earth (public domain; the ComfyUI maps invented the geography), the missions as names with stars at their real places (`mission` control: shown when `g_mXl1` is set, red under the pointer, named on the sign), Basic Training, a difficulty board, the slides over the darkened room (`missionbriefingback.inc` from an `"include"` screen).
+- The game stretches a 640x480 menu to the screen: the 61 slide menus are generated from `legacy/briefing/slides.json` with the slide in picture units. The export hides and measures mesh objects only: text objects stayed in every render until converted.
+- Not checked: clicking missions and difficulties, a briefing inside the game, Skip Briefing, training.
+
+## 2026-11-21 — Legacy start-game screens
+- The room's start board seen close up (the original's serverback), a mahogany board on the right wall: the game type chooser and the four setups (map, inactivity, limits, team damage, rotation, server name, dedicated, internet listing), with the original's commands (`ui_startdmmap`, `dmmapselect`). "Use GameSpy" became "List On Internet": `ui_gamespy` sets `sv_gamespy`, the master server heartbeat.
+- The multiplayer boards took the original's reddish lacquered wood (Poly Haven `rosewood_veneer1`, CC0): planks with light titles, green felt where the engine writes (`"ink": "light"`).
+- Not checked: Select Map, Start Game, typing in the fields; round and objective setups seen only through the team one.
+
+## 2026-11-21 — Legacy player options and join screens
+- Copies of the multiplayer room with boards hung from the ceiling (`mpboard.py`): the player options (name, models, connection; the engine draws both soldiers in the room), and the join screens: LAN or internet, the server lists (`servers` control: `langamelist`, `netgamelist`), an address, the Plus browser where GameSpy was. The free-for-all model dialog frames the room's view.
+- `CL_Draw3DModel` uses a 30x30 degree view whatever the rect: narrow model rects squeezed the soldiers, so the pak makes them square. A title's label over a button takes the pointer (`FindResponder` picks the topmost widget), so lit buttons carry their text in the picture.
+- Not checked: joining a server, typing an address, the dialog in a real free-for-all game.
+
+## 2026-11-21 — Legacy multiplayer room
+- The main room's multiplayer door opens a corridor built from a copy of the main room (`mp_build.py` rebuilds it from that file each run), framed on the original by overlaying it: map-room doorway, locker (player options, three Sketchfab jackets), red door (join), board and chest (start or change map). Hotspot and corner names stay the original's (`startnew`, `changemap`, `joinlan`, `disconnect`): the game enables them by name.
+- Zone hovers are now rendered over the whole frame and cut by the pak: a border render lit the room darker, so a hover could darken its zone. Hotspots sharing a lamp (start and change map) keep it on for both.
+- Credits: a Polish name broke cp1252 (now transliterated, tested on the real file) and ten models overflowed the board under Back (spacing fits it, eleven is a build error).
+
+## 2026-11-21 — Legacy war records, medal case, load/save folder
+- War records is the main room's desk up close (`off` lists the room's zone lamps); its box opens the medal case and its trays a load/save folder, both close-ups built from copies of that scene.
+- Medal case: the original's nine medals, modelled, ComfyUI reliefs; each shows when earned and names itself on the case's strips. Folder: built in 3D (ComfyUI paper textures, DejaVu stamps), seen straight down so the game's save list (`LoadSaveList`, fixed `facfont-20` column titles) is not distorted.
+- A control's own render (medal, a stamp's `lit` look) is the whole frame, cut by the pak: a border render lit the velvet differently. A button tints its hover picture with `fgcolor`; textless buttons use white (the glow came out brown). A first folder from a 4:3 picture cut every paper at the frame and was rebuilt in 3D. Not checked: load, save and delete with real saves.
+
+## 2026-11-21 — Legacy option screens (video, audio, advanced, controls)
+- The options room's units open close-ups (`opciones_detalle_1940.blend`, one camera each) with the original screens' controls on them: `"screen"` mappings, `export_screen`, `screen_urc`; a list is a transparent pulldown over knob and plate, a check lights a lamp (`lamp_on`), a slider sits on a plate, `binds` puts the key list on a card. Plates went blank with their titles painted under them.
+- Engine: a widget under `cover` now places its children in it (a pulldown's value is a child: it sat at the screen's origin, clipped away) and a covering checkbox's box fills its rect. A list whose items each give the cvar its own value shows it with a label, as the original did (multi-cvar items rarely all match).
+- Apply is `popmenu 0; wait; wait; ui_applylatched`: with ui_checkrestart the renderer restart brought the screen back on the maintainer's Windows (not reproducible headless). Open: Windows check of Apply; cgame cvars (wall decals, view model) are blank until a game loaded, as in the original.
+
+## 2026-11-21 — Legacy menu: model credits, green buttons, exact picture units
+- A 16:9 render (2560x1440) is 853.33 picture units: rounded, the background tiles and hovers sat ~1.5 px apart. `picture_size` now refuses a width that is not whole (the room renders 2562x1440, 854 units) and the pak splits the background on the urc's unit. A broken export used to leave an empty pak over the working one: `write_legacy` now writes a temp file.
+- The chalkboard opens `legacy_credits` (from `legacy/credits/models.json`: 7 Sketchfab models, all CC BY 4.0, title, author, source, licence); credits moved to the projector like the original; `"glow": "frame"` keeps a door's or a board's hover inside its outline.
+- Green corner plates (`green_plate`) took no hover or click at `ui_plusscale` 0.85: the scaled menu frame ended above them and `FindResponder` skipped children outside it; screen-placed children (anchor, cover) are now checked, proven with a new `ui_testmouse` (headless clients have no mouse; the floating console takes the pointer unless `ui_console 0`). Hovers fade from the object inside an 8% padded rect (no straight cuts); build label at 0.65 size. Scene v4: sign one beam closer, larger, parallel to the image; fan on the room side.
+
+## 2026-11-20 — Legacy menu: dark room, lamps per hotspot, 4:3 framing
+- The main room is dim and cool like the original (teal fill, maintainer's pick against a screenshot): a hotspot's `lights` (lamps, lit shades) are off in the background, and its hover is its rect rendered with only its own lamps on, faded in (`zone_lit`); lamp meshes lose their emission through per-object material copies. A stale export without lit renders is refused.
+- Hovers drew up to 1.5 px up and left of the background: `Set2DWindow` takes whole pixels and cut fractional `cover` frames. `ApplyCover` now puts the edges on whole pixels; `ui_printwidgets` prints two decimals so a test sees it.
+- Framing: camera 1.4 m back, 2.5° turned (`principal_1940_v3.blend`), every hotspot in x 284..867 of 1152 (4:3 and 5:4); `Hover_<zone>` spots light the doors and film box. Open: the room reads far away, options and war records rooms still lit the old way.
+
+## 2026-11-18 — Legacy menu: engine-drawn signs
+- The signs were the original 128x32 `*_sign` images stretched over the rendered boards. Now the sign label maps each sign value to the mapping's text with `linkstring`, in a new `plussign-32` serif font (DejaVu Serif Bold, 3x: 4x would be a 16 MB atlas). Linked texts now go through the localization, and text under `cover` scales with the picture, shrunk to 90% x 50% of its widget (the real main board cut "Multiplayer").
+- The new font crashed the GL renderers: game fonts have a `.shader` script, and without one `R_FindShader` built a lit world shader. A script would not fix pure servers (`scripts/` is not exempt), so scriptless fonts get the 2D shader.
+- Leftover headless clients from timed-out throwaway scripts ran for hours at ~380% CPU each and slowed the suite. Throwaway scripts must kill the client in `finally`. Open: Windows hand check of the signs.
+
+## 2026-11-17 — Legacy menu prototype (Blender rooms)
+- The maintainer's Blender rooms (main, options, war records) as a separate `zzzz-plus-legacy.pk3` that works like the original menus; every other screen is the game's own. No engine change: `cover <w> <h>` already places any widget in picture units, exact at every shape and `ui_plusscale` (the war records draft's frame placement was a needless shortcut).
+- Hover: rendering each crop with raised emission washed the map out and took ~8 min a crop; a Workbench object mask (<1 s, occlusion kept) plus a 2D light in the pak build (gain 1.2, maintainer's pick) matches the background exactly. Background exports run in `blender -b` from the saved `.blend`, about 40 s a room, so the maintainer's open session is never touched.
+- `.gitignore`'s `build*` silently kept `legacy/build_legacy.py` out of a commit (now `legacy/pak.py`). Open: renders not committed (licence), options desk outside 4:3, Windows hover/click check by the maintainer.
+
+## 2026-11-15 — Menu backgrounds per screen
+- Maintainer's ComfyUI art (3840x1600, 2.4:1 like the old one): an operations room for the main menu and browser, a radio desk for the options (`opt_l`/`opt_r`).
+- The tiles moved from TGA to JPEG: as TGA the two paintings made the pak 40 MB; as JPEG it is about 5 MB, smaller than before. The client tests swap in plain TGAs, so they drop the built JPEGs (the renderer would load those first).
+- Open: more screens (campaign, load/save, war records, player setup) are not ported yet; each new background costs about 1.5 MB.
+
+## 2026-11-15 — Plus pulldown lists match the field
+- The open list still used the original popup: `verdana-12` scaled up (blurry) on a fixed green box. A `linkcvar` pulldown's list now takes the container's font and scale, the field's width, a dark box, a gold border and padded rows.
+- The lit row is a translucent accent with a bar, not dark text on gold: the Plus `facfont-20` has a baked dark outline that smears on a light fill.
+- Not covered by tests: the headless client cannot open a list; checked with a temporary hook and screenshots.
+
+## 2026-11-15 — Plus checkbox, slider and build label
+- Maintainer picked from mockups: tick checkbox (generated textures, no code but a box sized to the rect for anchored ones; the original draws 14 units whatever the rect), sliders with their value (`showvalue`, flat style drawn in code; textures alone could not drop the arrows) and a build label in every menu, original and in-game ones too.
+- The embedded git hash only changed on a manual reconfigure (the build said `4db67c7a` three days and many commits later); `cmake/version.cmake` now lists HEAD, the branch ref and packed-refs as configure dependencies. A `git archive` build has no hash and the label shows the version only.
+- The `showvalue` format comes from a menu file, so it is checked (one float conversion) before it reaches `snprintf`.
+
 ## 2026-11-15 — Docs audit
 - Structure, ADRs and memory were sound; the drift was in what recent work never wrote down. New `docs/dev/architecture/ui-menus.md` gathers the UI code map, the opt-in rule and the pitfalls that were only in memory stages.
 - Also added: doc-sync rows (menus, pk3 art, banner), where specs and plans live, and the MSVC strictness note in `compiling.md`. A fresh review caught three overstatements (`cover` flag, white textures, ART-LICENSE scope), fixed before merge.

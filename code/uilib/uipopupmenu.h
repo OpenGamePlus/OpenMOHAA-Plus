@@ -100,6 +100,10 @@ protected:
     bool                           m_autodismiss;
     UColor                         m_highlightFGColor;
     UColor                         m_highlightBGColor;
+    // Added in OpenMOHAA Plus: list of a fork pulldown, set by UIPulldownMenu before Create: its
+    //  font, a border and padded rows in the original's colours
+    str                            m_plusFont;
+    UColor                         m_plusAccent;
 
 public:
     CLASS_PROTOTYPE(UIPopupMenu);
@@ -126,6 +130,7 @@ public:
     );
     void              YouAreASubmenu(UIPopupMenu *me);
     void              Draw(void) override;
+    void              DrawPlus(void); // Added in OpenMOHAA Plus
     void              MouseReleased(Event *ev);
     void              MouseMoved(Event *ev);
     void              MouseExited(Event *ev);

@@ -1,0 +1,836 @@
+# Copyright (C) 2026 the OpenMOHAA Plus contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Builds the Remake menu pak files from the mapping files (misc/plus-pk3/remake/<menu>.json) and a
+Blender export (export_hotspots.py): per exported screen a generated ui/<menu>.urc, its background
+as two 2048x2048 JPEG tiles and one power-of-two JPEG per hotspot hover: the export's render of the
+hotspot with its own lamps on (zone_lit), or for a hotspot without lamps the background under it with
+the object (its mask from the export) lit, all under
+textures/menu_plus/remake/ (read on pure servers too). zzz-plus.pk3 brings the accented fonts; the pak itself carries clear.tga (build_pk3.py).
+"""
+import glob
+import io
+import json
+import math
+import os
+import random
+import sys
+
+from PIL import Image, ImageDraw, ImageChops, ImageEnhance, ImageFilter
+
+from . import hotspots
+
+LANCZOS = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
+TEXTURES = "textures/menu_plus/remake"
+
+
+def _pow2(n):
+    """The power of two nearest to n, from 16 to 2048."""
+    best = 16
+    for p in (2 ** e for e in range(4, 12)):
+        if abs(p - n) < abs(best - n):
+            best = p
+    return best
+
+
+def _jpeg(img):
+    out = io.BytesIO()
+    img.convert("RGB").save(out, "JPEG", quality=90)
+    return out.getvalue()
+
+
+def lit(background, mask, gain=1.2, color=(255, 214, 150)):
+    """The background with the masked object lit: brighter by gain, tinted 10% towards color, with a
+    soft rim of that colour around it (the look the maintainer picked on 2026-11-17)."""
+    mask = mask.convert("L").resize(background.size, LANCZOS)
+    tint = Image.new("RGB", background.size, tuple(color))
+    bright = Image.blend(ImageEnhance.Brightness(background).enhance(gain), tint, 0.10)
+    out = Image.composite(bright, background, mask.filter(ImageFilter.GaussianBlur(1.5)))
+    rim = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(9)), mask).filter(ImageFilter.GaussianBlur(4))
+    return Image.composite(tint, out, rim.point(lambda v: v // 2))
+
+
+def _fill_rows(mask):
+    """The mask with each row filled between its first and last lit pixel: a door frame's silhouette
+    with the opening it encloses."""
+    w, h = mask.size
+    px = mask.point(lambda v: 255 if v > 127 else 0).load()
+    out = Image.new("L", mask.size, 0)
+    for y in range(h):
+        row = [x for x in range(w) if px[x, y]]
+        if row:
+            out.paste(255, (row[0], y, row[-1] + 1, y + 1))
+    return out
+
+
+def zone_lit(background, lit_render, mask, frame=False):
+    """The hotspot's own render with its lamps on, over the background (lamps off): the object
+    fully lit, its lamp light falling off with the distance to it and gone before the tile's edge,
+    so the hover blends into the room with no straight cut. With frame (a door or a board, "glow":
+    "frame") the frame and the opening it encloses are lit and the falloff is short, so the wall
+    around it stays almost as it is."""
+    lit_render = lit_render.convert("RGB").resize(background.size, LANCZOS)
+    mask = mask.convert("L").resize(background.size, LANCZOS)
+    shape = _fill_rows(mask) if frame else mask
+    w, h = background.size
+    reach = max(2, round(min(w, h) * (0.025 if frame else 0.08)))
+    glow = shape.filter(ImageFilter.GaussianBlur(reach)).point(lambda v: min(255, v * 2))
+    alpha = ImageChops.lighter(shape.filter(ImageFilter.GaussianBlur(1)), glow)
+    # whatever reaches the tile's edge fades out over the last few pixels
+    inset = max(2, round(min(w, h) * 0.06))
+    edge = Image.new("L", background.size, 0)
+    edge.paste(255, (inset, inset, max(inset, w - inset), max(inset, h - inset)))
+    alpha = ImageChops.multiply(alpha, edge.filter(ImageFilter.GaussianBlur(inset / 2)))
+    return Image.composite(lit_render, background, alpha)
+
+
+def halves(width, height, picture_width):
+    """Pixel boxes of the left and right background tiles: split on the unit the urc splits on
+    (picture_width // 2), so each tile fills its widget exactly."""
+    if width * hotspots.PICTURE_HEIGHT != picture_width * height:
+        raise ValueError(f"background {width}x{height} is not {picture_width} picture units wide: export again")
+    split = picture_width // 2 * width // picture_width
+    return (0, 0, split, height), (split, 0, width, height)
+
+
+CREDITS = os.path.join("credits", "models.json")
+
+
+def credits_urc(credits, export=None):
+    """ui/remake_credits.urc: the 3D models in the scenes, as CC BY asks (title, author, source,
+    licence); Back returns to the room. With the chalkboard's export (a screen with "credits": true)
+    they are written in chalk on its slate over its picture, in picture units; without it, on black at
+    the left of the screen, which fits 4:3 at any ui_plusscale."""
+    if export:
+        return _chalk_credits(credits, export)
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors",
+           "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//",
+           f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{CREDITS};",
+           "// do not edit.", "",
+           'menu "remake_credits" 2048 480 NONE 0',
+           "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1", "fullscreen 1", "virtualres 1",
+           "scalecvar ui_plusscale"]
+
+    def label(name, y, height, font, color, text):
+        if '"' in text:
+            raise ValueError(f"{CREDITS}: no quotes allowed: {text}")
+        text.encode("cp1252")  # the game's charset
+        out.extend(["", "resource", "Label", "{", f'name "{name}"', f"rect 0 0 580 {height}",
+                    "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", f"anchor 30 {y} -1 -1",
+                    "textalign left", f'title "{text}"', f"font {font}", f"fgcolor {color}", "}"])
+
+    label("title", 30, 32, "facfont-20", "0.94 0.75 0.38 1", "Model Credits")
+    label("intro", 64, 16, "verdana-12", "0.80 0.78 0.72 1",
+          "3D models in the menu scenes, placed and lit in Blender; CC BY 4.0: " + credits["license_url"])
+    models = credits["models"]
+    step = min(42, (428 - 92) // max(1, len(models)))  # down to Back's plate (its top at 430)
+    if step < 31:  # a title and its source line
+        raise ValueError(f"{CREDITS}: {len(models)} models do not fit the board (10 at most)")
+    for i, model in enumerate(models):
+        y = 92 + step * i
+        label(f"model {i}", y, 18, "verdana-14", "0.93 0.89 0.80 1", f'{model["title"]} - {model["author"]}')
+        label(f"source {i}", y + 16, 16, "verdana-12", "0.70 0.68 0.62 1", f'{model["license"]}  {model["url"]}')
+    out.extend(["", "resource", "Button", "{", *corner_button("Back", "left", "popmenu 0"), "}", "end."])
+    return "\n".join(out) + "\n"
+
+
+SLIDES = os.path.join("briefing", "slides.json")
+
+
+
+def _chalk_credits(credits, export):
+    width = export["picture"][0]
+    cover = f"cover {width} 480"
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors", "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//", f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{CREDITS} and the",
+           "// chalkboard's export; do not edit.", "",
+           'menu "remake_credits" 2048 480 NONE 0', "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1",
+           "fullscreen 1", "virtualres 1", "scalecvar ui_plusscale"]
+
+    def label(name, rect, color, text):
+        if '"' in text:
+            raise ValueError(f"{CREDITS}: no quotes allowed: {text}")
+        text.encode("cp1252")  # the game's charset
+        out.extend(["", "resource", "Label", "{", f'name "{name}"', "rect " + " ".join(str(round(v)) for v in rect),
+                    f"fgcolor {color}", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                    "textalign left", f'title "{text}"', "font pluschalk-32", "}"])
+
+    for name, x, side in (("background left", 0, "l"), ("background right", width // 2, "r")):
+        out.extend(["", "resource", "Label", "{", f'name "{name}"',
+                    f"rect {x} 0 {width - width // 2 if side == 'r' else width // 2} 480", "fgcolor 1 1 1 1",
+                    "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                    f'shader "{TEXTURES}/remake_credits_{side}"', "}"])
+    sx, sy, sw, sh = export["plates"]["slate"]
+    pad = sw * 0.04
+    x, w = sx + pad, sw - 2 * pad
+    # a label draws its text at about half its rect's height: the rects are tall, they may overlap
+    label("title", (x, sy, w, sh * 0.2), "0.94 0.94 0.89 1", "Model Credits")
+    label("intro", (x, sy + sh * 0.15, w, sh * 0.06), "0.78 0.80 0.76 1",   # CC BY asks for the licence's link
+          "3D models in the menu scenes, placed and lit in Blender; CC BY 4.0: " + credits["license_url"])
+    models = credits["models"]
+    top = sy + sh * 0.23
+    step = min(40, (sy + sh * 0.98 - top) / max(1, len(models)))   # a few models stay in chalk-sized letters
+    if step < 22:   # a title and its source line, still readable (about 15 px for the source at 1080p)
+        raise ValueError(f"{CREDITS}: {len(models)} models do not fit the chalkboard")
+    for i, model in enumerate(models):
+        y = top + step * i
+        label(f"model {i}", (x, y - step * 0.15, w, step), "0.93 0.93 0.88 1", f'{model["title"]} - {model["author"]}')
+        label(f"source {i}", (x + pad / 2, y + step * 0.42, w - pad / 2, step * 0.6), "0.78 0.80 0.76 1",
+              f'{model["license"]}  {model["url"]}')
+    out.extend(["", "resource", "Button", "{", *corner_button("Back", "left", "popmenu 0"), "}", "end."])
+    return "\n".join(out) + "\n"
+
+def slide_urc(menu, shader, picture_width, skip=None):
+    """ui/<menu>.urc of a briefing slide: the slides' background (ui/missionbriefingback.inc) and the
+    slide in its 4:3 middle, in picture units: the game stretches a 640x480 menu to the screen, which
+    pulled the slide wide and off the background. skip: the first slide's command to skip them."""
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors", "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//", f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{SLIDES};",
+           "// do not edit.", "",
+           f'menu "{menu}" 2048 480 NONE 0', "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1",
+           "fullscreen 1", "virtualres 1", "scalecvar ui_plusscale", 'include "ui/missionbriefingback.inc"',
+           "", "resource", "Label", "{", 'name "slide"', f"rect {(picture_width - 640) // 2 + 96} 74 456 344",
+           "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
+           f"cover {picture_width} 480", f'shader "{shader}"', "}"]
+    if skip:
+        out += ["", "resource", "Button", "{", *corner_button("Skip Briefing", "left", skip), "}"]
+    return "\n".join(out + ["end."]) + "\n"
+
+
+def dialog_urc(mapping, dialog, export):
+    """ui/<menu>.urc of one of the original's message screens (connecting, server full...): the
+    telegram's background (ui/<mapping's menu>.inc), the message typed on the slip's plate (lines one
+    under the other: a text or a cvar's value, as the original's labels), the buttons as corner
+    plates with the original's names and commands."""
+    width = export["picture"][0]
+    x, y, w, h = export["plates"]["message"]
+    lines, out = dialog["lines"], []
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors", "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//", f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{mapping['menu']}.json;",
+           "// do not edit.", "",
+           f'menu "{dialog["menu"]}" 2048 480 NONE 0', "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1",
+           "fullscreen 1", "virtualres 1", "scalecvar ui_plusscale", f'include "ui/{mapping["menu"]}.inc"']
+    step = min(h // len(lines), 26)  # a label fits its text into half its rect: lines of one size
+    y += (h - step * len(lines)) // 2
+    for i, line in enumerate(lines):
+        text = f'title "{line["text"]}"' if "text" in line else f'linkcvar "{line["cvar"]}"'
+        out += ["", "resource", "Label", "{", f'name "message{"" if i == 0 else f" {i + 1}"}"',
+                f"rect {x} {y + i * step} {w} {step}", f"fgcolor {INK}", "bgcolor 0 0 0 0", 'borderstyle "NONE"',
+                "scalecvar ui_plusscale", f"cover {width} 480", "font courier-20", "textalign center", text, "}"]
+    for button in dialog["buttons"]:
+        out += ["", "resource", "Button", "{",
+                *corner_button(button["title"], button["side"], button["command"], button.get("slot", 0), button.get("widget")), "}"]
+    return "\n".join(out + ["end."]) + "\n"
+
+
+def loadbar_art():
+    """The loading bar's fill (a tile, felt green like the corner plates) and its frame (dark, the
+    middle clear), drawn here."""
+    fill = Image.new("RGB", (64, 16))
+    px = fill.load()
+    for y in range(16):
+        k = 1 - abs(y - 6) / 10
+        for x in range(64):
+            px[x, y] = (round(30 + 60 * k), round(70 + 80 * k), round(40 + 50 * k))
+    frame = Image.new("RGBA", (256, 16), (0, 0, 0, 0))
+    px = frame.load()
+    for y in range(16):
+        for x in range(256):
+            edge = min(x, 255 - x, y, 15 - y)
+            if edge < 2:
+                px[x, y] = (24, 20, 14, 255) if edge == 0 else (70, 60, 40, 255)
+    return fill, frame
+
+
+def _urc_text(text):
+    """A text for a quoted .urc or localization token: line breaks as \\n (the script reader turns
+    them back), no double quotes."""
+    if '"' in text:
+        raise ValueError(f"no double quotes in a typed text: {text[:40]!r}")
+    return text.replace("\n", "\\n")
+
+
+def _piece(piece, code="en"):
+    """A typed body's piece: a paragraph break ("\\n\\n", not translated) or {"en": ..., code: ...}, each
+    text under 256 characters (the localization reader cuts longer ones)."""
+    if isinstance(piece, str):
+        return piece
+    for text in piece.values():
+        if len(text.encode("utf-8")) > 255:
+            raise ValueError(f"a typed piece is longer than 255 bytes: {text[:40]!r}")
+    return piece[code]
+
+
+def loading_lang(mappings, code):
+    """lang/<code>/remake_loading.txt: each typed letter's English text and its translation, for
+    cl_language <code> (the engine loads every .txt in lang/<code>, beside the player's own)."""
+    out = ["// Generated by misc/plus-pk3/build_pk3.py --remake from the loading desks' mappings; do not edit."]
+    for mapping in mappings:
+        if mapping.get("loading", {}).get("content") != "typed":
+            continue
+        for screen in mapping["loading"]["screens"]:
+            pairs = [screen["heading"], screen["sign"]] + [p for p in screen["body"] if not isinstance(p, str)]
+            for pair in pairs:
+                if code in pair:
+                    out.append(f'{{ "{_urc_text(_piece(pair))}" "{_urc_text(_piece(pair, code))}" }}')
+    return "\n".join(out) + "\n"
+
+
+def loading_urc(mapping, screen, export):
+    """ui/loading_<file>.urc of one of the original's loading screens, by its menu name (the map's):
+    the desk's background (ui/<desk>.inc), the map's picture fitted to the desk's plate or the
+    typed letter, the loading bar, its flasher and the Continue the game enables (the widget names the
+    engine drives: loadingbar, loadingbar_border, loadingflasher, continuebutton)."""
+    width = export["picture"][0]
+    cover = f"cover {width} 480"
+    content = mapping["loading"]["content"]
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors", "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//", f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{mapping['menu']}.json;",
+           "// do not edit.", "",
+           f'menu "{screen["menu"]}" 2048 480 NONE 0', "bgcolor 0 0 0 1", "borderstyle NONE", "bgfill 0 0 0 1",
+           "fullscreen 1", "virtualres 1", "scalecvar ui_plusscale", f'include "ui/{mapping["menu"]}.inc"']
+
+    def label(name, rect, *lines, fg="1 1 1 1"):
+        out.extend(["", "resource", "Label", "{", f'name "{name}"', "rect " + " ".join(str(v) for v in rect),
+                    f"fgcolor {fg}", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover, *lines, "}"])
+
+    if content == "photo":  # the map's picture, 4:3 in the plate
+        px, py, pw, ph = export["plates"]["content"]
+        s = min(pw / 4, ph / 3)
+        w, h = round(4 * s), round(3 * s)
+        label("photo", [px + (pw - w) // 2, py + (ph - h) // 2, w, h], f'shader "{screen["shader"]}"')
+    if content == "typed":  # the engine types the letter: English here, translations in lang/<code>/
+        for part in ("heading", "body", "sign"):
+            if part == "body":  # in pieces: a localization text keeps 255 characters, a script token 511
+                text = [f'addtext "{_urc_text(_piece(p))}"' for p in screen[part]]
+            else:
+                text = [f'title "{_urc_text(screen[part]["en"])}"']
+            label(part, export["plates"][part], f"font {mapping['loading']['font']}", "textalign left",
+                  f"wordwrap {mapping['loading']['line']}", *text, fg="0.10 0.09 0.08 1")  # typewriter ink
+    middle = width // 2
+    label("loadingflasher", [middle - 60, 440, 120, 24], 'shader "loadingwidget"')
+    label("loadingbar_border", [middle - 128, 444, 256, 16], f'shader "{TEXTURES}/loadbar_border"')
+    label("loadingbar", [middle - 126, 448, 252, 8], 'linkcvar "loadingbar"', "statbar horizontal 0 1",
+          f"statbar_tileshader {TEXTURES}/loadbar_fill")
+    out += ["", "resource", "Button", "{",
+            *corner_button("Continue", "right", "finishloadingscreen", widget="continuebutton"), "}"]
+    return "\n".join(out + ["end."]) + "\n"
+
+
+def select_model_art(frame, room):
+    """The free-for-all model dialog's backdrop, 512x512 like the original's: the frame (RGBA, its
+    window and its outside clear) over the room's 4:3 view, which fills the window."""
+    frame = frame.convert("RGBA")
+    outside = frame.getchannel("A").point(lambda a: 255 if a else 0)
+    for corner in ((0, 0), (frame.width - 1, 0), (0, frame.height - 1), (frame.width - 1, frame.height - 1)):
+        if outside.getpixel(corner) == 0:
+            ImageDraw.floodfill(outside, corner, 128)          # clear and reached from a corner: outside
+    window = outside.point(lambda a: 255 if a == 0 else 0)
+    box = window.getbbox()
+    band = round(room.height * 4 / 3)                         # the 4:3 view at the middle of the room's render
+    x0 = (room.width - band) // 2
+    view = room.convert("RGB").crop((x0, 0, x0 + band, room.height))
+    w, h = box[2] - box[0], box[3] - box[1]
+    scale = max(w / view.width, h / view.height)              # cover the window, cut the overflow
+    view = view.resize((round(view.width * scale), round(view.height * scale)), LANCZOS)
+    left, top = (view.width - w) // 2, (view.height - h) // 2
+    art = Image.new("RGBA", frame.size, (0, 0, 0, 0))
+    art.paste(view.crop((left, top, left + w, top + h)), box[:2])
+    art.alpha_composite(frame)
+    art.putalpha(outside.point(lambda a: 0 if a == 128 else 255))
+    return art.resize((512, 512), LANCZOS)
+
+
+def select_model_urc():
+    """ui/dm_ffamodelselect.urc: the original's dialog (join a team in free-for-all, both models shown
+    over the backdrop, clicking around closes it) on the remake backdrop, with the engine's titles."""
+    def button(name, rect, command, title=None, plate=False):
+        lines = ["", "resource", "Button", "{", f'name "{name}"', f"rect {rect}",
+                 "fgcolor 1 1 1 1" if title else "fgcolor 1 1 1 0", "bgcolor 0 0 0 0", 'borderstyle "NONE"']
+        if plate:
+            lines += ['shader "textures/menu_plus/clear"', 'hovershader "menu_button_glow"']
+        if title:
+            lines += [f'title "{title}"', "font verdana-12", "textalign center"]
+        sound = "back" if command == "popmenu 0" and not title else "apply"
+        return lines + [f'clicksound "sound/menu/{sound}.wav"', f'stuffcommand "{command}"', "}"]
+
+    def model(cvar, rect, offset, anim):
+        return ["", "resource", "Label", "{", 'name "Default"', f"rect {rect}", "fgcolor 1 1 1 1",
+                "bgcolor 0 0 0 0", 'borderstyle "NONE"', f'linkcvar "{cvar}"', "rendermodel 1",
+                f'modeloffset "{offset}"', 'modelrotateoffset "0 0 0"', 'modelangles "10 180 0"', "modelscale 1.0",
+                f"modelanim {anim}", "}"]
+
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors", "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//", "// Generated by misc/plus-pk3/build_pk3.py --remake (the original's dm_ffamodelselect.urc on the",
+           "// remake backdrop); do not edit.", "",
+           'menu "SelectFFAModel" 640 480 NONE 0', "align centerx centery", "fgcolor 1 1 1 1", "bgcolor 0 0 0 0",
+           "virtualres 1",
+           "", "resource", "Label", "{", 'name "backdrop"', "rect 160 80 320 304", "fgcolor 1 1 1 1",
+           "bgcolor 0 0 0 0", 'borderstyle "NONE"', f'shader "{TEXTURES}/selectmodel"', "}",
+           "", "resource", "Label", "{", 'name "title"', "rect 240 88 160 24", "fgcolor 1 1 1 1", "bgcolor 0 0 0 0",
+           'borderstyle "NONE"', 'title "Select Model"', "font facfont-20", "textalign center", "}"]
+    out += model("ui_disp_playermodel", "168 120 200 200", "60 12 0", "americanselectionidle")
+    out += model("ui_disp_playergermanmodel", "272 120 200 200", "60 -12 0", "germanselectionidle")
+    for rect in ("0 0 640 80", "0 80 160 304", "480 80 160 304", "0 384 640 96"):   # around it: close
+        out += button("Default", rect, "popmenu 0")
+    out += button("alliesmodelselect", "168 88 152 240", "join_team allies;popmenu 0")
+    out += button("axismodelselect", "320 88 152 240", "join_team axis;popmenu 0")
+    out += button("alliesmodelselect", "216 336 64 16", "join_team allies;popmenu 0", "Allies", True)
+    out += button("axismodelselect", "360 336 64 16", "join_team axis;popmenu 0", "Axis", True)
+    out += button("cancel", "272 360 96 16", "popmenu 0", "Cancel", True)
+    return "\n".join(out + ["end."]) + "\n"
+
+
+def green_plate(hover=False):
+    """The classic green button plate, 256x64, drawn here (not the game's art): felt green, darker
+    towards the ends, a soft highlight in the middle, a light top edge and a dark bottom one; the
+    hover plate is lighter. The engine writes the text over it."""
+    centre, edge = ((96, 142, 106), (58, 98, 70)) if hover else ((40, 82, 52), (16, 40, 25))
+    w, h = 256, 64
+    img = Image.new("RGB", (w, h))
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            t = min(1.0, ((x - w / 2) / (w / 2)) ** 2 * 0.8 + ((y - h * 0.4) / (h / 2)) ** 2 * 0.5)
+            px[x, y] = tuple(round(c + (e - c) * t) for c, e in zip(centre, edge))
+    rnd = random.Random(1942 + hover)  # felt grain, the same on every build
+    for _ in range(1500):
+        x, y = rnd.randrange(w), rnd.randrange(h)
+        d = rnd.choice((-6, 6))
+        px[x, y] = tuple(max(0, min(255, c + d)) for c in px[x, y])
+    for x in range(w):
+        for y, k in ((0, 1.6), (1, 1.3), (h - 2, 0.6), (h - 1, 0.4)):
+            px[x, y] = tuple(min(255, round(c * k)) for c in px[x, y])
+    return img
+
+
+def corner_button(name, side, command, slot=0, widget=None):
+    """Lines of a green corner button: plate, hover plate and the engine's text, 12 units from the side
+    and 20 from the bottom, clear of the build label (the original's were 8 from the edges); slot 1
+    sits next to the corner one, and so on. widget: its name when the game finds it by name."""
+    left = side == "left"
+    sound = "back" if command.startswith("popmenu") else "apply"
+    margin = 12 + slot * (128 + 12)
+    return [f'name "{widget or name}"', "rect 0 0 128 30", f'title "{name}"', "font facfont-20", "fgcolor 1 1 1 1",
+            "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
+            f"anchor {margin} -1 -1 20" if left else f"anchor -1 -1 {margin} 20", "textalign center",
+            f'shader "{TEXTURES}/button"', f'hovershader "{TEXTURES}/button_h"',
+            f'clicksound "sound/menu/{sound}.wav"', f'stuffcommand "{command}"']
+
+
+def lamp_on():
+    """A lit indicator lamp, 64x64 on transparency: an amber glow, brightest in the middle, drawn over
+    the rendered (unlit) lamp of a checkbox that is on."""
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(64):
+        for x in range(64):
+            d = math.hypot(x - 31.5, y - 31.5) / 32
+            if d < 1:
+                core = max(0.0, 1 - d / 0.45)
+                px[x, y] = (255, round(150 + 90 * core), round(40 + 150 * core), round(255 * min(1, (1 - d) * 1.6)))
+    return img
+
+
+def stamp_h():
+    """The glow over a stamp under the pointer, 128x32 on transparency: a soft, deep red over its ink."""
+    img = Image.new("RGBA", (128, 32), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(32):
+        for x in range(128):
+            d = max(abs(x - 63.5) / 64, abs(y - 15.5) / 16)
+            if d < 1:
+                px[x, y] = (230, 20, 20, round(150 * max(0.0, min(1.0, (1 - d) * 3.2 - 0.1))))
+    return img
+
+
+INK = "0.12 0.11 0.09 1"  # dark print on the units' light plates
+LIGHT_INK = "0.92 0.90 0.84 1"  # light print on green felt ("ink": "light")
+
+
+def _union(*rects):
+    x0, y0 = min(r[0] for r in rects), min(r[1] for r in rects)
+    x1, y1 = max(r[0] + r[2] for r in rects), max(r[1] + r[3] for r in rects)
+    return [x0, y0, x1 - x0, y1 - y0]
+
+
+def _item_values(control):
+    """[(value, title)] when every item of a list sets the list's cvar to a value of its own, else None."""
+    values = []
+    for title, command in control["items"]:
+        sets = [part.split() for part in command.split(";")]
+        found = [s[2] for s in sets if len(s) == 3 and s[0].lower() == "set" and s[1] == control["cvar"]]
+        if len(found) != 1:
+            return None
+        values.append((found[0], title))
+    return values if len({v for v, _ in values}) == len(values) else None
+
+
+def screen_urc(mapping, export):
+    """ui/<menu>.urc of an option screen: the close-up and, on its units, the controls: a list is a
+    pulldown over the plate, which shows the value (the knob is only drawn: no click picture of its own); a check lights its lamp; a
+    slider sits on its plate. The engine writes every value (in the picture's scale under cover)."""
+    menu, width = mapping["menu"], export["picture"][0]
+    cover = f"cover {width} 480"
+    out = ["// Copyright (C) 2026 the OpenMOHAA Plus contributors",
+           "// SPDX-License-Identifier: AGPL-3.0-or-later",
+           "//",
+           f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{menu}.json and a",
+           "// Blender export; do not edit: change the mapping or the scene and build again.",
+           "",
+           f'menu "{menu}" 2048 480 NONE 0',
+           "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1", "fullscreen 1", "virtualres 1",
+           "scalecvar ui_plusscale"]
+    back = next((c["command"] for c in mapping.get("corners", []) if c["title"] == "Back"), "")
+    if "ui_discardlatched" in back:  # Esc does what Back does: the game's Esc restores only linked cvars
+        out.append(f'escapecommand "{back}"')
+    if mapping.get("include"):  # a background other menus include (the briefing slides'): no menu of its own
+        out = out[:6]
+
+    def widget(kind, lines):
+        out.extend(["", "resource", kind, "{", *lines, "}"])
+
+    ink = {"now": INK}  # the control being written: its print colour
+
+    def common(name, rect):
+        return [f'name "{name}"', "rect " + " ".join(str(v) for v in rect), f"fgcolor {ink['now']}", "bgcolor 0 0 0 0",
+                'borderstyle "NONE"', "scalecvar ui_plusscale", cover]
+
+    for name, x, side in (("background left", 0, "l"), ("background right", width // 2, "r")):
+        widget("Label", [f'name "{name}"', f"rect {x} 0 {width - width // 2 if side == 'r' else width // 2} 480",
+                         "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
+                         cover, f'shader "{TEXTURES}/{menu}_{side}"'])
+    for control in mapping["controls"]:
+        name, rects = control["name"], export["controls"][control["name"]]
+        ink["now"] = LIGHT_INK if control.get("ink") == "light" else INK
+        if control["kind"] == "list":
+            items = [f'addpopup "MENU" "{title}" command "{command}"' for title, command in control["items"]]
+            pull = ['font verdana-14', 'menushader "MENU" "textures/menu_plus/clear"',
+                    'selmenushader "MENU" "textures/menu_plus/clear"']
+            values = _item_values(control)
+            if values:  # a label maps the cvar's value (the original's way), under a pulldown without one
+                # its text as big and as far in as a pulldown's (6 units in, about 64% of the plate's
+                #  height): a label fits its text into 50% of its rect, so the rect is 28% taller
+                x, y, w, h = rects["plate"]
+                grow = round(h * 0.14)
+                widget("Label", common(name + " value", [x + 6, y - grow, w - 6, h + 2 * grow]) + [
+                    "font verdana-14", "textalign left", f'linkcvar "{control["cvar"]}"',
+                    *(f'linkstring "{value}" "{title}"' for value, title in values)])
+                widget("PulldownMenuContainer", common(name, rects["plate"]) + pull + items)
+            else:  # the pulldown names the item whose every set matches (several items share the cvar's value)
+                widget("PulldownMenuContainer", common(name, rects["plate"]) + [f'linkcvar "{control["cvar"]}"'] + pull + items)
+        elif control["kind"] == "slider":
+            low, high = control["range"]
+            x, y, w, h = rects["plate"]  # inside the plate: the thumb is as tall as the slider
+            dx, dy = round(w * 0.03), round(h * 0.18)
+            widget("Slider", common(name, [x + dx, y + dy, w - 2 * dx, h - 2 * dy]) + [
+                "font verdana-12",
+                f'showvalue "{control.get("format", "%.1f")}"' + (f' {control["multiplier"]}' if "multiplier" in control else ""),
+                f'linkcvar "{control["cvar"]}"',
+                "slidertype float", f"setrange {low} {high}", f"stepsize {control['step']}"])
+        elif control["kind"] == "medal":  # shown when earned; pointing at it names it on the plates
+            key = hotspots.slug(name)
+            widget("Label", common(name, rects["medal"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                f'shader "{TEXTURES}/{menu}_{key}"', f'enabledcvar "{control["cvar"]}"'])
+            widget("Button", common(name + " button", rects["medal"]) + [
+                'shader "textures/menu_plus/clear"', f'enabledcvar "{control["cvar"]}"',
+                f'hovercommand "set {mapping["sign_cvar"]} {key}"'])
+        elif control["kind"] == "field":  # typed into: the player's name
+            widget("Field", common(name, rects["plate"]) + ["font verdana-14", "textalign left",
+                                                            f'linkcvar "{control["cvar"]}"'] +
+                   # Enter runs it with the typed text appended (UIField::KeyEvent)
+                   ([f'stuffcommand "{control["command"]}"'] if control.get("command") else []))
+        elif control["kind"] == "text":  # a cvar's text on its plate
+            widget("Label", common(name, rects["plate"]) + ["font verdana-14", "textalign center",
+                                                            f'linkcvar "{control["cvar"]}"'])
+        elif control["kind"] == "model":  # the engine draws the model standing in the picture
+            # CL_Draw3DModel's view is 30 by 30 degrees whatever the rect: a narrow rect squeezes the model
+            x, y, w, h = rects["plate"]
+            widget("Label", common(name, [round(x + w / 2 - h / 2), y, h, h])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                f'linkcvar "{control["cvar"]}"', "rendermodel 1", f'modeloffset "{control.get("offset", "0 0 0")}"',
+                'modelrotateoffset "0 0 0"', f'modelangles "{control.get("angles", "0 180 0")}"',
+                f"modelscale {control.get('scale', 1.0)}", f"modelanim {control['anim']}"])
+        elif control["kind"] == "mission":  # its name on the map when unlocked, red under the pointer
+            key, lock = hotspots.slug(name), [f'enabledcvar "{control["cvar"]}"'] if control.get("cvar") else []
+            widget("Label", common(name, rects["plate"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                f'shader "{TEXTURES}/{menu}_{key}"'] + lock)
+            widget("Button", common(name + " button", rects["plate"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/{menu}_{key}_h"'] + lock + [
+                'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"',
+                f'hovercommand "set {mapping["sign_cvar"]} {key}"'])
+        elif control["kind"] == "shot":  # the game puts the selected save's picture in it (by name)
+            widget("Label", common(name, rects["plate"])[:2] + [
+                "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover])
+        elif control["kind"] == "action":  # a typed slip or a stamp: a red glow under the pointer
+            lines = common(name, rects["plate"])
+            if control.get("title"):
+                lines += [f'title "{control["title"]}"', f'font {control.get("font", "courier-20")}', "textalign center"]
+            else:
+                lines[2] = "fgcolor 1 1 1 1"  # no text: the button tints its hover picture with it
+            hover = f"{menu}_{hotspots.slug(name)}" if control.get("lit") else "stamp_h"
+            widget("Button", lines + [
+                'shader "textures/menu_plus/clear"', f'hovershader "{TEXTURES}/{hover}"',
+                'clicksound "sound/menu/apply.wav"', f'stuffcommand "{control["command"]}"'])
+        elif control["kind"] == "servers":  # the game's server list, by name (langamelist, netgamelist)
+            widget(control["class"], common(name, rects["plate"]))
+        elif control["kind"] == "saves":  # the game's save list, by name
+            lines = common(name, rects["plate"])
+            lines[2] = "fgcolor 0 0 0 1"
+            widget("FakkLoadGameClass", lines)
+        elif control["kind"] == "binds":  # the game's key list, black on the card like the original
+            lines = common(name, rects["plate"])
+            lines[2] = "fgcolor 0 0 0 1"
+            widget("FakkBindList", lines + ["filename ui/bind.scr"])
+        else:
+            lines = common(name, _union(rects["lamp"], rects["plate"]))
+            lines[2] = "fgcolor 1 1 1 1"  # the lamp art keeps its colours (fgcolor tints a checkbox's shader)
+            widget("CheckBox", lines + [
+                f'linkcvar "{control["cvar"]}"', f'checked_shader "{TEXTURES}/lamp_on"',
+                'unchecked_shader "textures/menu_plus/clear"',
+                *(f'{k} "{control[k]}"' for k in ("checked_command", "unchecked_command") if k in control)])
+    missions = [c for c in mapping["controls"] if c["kind"] == "mission"]
+    if missions:  # the hanging sign names the mission under the pointer
+        widget("Label", common("mission sign", export["plates"]["sign"]) + [
+            "fgcolor 0.95 0.92 0.84 1", "font plussign-32", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
+            *(f'linkstring "{hotspots.slug(c["name"])}" "{c["text"]}"' for c in missions),
+            *(f'linkstring "{key}" "{text}"' for key, text in mapping.get("signs", {}).items())])
+    medals = [c for c in mapping["controls"] if c["kind"] == "medal"]
+    if medals:  # the name on its plate (the case's serif), the description on its card
+        for plate, field, font in (("name", "title", "plussign-32"), ("desc", "desc", "verdana-14")):
+            widget("Label", common("medal name" if plate == "name" else "medal description", export["plates"][plate]) + [
+                f"font {font}", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
+                *(f'linkstring "{hotspots.slug(c["name"])}" "{c[field]}"' for c in medals)])
+    for corner in mapping.get("corners", []):
+        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0), corner.get("widget")))
+    if not mapping.get("include"):
+        out.append("end.")
+    return "\n".join(out) + "\n"
+
+
+def _mappings(mapping_dir):
+    return [hotspots.load_mapping(p) for p in sorted(glob.glob(os.path.join(mapping_dir, "*.json")))]
+
+
+def urc(mapping, export):
+    """The text of ui/<menu>.urc for one mapping and its export."""
+    menu, width = mapping["menu"], export["picture"][0]
+    cover = f"cover {width} 480"
+    rects = {name: " ".join(str(v) for v in entry["rect"]) for name, entry in export["hotspots"].items()}
+    out = [
+        "// Copyright (C) 2026 the OpenMOHAA Plus contributors",
+        "// SPDX-License-Identifier: AGPL-3.0-or-later",
+        "//",
+        f"// Generated by misc/plus-pk3/build_pk3.py --remake from misc/plus-pk3/remake/{menu}.json and a",
+        "// Blender export; do not edit: change the mapping or the scene and build again.",
+        "",
+        f'menu "{menu}" 2048 480 NONE 0',
+        "bgcolor 0 0 0 0", "borderstyle NONE", "bgfill 0 0 0 1", "fullscreen 1", "virtualres 1",
+        "scalecvar ui_plusscale",
+    ]
+
+    def widget(kind, lines):
+        out.extend(["", "resource", kind, "{", *lines, "}"])
+
+    for name, x, side in (("background left", 0, "l"), ("background right", width // 2, "r")):
+        widget("Label", [f'name "{name}"', f"rect {x} 0 {width - width // 2 if side == 'r' else width // 2} 480",
+                         "fgcolor 1 1 1 1", "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale",
+                         cover, f'shader "{TEXTURES}/{menu}_{side}"'])
+    board = next(s for s in mapping["hotspots"] if s.get("board"))
+    # the engine writes the sign: each sign value the buttons set maps to its text (translated)
+    widget("Label", [f'name "{board["name"]}"', f"rect {rects[board['name']]}", "fgcolor 0.95 0.92 0.84 1",
+                     "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                     "font plussign-32", "textalign center", f'linkcvar "{mapping["sign_cvar"]}"',
+                     *(f'linkstring "{s["sign"]}" "{s["text"]}"' for s in mapping["hotspots"] if not s.get("board"))])
+    # largest first: where rects overlap, the smaller hotspot (drawn later, on top) takes the pointer
+    def area(spot):
+        _, _, w, h = export["hotspots"][spot["name"]]["rect"]
+        return -w * h
+
+    for spot in sorted((s for s in mapping["hotspots"] if not s.get("board")), key=area):
+        widget("Button", [f'name "{spot["name"]}"', f"rect {rects[spot['name']]}", "fgcolor 1 1 1 1",
+                          "bgcolor 0 0 0 0", 'borderstyle "NONE"', "scalecvar ui_plusscale", cover,
+                          'shader "textures/menu_plus/clear"',
+                          f'hovershader "{TEXTURES}/{menu}_{hotspots.slug(spot["name"])}_h"',
+                          'clicksound "sound/menu/apply.wav"', f'stuffcommand "{spot["command"]}"',
+                          f'hovercommand "set {mapping["sign_cvar"]} {spot["sign"]}"'])
+    for corner in mapping.get("corners", []):
+        widget("Button", corner_button(corner["title"], corner["side"], corner["command"], corner.get("slot", 0), corner.get("widget")))
+    out.append("end.")
+    return "\n".join(out) + "\n"
+
+
+def _background_tiles(folder, export, menu):
+    """Yields the two 2048x2048 background tiles; returns the background."""
+    background = Image.open(os.path.join(folder, export["background"])).convert("RGB")
+    for side, box in zip("lr", halves(background.width, background.height, export["picture"][0])):
+        yield f"{TEXTURES}/{menu}_{side}.jpg", _jpeg(background.crop(box).resize((2048, 2048), LANCZOS))
+    return background
+
+
+def files(mapping_dir, export_root):
+    """(name, bytes) of the remake pak; screens with no export are skipped with a warning."""
+    yield f"{TEXTURES}/button.jpg", _jpeg(green_plate())
+    yield f"{TEXTURES}/button_h.jpg", _jpeg(green_plate(hover=True))
+    lamp_done = loadbar_done = False
+    credits_path = os.path.join(mapping_dir, CREDITS)
+    if os.path.exists(credits_path):
+        board = os.path.join(export_root, "remake_credits", "remake_credits.json")   # the chalkboard, if exported
+        board = json.load(open(board)) if os.path.exists(board) else None
+        with open(credits_path, encoding="utf-8") as f:
+            yield "ui/remake_credits.urc", credits_urc(json.load(f), board).encode("cp1252")
+    slides_path = os.path.join(mapping_dir, SLIDES)
+    back_json = os.path.join(export_root, "missionbriefingback", "missionbriefingback.json")
+    if os.path.exists(slides_path) and os.path.exists(back_json):  # the briefing slides on our background
+        with open(slides_path) as f:
+            slides = json.load(f)
+        with open(back_json) as f:
+            width = json.load(f)["picture"][0]
+        for menu, shader in slides["slides"].items():
+            yield f"ui/{menu}.urc", slide_urc(menu, shader, width).encode("cp1252")
+        for menu, (shader, command) in slides["skip"].items():
+            yield f"ui/{menu}.urc", slide_urc(menu, shader, width, command).encode("cp1252")
+    elif os.path.exists(slides_path):
+        print("remake: no export for missionbriefingback, the original slides stay", file=sys.stderr)
+    frame_path = os.path.join(export_root, "selectmodel", "frame.png")
+    room_json = os.path.join(export_root, "multiplayer", "multiplayer.json")
+    if os.path.exists(frame_path) and os.path.exists(room_json):  # the free-for-all model dialog
+        with open(room_json) as f:
+            room = Image.open(os.path.join(export_root, "multiplayer", json.load(f)["background"]))
+        out = io.BytesIO()
+        select_model_art(Image.open(frame_path), room).save(out, "TGA")
+        yield f"{TEXTURES}/selectmodel.tga", out.getvalue()
+        yield "ui/dm_ffamodelselect.urc", select_model_urc().encode("cp1252")
+    else:
+        print("remake: no select-model frame or multiplayer export, the original dialog stays", file=sys.stderr)
+    for mapping in _mappings(mapping_dir):
+        menu = mapping["menu"]
+        folder = os.path.join(export_root, menu)
+        json_path = os.path.join(folder, menu + ".json")
+        if not os.path.exists(json_path):
+            print(f"remake: no export for {menu}, the original menu stays", file=sys.stderr)
+            continue
+        with open(json_path) as f:
+            export = json.load(f)
+        if mapping.get("credits"):   # the chalkboard: its picture; credits_urc writes the menu
+            yield from _background_tiles(folder, export, menu)
+            continue
+        if mapping.get("screen"):
+            for control in mapping["controls"]:
+                parts = export.get("controls", {}).get(control["name"], {})
+                if (any(part not in parts for part in hotspots.CONTROL_PARTS[control["kind"]])
+                        or any(key not in parts for key, _, _ in hotspots.pictures(control))
+                        or (control["kind"] == "medal" and "plates" not in export)):
+                    raise ValueError(f"{menu}: control {control['name']} missing in {json_path}")
+            if not lamp_done:
+                lamp_done = True
+                for art, name in ((lamp_on(), "lamp_on"), (stamp_h(), "stamp_h")):
+                    out = io.BytesIO()
+                    art.save(out, "TGA")  # glows need their alpha: TGA, not JPEG
+                    yield f"{TEXTURES}/{name}.tga", out.getvalue()
+            yield f"ui/{menu}.{'inc' if mapping.get('include') else 'urc'}", screen_urc(mapping, export).encode("cp1252")
+            for dialog in mapping.get("dialogs", []):  # the menus drawn on this background (the telegram's)
+                yield f"ui/{dialog['menu']}.urc", dialog_urc(mapping, dialog, export).encode("cp1252")
+            if mapping.get("loading"):  # the original's loading screens on this desk
+                for screen in mapping["loading"]["screens"]:
+                    yield f"ui/loading_{screen['file']}.urc", loading_urc(mapping, screen, export).encode("cp1252")
+                if not loadbar_done:
+                    loadbar_done = True
+                    fill, frame = loadbar_art()
+                    yield f"{TEXTURES}/loadbar_fill.jpg", _jpeg(fill)
+                    out = io.BytesIO()
+                    frame.save(out, "TGA")
+                    yield f"{TEXTURES}/loadbar_border.tga", out.getvalue()
+            background = yield from _background_tiles(folder, export, menu)
+            k = background.width / export["picture"][0]
+            for control in mapping["controls"]:
+                for key, _, part in hotspots.pictures(control):  # its rect cut from the full render with it
+                    x, y, w, h = export["controls"][control["name"]][part]
+                    full = Image.open(os.path.join(folder, export["controls"][control["name"]][key])).convert("RGB")
+                    img = full.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+                    img = img.resize((_pow2(img.width), _pow2(img.height)), LANCZOS)
+                    yield f"{TEXTURES}/{menu}_{hotspots.slug(control['name'])}{'' if key == 'image' else '_h'}.jpg", _jpeg(img)
+            continue
+        for spot in mapping["hotspots"]:
+            entry = export["hotspots"].get(spot["name"])
+            if (entry is None or (not spot.get("board") and "mask" not in entry)
+                    or (spot.get("lights") and "lit" not in entry)):  # an export from before the lamps
+                raise ValueError(f"{menu}: hotspot {spot['name']} missing in {json_path}")
+        yield f"ui/{menu}.urc", urc(mapping, export).encode("cp1252")
+        background = yield from _background_tiles(folder, export, menu)
+        k = background.width / export["picture"][0]
+        light = mapping.get("highlight", {})
+        for spot in mapping["hotspots"]:
+            if spot.get("board"):
+                continue
+            entry = export["hotspots"][spot["name"]]
+            x, y, w, h = entry["rect"]
+            under = background.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+            mask = Image.open(os.path.join(folder, entry["mask"]))
+            if "lit" in entry:
+                lamp = Image.open(os.path.join(folder, entry["lit"]))
+                if lamp.size == background.size:  # rendered over the whole frame (a border render lights differently)
+                    lamp = lamp.crop((round(x * k), round(y * k), round((x + w) * k), round((y + h) * k)))
+                crop = zone_lit(under, lamp, mask, frame=spot.get("glow") == "frame")
+            else:
+                crop = lit(under, mask, light.get("gain", 1.2), light.get("color", (255, 214, 150)))
+            crop = crop.resize((_pow2(crop.width), _pow2(crop.height)), LANCZOS)
+            yield f"{TEXTURES}/{menu}_{hotspots.slug(spot['name'])}_h.jpg", _jpeg(crop)
+    # the typed letters' translations (our own text), one file per language beside the player's
+    mappings = _mappings(mapping_dir)
+    codes = sorted({code for m in mappings if m.get("loading", {}).get("content") == "typed"
+                    for screen in m["loading"]["screens"] for code in screen["heading"] if code != "en"})
+    for code in codes:
+        yield f"lang/{code}/remake_loading.txt", loading_lang(mappings, code).encode("utf-8")
+
+
+def fake_export(mapping_dir, out_root, rects=None):
+    """For tests: an export of every mapping with a solid (40, 60, 80) background. rects: {menu: {hotspot: [x, y, w, h]}};
+    by default hotspot i gets (300 + 40 i, 100 + 30 i, 60, 40)."""
+    for mapping in _mappings(mapping_dir):
+        menu = mapping["menu"]
+        folder = os.path.join(out_root, menu)
+        os.makedirs(folder, exist_ok=True)
+        Image.new("RGB", (3840, 1600), (40, 60, 80)).save(os.path.join(folder, "background.png"))
+        if mapping.get("screen"):  # control i: its parts side by side at (300, 60 + 40 i), 40 x 20 each
+            export = {"menu": menu, "picture": [1152, 480], "background": "background.png", "controls": {
+                c["name"]: {part: [300 + 44 * j, 60 + 40 * i, 40, 20]
+                            for j, part in enumerate(hotspots.CONTROL_PARTS[c["kind"]])}
+                for i, c in enumerate(mapping["controls"])}}
+            if any(c["kind"] == "medal" for c in mapping["controls"]):  # the case's plates
+                export["plates"] = {"name": [300, 440, 300, 20], "desc": [300, 20, 300, 30]}
+            for key in mapping:  # the other plates the engine writes on
+                if key.endswith("_plate") and key[:-len("_plate")] not in export.get("plates", {}):
+                    export.setdefault("plates", {})[key[:-len("_plate")]] = [140, 40, 574, 380]  # room for a board's text
+            for c in mapping["controls"]:
+                for key, _, part in hotspots.pictures(c):
+                    entry = export["controls"][c["name"]]
+                    entry[key] = f"{'picture' if key == 'image' else 'lit'}_{hotspots.slug(c['name'])}.png"
+                    x, y, w, h = entry[part]  # a full render: white, the control's rect black
+                    full = Image.new("RGB", (3840, 1600), (255, 255, 255))
+                    full.paste((0, 0, 0), (round(x * 10 / 3), round(y * 10 / 3), round((x + w) * 10 / 3), round((y + h) * 10 / 3)))
+                    full.save(os.path.join(folder, entry[key]))
+            with open(os.path.join(folder, menu + ".json"), "w") as f:
+                json.dump(export, f, indent=1)
+            continue
+        export = {"menu": menu, "picture": [1152, 480], "background": "background.png", "hotspots": {}}
+        for i, spot in enumerate(mapping["hotspots"]):
+            rect = (rects or {}).get(menu, {}).get(spot["name"], [300 + 40 * i, 100 + 30 * i, 60, 40])
+            entry = {"rect": rect}
+            if not spot.get("board"):  # the mask: the object fills the left half of its rect
+                entry["mask"] = f"mask_{hotspots.slug(spot['name'])}.png"
+                size = (max(1, round(rect[2] * 10 / 3)), max(1, round(rect[3] * 10 / 3)))
+                mask = Image.new("L", size, 0)
+                mask.paste(255, (0, 0, size[0] // 2, size[1]))
+                mask.save(os.path.join(folder, entry["mask"]))
+            if spot.get("lights"):  # the lit render, over the whole frame: (200, 180, 150) in the rect, black around
+                entry["lit"] = f"lit_{hotspots.slug(spot['name'])}.png"
+                full = Image.new("RGB", (3840, 1600), (0, 0, 0))
+                full.paste((200, 180, 150), tuple(round(v * 10 / 3) for v in (rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3])))
+                full.save(os.path.join(folder, entry["lit"]))
+            export["hotspots"][spot["name"]] = entry
+        with open(os.path.join(folder, menu + ".json"), "w") as f:
+            json.dump(export, f, indent=1)

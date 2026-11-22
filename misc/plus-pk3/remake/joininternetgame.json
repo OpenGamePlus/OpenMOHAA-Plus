@@ -1,0 +1,67 @@
+{
+ "menu": "joininternetgame",
+ "screen": true,
+ "camera": "Cam_JoinInternet",
+ "controls": [
+  {
+   "name": "browse internet servers",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Browse"
+   ],
+   "lit": [
+    "MPI_P_Browse_Lit"
+   ],
+   "command": "set dm_browser_show 0;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "name": "favourite servers",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Favourites"
+   ],
+   "lit": [
+    "MPI_P_Favourites_Lit"
+   ],
+   "command": "set dm_browser_show 1;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "name": "recent servers",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Recent"
+   ],
+   "lit": [
+    "MPI_P_Recent_Lit"
+   ],
+   "command": "set dm_browser_show 3;pushmenu joinnetgame;wait 250;widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "name": "connect to ip address",
+   "kind": "action",
+   "plate": [
+    "MPI_P_Connect"
+   ],
+   "lit": [
+    "MPI_P_Connect_Lit"
+   ],
+   "command": "menuconnect ui_connectip"
+  },
+  {
+   "name": "ip address",
+   "kind": "field",
+   "plate": [
+    "MPI_P_IP"
+   ],
+   "cvar": "ui_connectip",
+   "ink": "light"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

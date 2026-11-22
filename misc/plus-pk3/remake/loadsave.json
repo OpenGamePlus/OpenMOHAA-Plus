@@ -1,0 +1,61 @@
+{
+ "menu": "loadsave",
+ "screen": true,
+ "camera": "Cam_LoadSave",
+ "controls": [
+  {
+   "name": "LoadSaveShot",
+   "kind": "shot",
+   "plate": [
+    "LS_Photo"
+   ]
+  },
+  {
+   "name": "Load Game",
+   "kind": "action",
+   "plate": [
+    "LS_SlipLoad"
+   ],
+   "command": "widgetcommand LoadSaveList loadgame",
+   "lit": [
+    "LS_StampLit_Load"
+   ]
+  },
+  {
+   "name": "Save Game",
+   "kind": "action",
+   "plate": [
+    "LS_SlipSave"
+   ],
+   "command": "widgetcommand LoadSaveList savegame",
+   "lit": [
+    "LS_StampLit_Save"
+   ]
+  },
+  {
+   "name": "Delete Game",
+   "kind": "action",
+   "plate": [
+    "LS_SlipDelete"
+   ],
+   "command": "widgetcommand LoadSaveList removegame",
+   "lit": [
+    "LS_StampLit_Delete"
+   ]
+  },
+  {
+   "name": "LoadSaveList",
+   "kind": "saves",
+   "plate": [
+    "LS_Ledger"
+   ]
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

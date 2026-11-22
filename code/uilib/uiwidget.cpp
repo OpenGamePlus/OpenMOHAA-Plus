@@ -486,6 +486,16 @@ Event EV_Layout_VidMode
     "Set container's vidmode to change to when it's active"
 );
 
+// Added in OpenMOHAA Plus: opt-in, the original menus do not use it
+Event EV_Layout_EscapeCommand
+(
+    "escapecommand",
+    EV_DEFAULT,
+    "s",
+    "command",
+    "Command run when Esc leaves this menu, instead of closing it and restoring its cvars"
+);
+
 CLASS_DECLARATION(USignal, UIWidget, NULL) {
     {&EV_Widget_Hide,               &UIWidget::Hide                    },
     {&EV_Widget_Activate,           &UIWidget::Activate                },
@@ -723,6 +733,7 @@ UIWidget::UIWidget()
     m_anchor[0] = m_anchor[1] = m_anchor[2] = m_anchor[3] = -1;
     m_coverSize[0] = m_coverSize[1] = 0;
     m_coverRectSet                  = false;
+    VectorSet2D(m_coverTextScale, 1, 1);
 
     m_fadeSequenceDelay    = 0;
     m_fadeSequenceFadeIn   = 0;
@@ -811,9 +822,10 @@ void UIWidget::PropogateCoordinateSystem(void)
         m_screenframe   = m_frame;
         m_clippedframe  = m_frame;
 
-        // Fixed in OpenMOHAA Plus: the children of an anchored widget (the scroll bar of the Plus
-        //  browser's list) are placed in it, not from the screen origin
-        if (m_flags & WF_ANCHORED) {
+        // Fixed in OpenMOHAA Plus: the children of an anchored or covering widget (the scroll bar of the
+        //  Plus browser's list, a remake option screen's pulldown) are placed in it, not from the screen
+        //  origin, where the widget's clipping hid them
+        if (m_flags & (WF_ANCHORED | WF_COVER)) {
             m_screenorigin.x = m_frame.pos.x - m_origin.x;
             m_screenorigin.y = m_frame.pos.y - m_origin.y;
         }
@@ -1700,7 +1712,22 @@ UIWidget *UIWidget::FindResponder(const UIPoint2D& pos)
     UIWidget *responder;
     int       i;
 
-    if (!m_visible || !m_clippedframe.contains(pos)) {
+    if (!m_visible) {
+        return NULL;
+    }
+
+    if (!m_clippedframe.contains(pos)) {
+        // Added in OpenMOHAA Plus: children placed on the screen (anchor, cover) can lie outside a
+        //  menu frame shrunk by ui_plusscale; the remake menu's corner buttons took no click at 0.85
+        for (i = m_children.NumObjects(); i >= 1; i--) {
+            subview = m_children.ObjectAt(i);
+            if (subview->m_flags & (WF_ANCHORED | WF_COVER)) {
+                responder = subview->FindResponder(pos);
+                if (responder) {
+                    return responder;
+                }
+            }
+        }
         return NULL;
     }
 
@@ -2456,6 +2483,32 @@ const vec2_t& UIWidget::getVirtualScale() const
     }
 }
 
+// Added in OpenMOHAA Plus: text in a "cover" widget is part of the picture (a sign on a board), so
+//  it scales with the picture, not with the virtual scale (screen height x ui_plusscale); it shrinks
+//  to stay within 90% of the widget's width and 50% of its height, in picture units, so a long or
+//  translated text still fits a small board at every resolution
+void UIWidget::getTextScale(const char *text, vec2_t out) const
+{
+    if (!(m_flags & WF_COVER) || !m_coverRectSet || !m_font) {
+        VectorCopy2D(getVirtualScale(), out);
+        return;
+    }
+
+    const vec2_t unit  = {1, 1};
+    const float  width = m_font->getWidth(text, -1);
+    const float  height = m_font->getHeight(text, -1, unit);
+    float        fit    = 1;
+
+    if (width > 0) {
+        fit = Q_min(fit, m_coverRect.size.width * 0.9f / width);
+    }
+    if (height > 0) {
+        fit = Q_min(fit, m_coverRect.size.height * 0.5f / height);
+    }
+    out[0] = m_coverTextScale[0] * fit;
+    out[1] = m_coverTextScale[1] * fit;
+}
+
 const vec2_t& UIWidget::getHighResScale() const
 {
     return uid.scaleRes;
@@ -2537,11 +2590,16 @@ void UIWidget::ApplyCover(void)
     }
 
     const float k = Q_max(uid.vidWidth / m_coverSize[0], uid.vidHeight / m_coverSize[1]);
+    VectorSet2D(m_coverTextScale, k, k);
 
-    m_frame.pos.x       = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
-    m_frame.pos.y       = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
-    m_frame.size.width  = m_coverRect.size.width * k;
-    m_frame.size.height = m_coverRect.size.height * k;
+    // edges on whole pixels: the 2D viewport (Set2DWindow) takes ints and cut a fractional frame, so
+    //  a hover drew up to 1.5 pixels up and left of the background under it
+    const float x = (uid.vidWidth - m_coverSize[0] * k) * 0.5f + m_coverRect.pos.x * k;
+    const float y = (uid.vidHeight - m_coverSize[1] * k) * 0.5f + m_coverRect.pos.y * k;
+    m_frame.pos.x       = roundf(x);
+    m_frame.pos.y       = roundf(y);
+    m_frame.size.width  = roundf(x + m_coverRect.size.width * k) - m_frame.pos.x;
+    m_frame.size.height = roundf(y + m_coverRect.size.height * k) - m_frame.pos.y;
 }
 
 void UIWidget::SetVirtualScale(vec2_t out)
@@ -2590,6 +2648,7 @@ CLASS_DECLARATION(UIWidget, UIWidgetContainer, NULL) {
     {&EV_Layout_BGFill,     &UIWidgetContainer::SetBGFill    },
     {&EV_Layout_Fullscreen, &UIWidgetContainer::SetFullscreen},
     {&EV_Layout_VidMode,    &UIWidgetContainer::SetVidMode   },
+    {&EV_Layout_EscapeCommand, &UIWidgetContainer::SetEscapeCommand}, // Added in OpenMOHAA Plus
     {NULL,                  NULL                             }
 };
 
@@ -2674,6 +2733,12 @@ void UIWidgetContainer::SetFullscreen(Event *ev)
 void UIWidgetContainer::SetVidMode(Event *ev)
 {
     m_vidmode = ev->GetInteger(1);
+}
+
+// Added in OpenMOHAA Plus
+void UIWidgetContainer::SetEscapeCommand(Event *ev)
+{
+    m_escapeCommand = ev->GetString(1);
 }
 
 int UIWidgetContainer::getVidMode(void)
@@ -2782,20 +2847,21 @@ void UIWidgetContainer::SetLastActiveWidgetOrderNum(void)
 }
 
 // Added in OpenMOHAA Plus: "ui_printwidgets" prints the screen geometry of a menu, in pixels, for
-//  the tests. One line per widget: depth, name, class, shown, rect "x y w h", and for a widget with text
-//  (a label bound to a cvar shows its value) the rect the text is drawn in.
+//  the tests. One line per widget: depth, name, class, shown, rect "x y w h" (two decimals: a frame off
+//  the pixel grid shows), and for a widget with text
+//  (a label: the text it draws) the rect the text is drawn in.
 void UIWidget::PrintGeometry(int depth)
 {
     str         text = Sys_LV_CL_ConvertString(m_title);
     const char *ctext;
 
-    if (!m_title.length() && m_cvarname.length() && isSubclassOf(UILabel)) {
-        text = uii.Cvar_GetString(m_cvarname.c_str(), "");
+    if (isSubclassOf(UILabel)) {
+        text = static_cast<UILabel *>(this)->DisplayText();
     }
     ctext = text.c_str();
 
     uii.Sys_Printf(
-        "widget %d \"%s\" %s shown %d rect %.0f %.0f %.0f %.0f",
+        "widget %d \"%s\" %s shown %d rect %.2f %.2f %.2f %.2f",
         depth,
         m_name.c_str(),
         getClassname(),
@@ -2807,8 +2873,10 @@ void UIWidget::PrintGeometry(int depth)
     );
 
     if (m_font && *ctext) {
-        const float w = m_font->getWidth(ctext, -1) * getVirtualScale()[0];
-        const float h = m_font->getHeight(ctext, -1, getVirtualScale());
+        vec2_t scale;
+        getTextScale(ctext, scale);
+        const float w = m_font->getWidth(ctext, -1) * scale[0];
+        const float h = m_font->getHeight(ctext, -1, scale);
         float       x = m_screenframe.pos.x, y = m_screenframe.pos.y;
 
         if (m_iFontAlignmentHorizontal == FONT_JUSTHORZ_CENTER) {
@@ -2821,7 +2889,11 @@ void UIWidget::PrintGeometry(int depth)
         } else if (m_iFontAlignmentVertical == FONT_JUSTVERT_BOTTOM) {
             y += m_screenframe.size.height - h;
         }
-        uii.Sys_Printf(" text %.0f %.0f %.0f %.0f \"%s\"", x, y, w, h, ctext);
+        str printed; // one line per widget: a line break shows as \n
+        for (const char *c = ctext; *c; c++) {
+            printed += *c == '\n' ? "\\n" : str(*c);
+        }
+        uii.Sys_Printf(" text %.0f %.0f %.0f %.0f \"%s\"", x, y, w, h, printed.c_str());
     }
     uii.Sys_Printf("\n");
 

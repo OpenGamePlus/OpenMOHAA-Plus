@@ -1,0 +1,16 @@
+{
+ "menu": "loadingdesk_default",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadDefault",
+ "controls": [],
+ "loading": {
+  "content": "none",
+  "screens": [
+   {
+    "file": "default",
+    "menu": "loading_default"
+   }
+  ]
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "menu": "loadingdesk_m3l1a",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM3L1A",
+ "controls": [],
+ "heading_plate": [
+  "M3L1A_Heading"
+ ],
+ "body_plate": [
+  "M3L1A_Body"
+ ],
+ "sign_plate": [
+  "M3L1A_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 9,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m3l1a",
+    "menu": "m3l1a",
+    "heading": {
+     "en": "Soldiers, Sailors and Airmen of the Allied Expeditionary Force!",
+     "es": "¡Soldados, marineros y aviadores de la Fuerza Expedicionaria Aliada!"
+    },
+    "body": [
+     {
+      "en": "You are about to embark upon the Great Crusade, toward which we have striven these many months. The eyes of the world are upon you. The hopes and prayers of liberty-loving people everywhere march with you.",
+      "es": "Están a punto de emprender la Gran Cruzada por la que nos hemos esforzado durante tantos meses. Los ojos del mundo están puestos en ustedes. Las esperanzas y oraciones de los pueblos amantes de la libertad marchan con ustedes."
+     },
+     {
+      "en": "In company with our brave Allies and brothers-in-arms on other Fronts, you will bring about the destruction of the German war machine,",
+      "es": "Junto a nuestros valientes aliados y hermanos de armas de otros frentes, provocarán la destrucción de la maquinaria de guerra alemana,"
+     },
+     {
+      "en": "the elimination of Nazi tyranny over the oppressed peoples of Europe, and security for ourselves in a free world.",
+      "es": "el fin de la tiranía nazi sobre los pueblos oprimidos de Europa y la seguridad para nosotros mismos en un mundo libre."
+     },
+     "\n\n",
+     {
+      "en": "Your task will not be an easy one. Your enemy is well trained, well equipped and battle-hardened. He will fight savagely.",
+      "es": "Su tarea no será fácil. El enemigo está bien entrenado, bien equipado y curtido en la batalla. Luchará con ferocidad."
+     },
+     "\n\n",
+     {
+      "en": "But this is the year 1944! The tide has turned! The free men of the world are marching together to Victory!",
+      "es": "¡Pero este es el año 1944! ¡La marea ha cambiado! ¡Los hombres libres del mundo marchan juntos hacia la Victoria!"
+     },
+     "\n\n",
+     {
+      "en": "I have full confidence in your courage, devotion to duty and skill in battle. We will accept nothing less than full Victory!",
+      "es": "Tengo plena confianza en su valor, su entrega al deber y su destreza en el combate. ¡No aceptaremos nada que no sea la Victoria completa!"
+     },
+     "\n\n",
+     {
+      "en": "Good Luck! And let us all beseech the blessing of Almighty God upon this great and noble undertaking.",
+      "es": "¡Buena suerte! E imploremos todos la bendición de Dios Todopoderoso sobre esta grande y noble empresa."
+     }
+    ],
+    "sign": {
+     "en": "DWIGHT D. EISENHOWER\nSupreme Commander",
+     "es": "DWIGHT D. EISENHOWER\nComandante Supremo"
+    }
+   }
+  ]
+ }
+}

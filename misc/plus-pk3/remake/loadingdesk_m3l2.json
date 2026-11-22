@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m3l2",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM3L2",
+ "controls": [],
+ "heading_plate": [
+  "M3L2_Heading"
+ ],
+ "body_plate": [
+  "M3L2_Body"
+ ],
+ "sign_plate": [
+  "M3L2_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m3l2",
+    "menu": "m3l2",
+    "heading": {
+     "en": "Battle in the Bocage - Normandy, France\nJune 7, 1944",
+     "es": "Batalla en el bocage - Normandía, Francia\n7 de junio de 1944"
+    },
+    "body": [
+     {
+      "en": "Well done on Omaha. Your conduct there has earned you a special assignment with Captain Ramsey of A Company. Things are grim in the bocage. The thick hedgerows beyond the beach make perfect defensive ground for the Germans.",
+      "es": "Bien hecho en Omaha. Su actuación allí le ha valido una misión especial con el capitán Ramsey, de la Compañía A. La situación en el bocage es dura. Los densos setos tras la playa son un terreno defensivo perfecto para los alemanes."
+     },
+     "\n\n",
+     {
+      "en": "Every push runs into MG42s, mortars and 88s covering each other. Scattered drops left ground meant for the 82nd and 101st Airborne still in enemy hands.",
+      "es": "Cada avance choca con MG42, morteros y 88 que se cubren entre sí. Los lanzamientos dispersos han dejado en manos enemigas terreno que debían tomar la 82.ª y la 101.ª Aerotransportadas."
+     },
+     "\n\n",
+     {
+      "en": "Break through their lines, upset their defences and join up with the 101st paratroopers sent after a special target between Isigny and Carentan. If they are too few, or dead, finish their job with Ramsey.",
+      "es": "Rompa sus líneas, desbarate sus defensas y únase a los paracaidistas de la 101.ª enviados contra un objetivo especial entre Isigny y Carentan. Si son pocos, o han caído, termine su trabajo con Ramsey."
+     },
+     "\n\n",
+     {
+      "en": "A jeep will take you part of the way. Leave it before the roads near the target, which the 88s watch. You will get the rest in the field. Good luck, Lieutenant.",
+      "es": "Un jeep lo llevará parte del camino. Déjelo antes de las carreteras cercanas al objetivo, que vigilan los 88. El resto lo sabrá sobre el terreno. Buena suerte, teniente."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

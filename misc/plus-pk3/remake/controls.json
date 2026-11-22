@@ -1,0 +1,81 @@
+{
+ "menu": "controls",
+ "screen": true,
+ "camera": "Cam_Controls",
+ "controls": [
+  {
+   "name": "keys",
+   "kind": "binds",
+   "plate": [
+    "Unit_Keyboard_Card"
+   ]
+  },
+  {
+   "name": "mouse speed",
+   "kind": "slider",
+   "plate": [
+    "Unit_Keyboard_lbl_SPEED_plate"
+   ],
+   "cvar": "sensitivity",
+   "range": [
+    1,
+    20
+   ],
+   "step": 1,
+   "format": "%.0f"
+  },
+  {
+   "name": "invert mouse",
+   "kind": "check",
+   "lamp": [
+    "CtlLamp_INVERT_MOUSE_Bezel"
+   ],
+   "plate": [
+    "Unit_Keyboard_lbl_INVERT MOUSE"
+   ],
+   "cvar": "m_invert_pitch",
+   "checked_command": "set m_pitch -0.022",
+   "unchecked_command": "set m_pitch 0.022"
+  },
+  {
+   "name": "smooth mouse",
+   "kind": "check",
+   "lamp": [
+    "CtlLamp_SMOOTH_MOUSE_Bezel"
+   ],
+   "plate": [
+    "Unit_Keyboard_lbl_SMOOTH MOUSE"
+   ],
+   "cvar": "m_filter"
+  },
+  {
+   "name": "always run",
+   "kind": "check",
+   "lamp": [
+    "CtlLamp_ALWAYS_RUN_Bezel"
+   ],
+   "plate": [
+    "Unit_Keyboard_lbl_ALWAYS RUN"
+   ],
+   "cvar": "cl_run"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "ui_discardlatched; popmenu 0"
+  },
+  {
+   "title": "Apply",
+   "side": "right",
+   "command": "popmenu 0; wait; wait; ui_applylatched"
+  },
+  {
+   "title": "Defaults",
+   "side": "right",
+   "slot": 1,
+   "command": "ui_resetcvars; exec default.cfg"
+  }
+ ]
+}

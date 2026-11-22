@@ -1,0 +1,335 @@
+{
+ "menu": "joinnetgame",
+ "screen": true,
+ "camera": "Cam_ServerList",
+ "controls": [
+  {
+   "name": "netgamelist",
+   "kind": "servers",
+   "class": "FAKKServerList",
+   "plate": [
+    "MPL_P_List"
+   ],
+   "ink": "light"
+  },
+  {
+   "name": "status",
+   "kind": "text",
+   "plate": [
+    "MPL_P_Status"
+   ],
+   "cvar": "dm_serverstatus",
+   "ink": "light"
+  },
+  {
+   "name": "add favourite",
+   "kind": "action",
+   "plate": [
+    "MPL_P_AddFavourite"
+   ],
+   "lit": [
+    "MPL_P_AddFavourite_Lit"
+   ],
+   "command": "widgetcommand netgamelist addfavorite"
+  },
+  {
+   "name": "remove favourite",
+   "kind": "action",
+   "plate": [
+    "MPL_P_RemoveFavourite"
+   ],
+   "lit": [
+    "MPL_P_RemoveFavourite_Lit"
+   ],
+   "command": "widgetcommand netgamelist removefavorite"
+  },
+  {
+   "name": "search",
+   "kind": "field",
+   "plate": [
+    "MPL_P_Search"
+   ],
+   "cvar": "dm_browser_search",
+   "ink": "light",
+   "command": "widgetcommand netgamelist restartrefresh //"
+  },
+  {
+   "name": "max ping",
+   "kind": "list",
+   "knob": [
+    "MPL_Knob_F_PING"
+   ],
+   "plate": [
+    "MPL_P_F_PING"
+   ],
+   "cvar": "dm_max_ping",
+   "ink": "light",
+   "items": [
+    [
+     "No limit",
+     "set dm_max_ping 0;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "50",
+     "set dm_max_ping 50;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "100",
+     "set dm_max_ping 100;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "150",
+     "set dm_max_ping 150;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "250",
+     "set dm_max_ping 250;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "400",
+     "set dm_max_ping 400;widgetcommand netgamelist restartrefresh"
+    ]
+   ]
+  },
+  {
+   "name": "min players",
+   "kind": "list",
+   "knob": [
+    "MPL_Knob_F_MINPLAYERS"
+   ],
+   "plate": [
+    "MPL_P_F_MINPLAYERS"
+   ],
+   "cvar": "dm_min_players",
+   "ink": "light",
+   "items": [
+    [
+     "Any",
+     "set dm_min_players 0;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "1",
+     "set dm_min_players 1;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "4",
+     "set dm_min_players 4;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "8",
+     "set dm_min_players 8;widgetcommand netgamelist restartrefresh"
+    ]
+   ]
+  },
+  {
+   "name": "max players",
+   "kind": "list",
+   "knob": [
+    "MPL_Knob_F_MAXPLAYERS"
+   ],
+   "plate": [
+    "MPL_P_F_MAXPLAYERS"
+   ],
+   "cvar": "dm_max_players",
+   "ink": "light",
+   "items": [
+    [
+     "No limit",
+     "set dm_max_players 0;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "8",
+     "set dm_max_players 8;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "16",
+     "set dm_max_players 16;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "24",
+     "set dm_max_players 24;widgetcommand netgamelist restartrefresh"
+    ],
+    [
+     "32",
+     "set dm_max_players 32;widgetcommand netgamelist restartrefresh"
+    ]
+   ]
+  },
+  {
+   "name": "free-for-all",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_FFA_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_FFA"
+   ],
+   "cvar": "dm_free_for_all",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "team match",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_TEAM_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_TEAM"
+   ],
+   "cvar": "dm_team_match",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "round-based",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_ROUND_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_ROUND"
+   ],
+   "cvar": "dm_round_based_match",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "objective",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_OBJECTIVE_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_OBJECTIVE"
+   ],
+   "cvar": "dm_objective_match",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "tug of war",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_TOW_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_TOW"
+   ],
+   "cvar": "dm_tow_match",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "liberation",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_LIBERATION_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_LIBERATION"
+   ],
+   "cvar": "dm_liberation_match",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "hide empty",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_EMPTY_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_EMPTY"
+   ],
+   "cvar": "dm_filter_empty",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "hide full",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_FULL_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_FULL"
+   ],
+   "cvar": "dm_filter_full",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "sprint",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_SPRINT_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_SPRINT"
+   ],
+   "cvar": "dm_run_fast",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "no sprint",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_NOSPRINT_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_NOSPRINT"
+   ],
+   "cvar": "dm_run_normal",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  },
+  {
+   "name": "pure only",
+   "kind": "check",
+   "lamp": [
+    "MPL_Lamp_F_PURE_Bezel"
+   ],
+   "plate": [
+    "MPL_P_F_PURE"
+   ],
+   "cvar": "dm_filter_pure",
+   "checked_command": "widgetcommand netgamelist restartrefresh",
+   "unchecked_command": "widgetcommand netgamelist restartrefresh"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  },
+  {
+   "title": "Refresh",
+   "widget": "refresh",
+   "side": "right",
+   "command": "widgetcommand netgamelist refreshserverlist"
+  },
+  {
+   "title": "Cancel",
+   "widget": "cancelrefresh",
+   "side": "right",
+   "command": "widgetcommand netgamelist cancelrefresh"
+  },
+  {
+   "title": "Join Game",
+   "widget": "join game",
+   "side": "right",
+   "slot": 1,
+   "command": "widgetcommand netgamelist connect"
+  },
+  {
+   "title": "Update",
+   "widget": "update server",
+   "side": "right",
+   "slot": 2,
+   "command": "widgetcommand netgamelist updateserver"
+  }
+ ]
+}

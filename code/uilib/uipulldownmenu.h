@@ -62,6 +62,7 @@ protected:
     UColor                       m_highlightBGColor;
     UColor                       m_highlightFGColor;
     str                          m_valueTitle; // Added in OpenMOHAA Plus: see setValue
+    bool                         m_placedList; // Added in OpenMOHAA Plus: see setValue
     UIFont                      *m_valueFont;  // Added in OpenMOHAA Plus: the container's font, not owned
     bool                         m_stayOpen;   // Added in OpenMOHAA Plus: the popup opened by a click stays open
 
@@ -99,6 +100,6 @@ public:
     void setSelectedPulldownShader(const char *title, UIReggedMaterial *mat);
     void Realign(void) override;
     void Draw(void) override;
-    void setValue(const str& title, UIFont *font); // Added in OpenMOHAA Plus
+    void setValue(const str& title, UIFont *font, bool placed = false); // Added in OpenMOHAA Plus
     void PrintGeometry(int depth) override;        // Added in OpenMOHAA Plus: ui_printwidgets
 };

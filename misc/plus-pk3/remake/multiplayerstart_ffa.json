@@ -1,0 +1,141 @@
+{
+ "menu": "multiplayerstart_ffa",
+ "screen": true,
+ "camera": "Cam_Start",
+ "controls": [
+  {
+   "name": "select map",
+   "kind": "action",
+   "plate": [
+    "MPS_P_SelectMap"
+   ],
+   "lit": [
+    "MPS_P_SelectMap_Lit"
+   ],
+   "command": "dmmapselect dm dm"
+  },
+  {
+   "name": "map",
+   "kind": "text",
+   "plate": [
+    "MPS_P_Map"
+   ],
+   "cvar": "ui_dmmap",
+   "ink": "light"
+  },
+  {
+   "name": "inactive spectate",
+   "kind": "field",
+   "plate": [
+    "MPS_P_Spectate"
+   ],
+   "cvar": "ui_inactivespectate",
+   "ink": "light"
+  },
+  {
+   "name": "inactive kick",
+   "kind": "field",
+   "plate": [
+    "MPS_P_Kick"
+   ],
+   "cvar": "ui_inactivekick",
+   "ink": "light"
+  },
+  {
+   "name": "max players",
+   "kind": "field",
+   "plate": [
+    "MPS_P_MaxPlayers"
+   ],
+   "cvar": "ui_maxclients",
+   "ink": "light"
+  },
+  {
+   "name": "score limit",
+   "kind": "field",
+   "plate": [
+    "MPS_P_ScoreLimit"
+   ],
+   "cvar": "ui_fraglimit",
+   "ink": "light"
+  },
+  {
+   "name": "time limit",
+   "kind": "field",
+   "plate": [
+    "MPS_P_TimeLimit"
+   ],
+   "cvar": "ui_timelimit",
+   "ink": "light"
+  },
+  {
+   "name": "map rotation",
+   "kind": "field",
+   "plate": [
+    "MPS_P_Rotation"
+   ],
+   "cvar": "ui_maplist_ffa",
+   "ink": "light"
+  },
+  {
+   "name": "default map rotation",
+   "kind": "action",
+   "plate": [
+    "MPS_P_DefaultRotation"
+   ],
+   "lit": [
+    "MPS_P_DefaultRotation_Lit"
+   ],
+   "command": "exec maplist_ffa"
+  },
+  {
+   "name": "server name",
+   "kind": "field",
+   "plate": [
+    "MPS_P_ServerName"
+   ],
+   "cvar": "ui_hostname",
+   "ink": "light"
+  },
+  {
+   "name": "dedicated server",
+   "kind": "check",
+   "lamp": [
+    "MPS_L_Dedicated"
+   ],
+   "plate": [
+    "MPS_P_Dedicated"
+   ],
+   "cvar": "ui_dedicated"
+  },
+  {
+   "name": "list on internet",
+   "kind": "check",
+   "lamp": [
+    "MPS_L_Internet"
+   ],
+   "plate": [
+    "MPS_P_Internet"
+   ],
+   "cvar": "ui_gamespy"
+  },
+  {
+   "name": "start game",
+   "kind": "action",
+   "plate": [
+    "MPS_P_StartGame"
+   ],
+   "lit": [
+    "MPS_P_StartGame_Lit"
+   ],
+   "command": "ui_startdmmap 1 Free-For-All ui_maplist_ffa"
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

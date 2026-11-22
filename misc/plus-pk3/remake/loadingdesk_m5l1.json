@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m5l1",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM5L1",
+ "controls": [],
+ "heading_plate": [
+  "M5L1_Heading"
+ ],
+ "body_plate": [
+  "M5L1_Body"
+ ],
+ "sign_plate": [
+  "M5L1_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m5l1",
+    "menu": "m5l1a",
+    "heading": {
+     "en": "Sniper's Last Stand - Brittany, France\nAugust 20, 1944",
+     "es": "La última trinchera del francotirador - Bretaña, Francia\n20 de agosto de 1944"
+    },
+    "body": [
+     {
+      "en": "Reports place a King Tiger under repair, its tracks off, in a small town ten miles from Brest. One of our tank crews, freed from other duties, is on its way to meet you there.",
+      "es": "Los informes sitúan un Tigre Real en reparación, sin orugas, en un pueblo a diez millas de Brest. Una de nuestras tripulaciones de carros, libre de otras tareas, va a reunirse con usted allí."
+     },
+     "\n\n",
+     {
+      "en": "Men of the 28th passing through keep running into German snipers, so we cannot say where the crew is hiding. They will lie low until you find them.",
+      "es": "Los hombres de la 28.ª que pasan por allí tropiezan una y otra vez con francotiradores alemanes, así que no sabemos dónde se esconde la tripulación. Se mantendrán ocultos hasta que usted los encuentre."
+     },
+     "\n\n",
+     {
+      "en": "The tank is well guarded somewhere near the town hall. Clear the town and bring the crew to it. A week of shelling has made the town a sniper's paradise. Move slowly through the rubble.",
+      "es": "El tanque está bien vigilado en algún lugar cerca del ayuntamiento. Limpie el pueblo y lleve hasta él a la tripulación. Una semana de bombardeos ha convertido el pueblo en un paraíso para francotiradores. Avance despacio entre los escombros."
+     },
+     "\n\n",
+     {
+      "en": "Good luck. That crew has watched too many Shermans burn under Tiger guns, and they want to settle the score.",
+      "es": "Buena suerte. Esa tripulación ha visto arder demasiados Sherman bajo los cañones de los Tiger y quiere saldar la cuenta."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

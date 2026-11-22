@@ -1,0 +1,73 @@
+{
+ "menu": "war_records",
+ "sign_cvar": "ui_recordsign",
+ "hotspots": [
+  {
+   "name": "sign",
+   "board": true,
+   "objects": [
+    "Board_Frame",
+    "Board_Felt"
+   ]
+  },
+  {
+   "name": "personal records",
+   "objects": [
+    "Box_*"
+   ],
+   "command": "pushmenu medals",
+   "sign": "personalrecords_sign",
+   "text": "Personal Records",
+   "lights": [
+    "Lamp_L",
+    "Hover_Box"
+   ]
+  },
+  {
+   "name": "loadsave",
+   "objects": [
+    "Tray*",
+    "Letter_Trays"
+   ],
+   "command": "pushmenu_sp loadsave;pushmenu_dm loadsave_mp",
+   "sign": "loadsave_sign",
+   "text": "Load / Save",
+   "lights": [
+    "Lamp_R",
+    "Hover_Trays"
+   ]
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ],
+ "off": [
+  "Map_Spot",
+  "Pend_Metal_Map",
+  "Board_Accent",
+  "BackRoom_Light",
+  "Pend_A_Light",
+  "Pend_Metal_A",
+  "Hover_Briefing",
+  "SideRoom_Light",
+  "Wall_Lamp_R0*",
+  "Wall_Lamp_R1*",
+  "Hover_Multiplayer",
+  "Wall_Lamp_L",
+  "Wall_Lamp_L_Light",
+  "SideLamp_Light",
+  "Unit_Speaker_l0.34-0.12",
+  "Lamp_F_*",
+  "Pend_Green_*",
+  "Hover_Records",
+  "Bench_Soft",
+  "Lamp_Mid_Light",
+  "DeskLamp_Light",
+  "Hover_Credits",
+  "Hover_Board"
+ ]
+}

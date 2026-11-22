@@ -50,6 +50,21 @@ class MakeFonts(unittest.TestCase):
         total = sum(locations[indirection[ord(c)]][2] for c in make_fonts.SAMPLE)
         self.assertAlmostEqual(total, 477.0, delta=477.0 * 0.03)   # rounding per glyph
 
+    def test_sign_font_in_default_build(self):
+        import contextlib, io, tempfile
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            make_fonts.main(["--out", tmp + os.sep])
+            with open(os.path.join(tmp, "fonts", "plussign-32.RitualFont"), encoding="latin-1", newline="") as f:
+                text = f.read()
+            with open(os.path.join(tmp, "gfx", "fonts", "plussign-32.tga"), "rb") as f:
+                tga = f.read()
+        self.assertTrue(text.startswith("RitFont\r\nheight 32.000000\r\n"))
+        self.assertEqual(struct.unpack("<H", tga[12:14])[0], 256 * make_fonts.FONT_SCALES["plussign-32"])
+        self.assertEqual(make_fonts.FONT_SCALES["plussign-32"], 3)
+        indirection = [int(v) for v in re.search(r"indirections\s*\{([^}]*)\}", text).group(1).split()]
+        for ch in "ÁÑÉ":
+            self.assertGreaterEqual(indirection[ch.encode("cp1252")[0]], 0, ch)
+
 
 if __name__ == "__main__":
     unittest.main()

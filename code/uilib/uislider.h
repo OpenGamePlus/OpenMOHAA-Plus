@@ -53,6 +53,10 @@ class UISlider : public UIWidget
     UIReggedMaterial *m_prev_arrow_material_pressed;
     UIReggedMaterial *m_next_arrow_material_pressed;
     UIReggedMaterial *m_thumbmaterial_pressed;
+    // Added in OpenMOHAA Plus: "showvalue" (empty format: the original look)
+    str               m_valueFormat;
+    float             m_valueScale;
+    float             m_valueWidth; // pixels right of the track kept for the value
 
 public:
     CLASS_PROTOTYPE(UISlider);
@@ -75,6 +79,8 @@ private:
     void LayoutSliderThumbShader(Event *ev);
     void LayoutSliderLeftShader(Event *ev);
     void LayoutSliderRightShader(Event *ev);
+    void LayoutShowValue(Event *ev); // Added in OpenMOHAA Plus
+    str  ValueText(float value);     // Added in OpenMOHAA Plus
 
 public:
     UISlider();
@@ -82,6 +88,7 @@ public:
     void     Draw(void) override;
     void     FrameInitialized(void) override;
     qboolean KeyEvent(int key, unsigned int time) override;
+    void     PrintGeometry(int depth) override; // Added in OpenMOHAA Plus
     void     UpdateData(void) override;
     void     UpdateUIElement(void) override;
     void     setType(slidertype_t type);

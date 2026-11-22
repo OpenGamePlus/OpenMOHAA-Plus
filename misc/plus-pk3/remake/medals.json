@@ -1,0 +1,111 @@
+{
+ "menu": "medals",
+ "screen": true,
+ "camera": "Cam_Medals",
+ "sign_cvar": "ui_medalsign",
+ "name_plate": [
+  "Case_Linen"
+ ],
+ "desc_plate": [
+  "Case_DescCard"
+ ],
+ "controls": [
+  {
+   "name": "army commendation",
+   "kind": "medal",
+   "medal": [
+    "Medal_armycommendation"
+   ],
+   "cvar": "g_medal0",
+   "title": "Army Commendation Medal",
+   "desc": "For meritorious service or achievement."
+  },
+  {
+   "name": "distinguished service",
+   "kind": "medal",
+   "medal": [
+    "Medal_distinguishedservice"
+   ],
+   "cvar": "g_medal1",
+   "title": "Distinguished Service Medal",
+   "desc": "For exceptionally meritorious service in a duty of great responsibility."
+  },
+  {
+   "name": "legion of merit",
+   "kind": "medal",
+   "medal": [
+    "Medal_legionmerit"
+   ],
+   "cvar": "g_medal2",
+   "title": "Legion of Merit",
+   "desc": "For exceptionally meritorious conduct in outstanding services."
+  },
+  {
+   "name": "good conduct",
+   "kind": "medal",
+   "medal": [
+    "Medal_goodconduct"
+   ],
+   "cvar": "g_medal3",
+   "title": "Good Conduct Medal",
+   "desc": "For exemplary behaviour, efficiency and fidelity."
+  },
+  {
+   "name": "norwegian war cross",
+   "kind": "medal",
+   "medal": [
+    "Medal_norwegiancross"
+   ],
+   "cvar": "g_medal4",
+   "title": "Norwegian War Cross",
+   "desc": "Norway's highest award for gallantry in battle."
+  },
+  {
+   "name": "american campaign",
+   "kind": "medal",
+   "medal": [
+    "Medal_americanmedal"
+   ],
+   "cvar": "g_medal5",
+   "title": "American Campaign Medal",
+   "desc": "For service within the American Theater."
+  },
+  {
+   "name": "distinguished service cross",
+   "kind": "medal",
+   "medal": [
+    "Medal_distinguishedcross"
+   ],
+   "cvar": "g_eogmedal0",
+   "title": "Distinguished Service Cross",
+   "desc": "For extraordinary heroism in combat."
+  },
+  {
+   "name": "silver star",
+   "kind": "medal",
+   "medal": [
+    "Medal_silverstar"
+   ],
+   "cvar": "g_eogmedal1",
+   "title": "Silver Star",
+   "desc": "For gallantry in action against an enemy."
+  },
+  {
+   "name": "bronze star",
+   "kind": "medal",
+   "medal": [
+    "Medal_bronzestar"
+   ],
+   "cvar": "g_eogmedal2",
+   "title": "Bronze Star",
+   "desc": "For heroic or meritorious achievement in combat."
+  }
+ ],
+ "corners": [
+  {
+   "title": "Back",
+   "side": "left",
+   "command": "popmenu 0"
+  }
+ ]
+}

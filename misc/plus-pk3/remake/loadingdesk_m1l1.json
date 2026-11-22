@@ -1,0 +1,63 @@
+{
+ "menu": "loadingdesk_m1l1",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM1L1",
+ "controls": [],
+ "heading_plate": [
+  "M1_Heading"
+ ],
+ "body_plate": [
+  "M1_Body"
+ ],
+ "sign_plate": [
+  "M1_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m1l1",
+    "menu": "m1l1",
+    "heading": {
+     "en": "Rangers Lead the Way - Algeria, North Africa\nNovember 7, 1942",
+     "es": "Los Rangers abren camino - Argelia, norte de África\n7 de noviembre de 1942"
+    },
+    "body": [
+     {
+      "en": "Well done getting ashore. Now the real work starts. We have taken two German Opel trucks, and they will carry your squad to a small village on the shore.",
+      "es": "Buen trabajo en el desembarco. Ahora empieza lo difícil. Hemos capturado dos camiones Opel alemanes que llevarán a su pelotón hasta una pequeña aldea de la costa."
+     },
+     {
+      "en": "It is the last place our missing agent was heard from before Arzew. Secure it quickly and do not let a single sentry slip away to warn the garrison in Arzew.",
+      "es": "Es el último lugar desde donde supimos de nuestro agente desaparecido antes de Arzew. Tómela rápido y no deje que ningún centinela escape para alertar a la guarnición de Arzew."
+     },
+     {
+      "en": "You ride with the assault team in the first truck.",
+      "es": "Usted irá con el equipo de asalto en el primer camión."
+     },
+     "\n\n",
+     {
+      "en": "Intelligence says the enemy is thin on the ground here. I would not bet on it. Take no needless risks.",
+      "es": "Inteligencia dice que aquí el enemigo es escaso. Yo no apostaría por ello. No corra riesgos innecesarios."
+     },
+     {
+      "en": "Captain Richards commands the mission; follow his orders to the letter. Lieutenant Powell, as his second, you will hold the rear and back up the assault on the village.",
+      "es": "El capitán Richards dirige la misión: siga sus órdenes al pie de la letra. Teniente Powell, como su segundo, cubrirá la retaguardia y apoyará el asalto a la aldea."
+     },
+     "\n\n",
+     {
+      "en": "One last word: the M1 Garand cannot be topped up in the middle of a clip. Empty it before you reload.",
+      "es": "Una última advertencia: el M1 Garand no se puede recargar a mitad de un peine. Vacíelo antes de recargar."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "skip": {
+  "mission1_briefing": [
+   "briefing1a",
+   "spmap m1l1"
+  ],
+  "mission2_briefing": [
+   "briefing2a",
+   "spmap m2l1"
+  ],
+  "mission3_briefing": [
+   "briefing3a",
+   "spmap m3l1a"
+  ],
+  "mission4_briefing": [
+   "briefing4a",
+   "spmap m4l1"
+  ],
+  "mission5_briefing": [
+   "briefing5a",
+   "spmap m5l1a"
+  ],
+  "mission6_briefing": [
+   "briefing6a",
+   "spmap m6l1a"
+  ]
+ },
+ "slides": {
+  "briefing1a": "briefing1a",
+  "briefing1b": "sabotage",
+  "briefing1c": "portphoto",
+  "briefing1c2": "torch",
+  "briefing1d": "afrika88s",
+  "briefing1e": "arzewaerial",
+  "briefing1f": "grillo_id",
+  "briefing1f2": "pill",
+  "briefing1g": "osseagle1",
+  "briefing2a": "briefing2a",
+  "briefing2b": "defeat",
+  "briefing2b2": "subdiving",
+  "briefing2b3": "naxos",
+  "briefing2b4": "subpen2",
+  "briefing2b5": "naxos2",
+  "briefing2b6": "documents",
+  "briefing2c": "subpen",
+  "briefing2d": "subpen",
+  "briefing2e": "convoy",
+  "briefing2f": "osseagle2",
+  "briefing3a": "briefing3a",
+  "briefing3b": "subsink",
+  "briefing3b2": "beachhead",
+  "briefing3c": "normandycoast",
+  "briefing3c2": "invasionfleet",
+  "briefing3c3": "higginsboat",
+  "briefing3c4": "bootcamp",
+  "briefing3d": "landingmap",
+  "briefing3e": "defenses",
+  "briefing3f": "bombers",
+  "briefing3g": "battleship",
+  "briefing3h": "airborne",
+  "briefing3i": "osseagle3",
+  "briefing4a": "briefing4a",
+  "briefing4b": "omahalanding",
+  "briefing4b2": "francemap2",
+  "briefing4c": "manorhouse",
+  "briefing4d": "mannon",
+  "briefing4e": "blurrytiger",
+  "briefing4f": "osseagle4",
+  "briefing5a": "briefing5a",
+  "briefing5a2": "brestmap",
+  "briefing5a3": "nazitroops",
+  "briefing5b": "shoreguns",
+  "briefing5c": "m5bridge",
+  "briefing5d": "kingtiger",
+  "briefing5e": "osseagle5",
+  "briefing6a": "briefing6a",
+  "briefing6b": "schmerzenaerial",
+  "briefing6b2": "powtrain",
+  "briefing6c": "rangers",
+  "briefing6c2": "radioshack",
+  "briefing6d": "briefing_train",
+  "briefing6d2": "schmerzen",
+  "briefing6e": "osseagle6"
+ }
+}

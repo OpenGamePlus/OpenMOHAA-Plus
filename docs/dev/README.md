@@ -11,7 +11,7 @@ duplicated here.
 | Game module, events, script VM, savegames | [architecture/game-and-script.md](architecture/game-and-script.md) |
 | Client audio and platform notes | [architecture/client-audio.md](architecture/client-audio.md) |
 | Vulkan renderer | [architecture/renderer-vulkan.md](architecture/renderer-vulkan.md) |
-| UI library and the Plus menu | [architecture/ui-menus.md](architecture/ui-menus.md) |
+| UI library and the Remake menu | [architecture/ui-menus.md](architecture/ui-menus.md) |
 | Decisions | [architecture/adr/README.md](architecture/adr/README.md) |
 | Building | [development/compiling.md](development/compiling.md) |
 | Testing (headless recipes) | [development/testing.md](development/testing.md) |

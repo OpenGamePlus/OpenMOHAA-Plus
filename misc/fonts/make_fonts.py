@@ -13,7 +13,8 @@ size on screen does not change: the game reads glyph sizes in nominal pixels.
 
 Requires Pillow (python3 -m pip install pillow). The default set uses the DejaVu fonts
 (Bitstream Vera license, DejaVu changes in the public domain); handle-* (ornamental) and marlett
-(symbols) are not replaced.
+(symbols) are not replaced. It also builds the fork's own plussign-32 (serif, for the Remake menu's
+board signs) at 3x.
 """
 import argparse
 import io
@@ -40,7 +41,10 @@ DEFAULT_SET = {
     "courier-16": "DejaVuSansMono-Bold.ttf",
     "courier-18": "DejaVuSansMono-Bold.ttf",
     "courier-20": "DejaVuSansMono-Bold.ttf",
+    "plussign-32": "DejaVuSerif-Bold.ttf",  # fork font: the Remake menu's board signs
 }
+# texture scale instead of --scale in the default set: signs are drawn large (k = 3 at 1440p)
+FONT_SCALES = {"plussign-32": 3}
 # the game's HUD font is light grey with a dark outline (readable on bright walls); the others are white
 STYLES = {"facfont-20": {"fill": 219, "outline": True}}
 # the game's text is single-byte Windows-1252: printable ASCII and 0x80-0xFF
@@ -223,7 +227,8 @@ def main(argv=None):
         if not os.path.exists(path):
             ap.error(f"{name}: {path} not found")
         style = STYLES.get(name, {}) if not args.font else {}
-        text, tga, count = build(name, height, path, args.scale, references.get(name), **style)
+        scale = FONT_SCALES.get(name, args.scale) if not args.font else args.scale
+        text, tga, count = build(name, height, path, scale, references.get(name), **style)
         files[f"fonts/{name}.RitualFont"] = text.encode("ascii")
         files[f"gfx/fonts/{name}.tga"] = tga
         print(f"{name}: {count} glyphs from {os.path.basename(path)}")

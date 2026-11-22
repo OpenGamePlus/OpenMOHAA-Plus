@@ -72,6 +72,8 @@ public:
     void setColor(UColor col);
     void setAlpha(float alpha);
     void setFont(const char *fontname);
+    // Added in OpenMOHAA Plus: a Plus pulldown's list uses the pulldown's font
+    const char *getName() const { return name.c_str(); }
     int  getMaxWidthIndex(const char *text, int maxlen);
     int  getWidth(const char *text, int maxlen);
     int  getCharWidth(unsigned short ch);

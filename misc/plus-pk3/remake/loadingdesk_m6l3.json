@@ -1,0 +1,56 @@
+{
+ "menu": "loadingdesk_m6l3",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_LoadM6L3",
+ "controls": [],
+ "heading_plate": [
+  "M6L3_Heading"
+ ],
+ "body_plate": [
+  "M6L3_Body"
+ ],
+ "sign_plate": [
+  "M6L3_Sign"
+ ],
+ "loading": {
+  "content": "typed",
+  "line": 10,
+  "font": "courier-16",
+  "screens": [
+   {
+    "file": "m6l3",
+    "menu": "m6l3a",
+    "heading": {
+     "en": "Storming Fort Schmerzen - Siegfried Line, Germany\nJanuary 18, 1945",
+     "es": "Asalto al Fuerte Schmerzen - Línea Sigfrido, Alemania\n18 de enero de 1945"
+    },
+    "body": [
+     {
+      "en": "Lieutenant Powell, your Rangers are among our finest, and frontal charges have wasted them until now. They were made as our answer to the British Commandos; with this mission they go back to that.",
+      "es": "Teniente Powell, sus Rangers están entre los mejores que tenemos, y hasta ahora los cargas frontales los han desperdiciado. Se crearon como nuestra respuesta a los Comandos británicos; con esta misión vuelven a serlo."
+     },
+     "\n\n",
+     {
+      "en": "When the boxcar doors open, storm the platform and drop the snipers in the towers before they react. Inside, open the cellblock doors and free the prisoners.",
+      "es": "Cuando se abran las puertas de los vagones, tome el andén y abata a los francotiradores de las torres antes de que reaccionen. Dentro, abra las puertas de las celdas y libere a los prisioneros."
+     },
+     "\n\n",
+     {
+      "en": "While they are taken to the train, find the weak points marked on Patterson's diagrams and photographs; your compass will guide you. The lowest levels may still hold mustard gas. Find a gas mask first.",
+      "es": "Mientras los llevan al tren, busque los puntos débiles marcados en los planos y fotografías de Patterson; la brújula lo guiará. Puede que los niveles inferiores aún tengan gas mostaza. Consiga antes una máscara."
+     },
+     "\n\n",
+     {
+      "en": "Set the charges and reach the train before it all comes down on Colonel Müller and his plans. Whatever happens, it has been an honour to serve with you.",
+      "es": "Coloque las cargas y llegue al tren antes de que todo se desplome sobre el coronel Müller y sus planes. Pase lo que pase, ha sido un honor servir con usted."
+     }
+    ],
+    "sign": {
+     "en": "Stanley Hargrove\nColonel, U. S. Army,\nCommanding.",
+     "es": "Stanley Hargrove\nCoronel, Ejército de EE. UU.,\nAl mando."
+    }
+   }
+  ]
+ }
+}

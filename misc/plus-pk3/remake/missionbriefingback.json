@@ -1,0 +1,7 @@
+{
+ "menu": "missionbriefingback",
+ "screen": true,
+ "include": true,
+ "camera": "Cam_Briefing",
+ "controls": []
+}
